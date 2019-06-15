@@ -38,7 +38,7 @@ class Scheduler:
         self._updateCutoff()
 
     def getCard(self):
-        "Pop the next card from the queue. None if finished."
+        "Pop the next card id from the queue. None if finished."
         self._checkDay()
         if not self._haveQueues:
             self.reset()
@@ -147,6 +147,7 @@ order by due""" % (self._deckLimit()),
         return card.queue
 
     def answerButtons(self, card):
+        """Number of buttons to show for this card"""
         conf = self._cardConf(card)
         if card.odid and not conf['resched']:
             return 2
