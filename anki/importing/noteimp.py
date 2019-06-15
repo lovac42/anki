@@ -50,6 +50,16 @@ ignoreMode = 1
 addMode = 2
 
 class NoteImporter(Importer):
+    """TODO
+
+    keyword arguments:
+    mapping -- A list of name of fields of model
+    model -- to which model(note type) the note will be imported.
+    _deckMap -- TODO
+    importMode -- 0 if data with similar first fields than a card in the db  should be updated
+                  1 if they should be ignored
+                  2 if they should be added anyway
+    """
     needMapper = True
     needDelimiter = False
     allowHTML = False
@@ -68,10 +78,16 @@ class NoteImporter(Importer):
         self.importNotes(card)
 
     def fields(self):
-        "The number of fields."
+        """The number of fields."""
+
+        #This should be overrided by concrete class, and never called directly
         return 0
 
     def initMapping(self):
+        """Initial mapping.
+
+        The nth element of the import is sent to nth field, if it exists
+        to tag otherwise"""
         flds = [fieldType['name'] for fieldType in self.model['flds']]
         # truncate to provided count
         flds = flds[0:self.fields()]
@@ -83,6 +99,7 @@ class NoteImporter(Importer):
         self.mapping = flds
 
     def mappingOk(self):
+        """Whether something is mapped to the first field"""
         return self.model['flds'][0]['name'] in self.mapping
 
     def foreignNotes(self):
@@ -109,7 +126,7 @@ class NoteImporter(Importer):
                 csums[csum].append(id)
             else:
                 csums[csum] = [id]
-        firsts = {}
+        firsts = {}#mapping sending first field of added note to true
         fld0idx = self.mapping.index(self.model['flds'][0]['name'])
         self._fmap = self.col.models.fieldMap(self.model)
         self._nextID = timestampID(self.col.db, "notes")
@@ -123,7 +140,7 @@ class NoteImporter(Importer):
         self._cards = []
         self._emptyNotes = False
         dupeCount = 0
-        dupes = []
+        dupes = []#List of first field seen, present in the db, and added anyway
         for note in notes:
             for fieldIndex in range(len(note.fields)):
                 if not self.allowHTML:
@@ -148,7 +165,7 @@ class NoteImporter(Importer):
                 continue
             firsts[fld0] = True
             # already exists?
-            found = False
+            found = False#Whether a note with a similar first field was found
             if csum in csums:
                 # csum is not a guarantee; have to check
                 for id in csums[csum]:
@@ -235,6 +252,7 @@ content in the text file to the correct fields."""))
                 note.fieldsStr, "", "", 0, ""]
 
     def addNew(self, rows):
+        """Adds every notes of rows into the db"""
         self.col.db.executemany(
             "insert or replace into notes values (?,?,?,?,?,?,?,?,?,?,?)",
             rows)
