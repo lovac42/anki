@@ -33,6 +33,21 @@ from anki.sound import clearAudioQueue, allSounds, play
 
 class DataModel(QAbstractTableModel):
 
+    """
+    The model for the table, showing informations on a list of cards in the browser.
+
+    Implemented as a separate class because that is how QT show those tables.
+
+    sortKey -- never used
+    activeCols -- the list of name of columns to display in the browser
+    cards -- the set of cards corresponding to current browser's search
+    cardObjs -- dictionnady from card's id to the card object. It
+    allows to avoid reloading cards already seen since browser was
+    opened. If a nose is «refreshed» then it is remove from the
+    dic. It is emptied during reset.
+    focusedCard -- the last thing focused, assuming it was a single line. Used to restore a selection after edition/deletion. (Notes keep by compatibility, but it may be a note id)
+    selectedCards -- a dictionnary containing the set of selected card's id, associating them to True. Seems that the associated value is never used. Used to restore a selection after some edition
+    """
     def __init__(self, browser):
         QAbstractTableModel.__init__(self)
         self.browser = browser
@@ -44,16 +59,19 @@ class DataModel(QAbstractTableModel):
         self.cardObjs = {}
 
     def getCard(self, index):
+        """The card object at position index in the list"""
         id = self.cards[index.row()]
         if not id in self.cardObjs:
             self.cardObjs[id] = self.col.getCard(id)
         return self.cardObjs[id]
 
     def refreshNote(self, note):
+        """Remove cards of this note from cardObjs, and potentially signal
+        that the layout need to be changed if one cards was in this dict."""
         refresh = False
-        for c in note.cards():
-            if c.id in self.cardObjs:
-                del self.cardObjs[c.id]
+        for card in note.cards():
+            if card.id in self.cardObjs:
+                del self.cardObjs[card.id]
                 refresh = True
         if refresh:
             self.layoutChanged.emit()
@@ -62,25 +80,43 @@ class DataModel(QAbstractTableModel):
     ######################################################################
 
     def rowCount(self, parent):
+        """The number of cards in the browser.
+
+        Or 0 if parent is a valid index, as requested by QAbstractTableModel
+        parent -- a QModelIndex
+        """
         if parent and parent.isValid():
             return 0
         return len(self.cards)
 
     def columnCount(self, parent):
+        """The number of columns to display in the browser.
+
+        Or 0 if parent is a valid index, as requested by QAbstractTableModel
+        parent -- a QModelIndex
+        """
         if parent and parent.isValid():
             return 0
         return len(self.activeCols)
 
     def data(self, index, role):
+        """Some information to display the content of the table, at index
+        `index` for role `role`, as defined by QAbstractTableModel.
+
+        index -- a QModelIndex, i.e. a pair row,column
+        role -- a value of ItemDataRole; stating which information is requested to display this cell.
+
+        """
         if not index.isValid():
             return
         if role == Qt.FontRole:
+            # The font used for items rendered with the default delegate.
             if self.activeCols[index.column()] not in (
                 "question", "answer", "noteFld"):
                 return
             row = index.row()
-            c = self.getCard(index)
-            t = c.template()
+            card = self.getCard(index)
+            t = card.template()
             if not t.get("bfont"):
                 return
             f = QFont()
@@ -89,34 +125,47 @@ class DataModel(QAbstractTableModel):
             return f
 
         elif role == Qt.TextAlignmentRole:
+            #The alignment of the text for items rendered with the default delegate.
             align = Qt.AlignVCenter
             if self.activeCols[index.column()] not in ("question", "answer",
                "template", "deck", "noteFld", "note"):
                 align |= Qt.AlignHCenter
             return align
         elif role == Qt.DisplayRole or role == Qt.EditRole:
+            #The key data to be rendered in the form of text.
             return self.columnData(index)
         else:
             return
 
     def headerData(self, section, orientation, role):
-        if orientation == Qt.Vertical:
+        """The localized name of the header of column `section`.
+
+        Assuming role is displayrole, orientation is vertical, and
+        section is a valid column. Otherwise, return Nothing.
+
+        If the column exists but its local name is not known, return
+        the first name in alphabetical order (Not clear why this
+        choice)
+
+        """
+        if orientation == Qt.Vertical or not(role == Qt.DisplayRole and section < len(self.activeCols)):
             return
-        elif role == Qt.DisplayRole and section < len(self.activeCols):
-            type = self.columnType(section)
-            txt = None
-            for stype, name in self.browser.columns:
-                if type == stype:
-                    txt = name
-                    break
-            # handle case where extension has set an invalid column type
-            if not txt:
-                txt = self.browser.columns[0][1]
-            return txt
-        else:
-            return
+        type = self.columnType(section)
+        txt = None
+        for stype, name in self.browser.columns:
+            if type == stype:
+                txt = name
+                break
+        # handle case where extension has set an invalid column type
+        if not txt:
+            txt = self.browser.columns[0][1]
+        return txt
 
     def flags(self, index):
+        """Required by QAbstractTableModel. State that interaction is possible
+        and it can be selected (not clear what it means right now)
+
+        """
         return Qt.ItemFlag(Qt.ItemIsEnabled |
                            Qt.ItemIsSelectable)
 
@@ -124,6 +173,11 @@ class DataModel(QAbstractTableModel):
     ######################################################################
 
     def search(self, txt):
+        """Given a query `txt` entered in the search browser, set self.cards
+        to the result of the query, warn if the search is invalid, and
+        reset the display.
+
+        """
         self.beginReset()
         t = time.time()
         # the db progress handler may cause a refresh, so we need to zero out
@@ -164,14 +218,17 @@ class DataModel(QAbstractTableModel):
         self.browser.mw.progress.finish()
 
     def reverse(self):
+        """Save the current note, reverse the list of cards and update the display"""
         self.browser.editor.saveNow(self._reverse)
 
     def _reverse(self):
+        """Reverse the list of cards and update the display"""
         self.beginReset()
         self.cards.reverse()
         self.endReset()
 
     def saveSelection(self):
+        """Set selectedCards and focusedCards according to what their represent"""
         cards = self.browser.selectedCards()
         self.selectedCards = dict([(id, True) for id in cards])
         if getattr(self.browser, 'card', None):
@@ -180,6 +237,12 @@ class DataModel(QAbstractTableModel):
             self.focusedCard = None
 
     def restoreSelection(self):
+        """ Restore main selection as either:
+        * focusedCard (which is set to None)
+        * or first selected card in the list of cards
+
+        If there are less than 500 selected card, select them back.
+        """
         if not self.cards:
             return
         sm = self.browser.form.tableView.selectionModel()
@@ -227,9 +290,18 @@ class DataModel(QAbstractTableModel):
     ######################################################################
 
     def columnType(self, column):
+        """The name of the column in position `column`"""
         return self.activeCols[column]
 
     def columnData(self, index):
+        """Return the text of the cell at a precise index.
+
+
+        Only called from data. It does the computation for data, in
+        the case where the content of a cell is asked.
+
+        It is kept by compatibility with original anki, but could be incorporated in it.
+        """
         row = index.row()
         col = index.column()
         type = self.columnType(col)
@@ -325,8 +397,8 @@ class DataModel(QAbstractTableModel):
             return False
 
         row = index.row()
-        c = self.getCard(index)
-        nt = c.note().model()
+        card = self.getCard(index)
+        nt = card.note().model()
         return nt['flds'][self.col.models.sortIdx(nt)]['rtl']
 
 # Line painter
@@ -343,7 +415,8 @@ flagColours = {
 }
 
 class StatusDelegate(QItemDelegate):
-
+    """Similar to QItemDelegate and ensure that the row is colored
+    according to flag, marked or suspended."""
     def __init__(self, browser, model):
         QItemDelegate.__init__(self, browser)
         self.browser = browser
@@ -352,7 +425,7 @@ class StatusDelegate(QItemDelegate):
     def paint(self, painter, option, index):
         self.browser.mw.progress.blockUpdates = True
         try:
-            c = self.model.getCard(index)
+            card = self.model.getCard(index)
         except:
             # in the the middle of a reset; return nothing so this row is not
             # rendered until we have a chance to reset the model
@@ -364,11 +437,11 @@ class StatusDelegate(QItemDelegate):
             option.direction = Qt.RightToLeft
 
         col = None
-        if c.userFlag() > 0:
-            col = flagColours[c.userFlag()]
-        elif c.note().hasTag("Marked"):
+        if card.userFlag() > 0:
+            col = flagColours[card.userFlag()]
+        elif card.note().hasTag("Marked"):
             col = COLOUR_MARKED
-        elif c.queue == QUEUE_SUSPENDED:
+        elif card.queue == QUEUE_SUSPENDED:
             col = COLOUR_SUSPENDED
         if col:
             brush = QBrush(QColor(col))
@@ -384,6 +457,16 @@ class StatusDelegate(QItemDelegate):
 # fixme: respond to reset+edit hooks
 
 class Browser(QMainWindow):
+    """model: the data model (and not a card model !)
+
+    card -- the card in the reviewer when the browser was opened, or the last selected card.
+    columns -- A list of pair of potential columns, with their internal name and their local name.
+    card -- card selected if there is a single one
+    _previewTimer -- progamming a call to _renderScheduledPreview,
+    with a new card, at least 500 ms after the last call to this
+    method
+    _lastPreviewRender -- when was the last call to _renderScheduledPreview
+    """
 
     def __init__(self, mw):
         QMainWindow.__init__(self, None, Qt.Window)
@@ -474,6 +557,14 @@ class Browser(QMainWindow):
         self.form.tableView.customContextMenuRequested.connect(self.onContextMenu)
 
     def onContextMenu(self, _point):
+        """Open, where mouse is, the context menu, with the content of menu
+        cards, menu notes.
+
+        This list can be changed by the hook browser.onContextMenu.
+
+        _point -- not used
+
+        """
         m = QMenu()
         for act in self.form.menu_Cards.actions():
             m.addAction(act)
@@ -486,6 +577,9 @@ class Browser(QMainWindow):
         m.exec_(QCursor.pos())
 
     def updateFont(self):
+        """Size for the line heights. 6 plus the max of the size of font of
+        all models. At least 22."""
+
         # we can't choose different line heights efficiently, so we need
         # to pick a line height big enough for any card template
         curmax = 16
@@ -527,12 +621,14 @@ class Browser(QMainWindow):
         self.editor.saveNow(callback)
 
     def keyPressEvent(self, evt):
+        """Ensure that window close on escape. Send other event to parent"""
         if evt.key() == Qt.Key_Escape:
             self.close()
         else:
             super().keyPressEvent(evt)
 
     def setupColumns(self):
+        """Set self.columns"""
         self.columns = [
             ('question', _("Question")),
             ('answer', _("Answer")),
@@ -550,7 +646,10 @@ class Browser(QMainWindow):
             ('noteTags', _("Tags")),
             ('note', _("Note")),
         ]
-        self.columns.sort(key=itemgetter(1))
+        self.columns.sort(key=itemgetter(1)) # allow to sort by
+                                             # alphabetical order in
+                                             # the local language
+
 
     # Searching
     ######################################################################
@@ -598,11 +697,16 @@ class Browser(QMainWindow):
 
     # search triggered programmatically. caller must have saved note first.
     def search(self):
+        """Search in the model, either reviewer's note if there is one and
+        _lastSearchTxt contains "is:current", or otherwise the
+        _lastSearchTxt query.
+
+        """
         if "is:current" in self._lastSearchTxt:
             # show current card if there is one
-            c = self.mw.reviewer.card
+            card = self.mw.reviewer.card
             self.card = self.mw.reviewer.card
-            nid = c and c.nid or 0
+            nid = card and card.nid or 0
             self.model.search("nid:%d"%nid)
         else:
             self.model.search(self._lastSearchTxt)
@@ -612,6 +716,9 @@ class Browser(QMainWindow):
             self._onRowChanged(None, None)
 
     def updateTitle(self):
+        """Set the browser's window title, to take into account the number of
+        cards and of selected cards"""
+
         selected = len(self.form.tableView.selectionModel().selectedRows())
         cur = len(self.model.cards)
         self.setWindowTitle(ngettext("Browse (%(cur)d card shown; %(sel)s)",
@@ -623,6 +730,8 @@ class Browser(QMainWindow):
         return selected
 
     def onReset(self):
+        """Remove the note from the browser's editor window. Redo the
+        search"""
         self.editor.setNote(None)
         self.search()
 
@@ -644,10 +753,12 @@ class Browser(QMainWindow):
             self.mw, self.form.fieldsArea, self)
 
     def onRowChanged(self, current, previous):
-        "Update current note and hide/show editor."
+        """Save the note. Hide or show editor depending on which cards are
+        selected."""
         self.editor.saveNow(lambda: self._onRowChanged(current, previous))
 
     def _onRowChanged(self, current, previous):
+        """Hide or show editor depending on which cards are selected."""
         update = self.updateTitle()
         show = self.model.cards and update == 1
         self.form.splitter.widget(1).setVisible(not not show)
@@ -735,6 +846,8 @@ by clicking on one on the left."""))
         self.setSortIndicator()
 
     def setSortIndicator(self):
+        """Add the arrow indicating which column is used to sort, and
+        in which order, in the column header"""
         hh = self.form.tableView.horizontalHeader()
         type = self.col.conf['sortType']
         if type not in self.model.activeCols:
@@ -751,7 +864,12 @@ by clicking on one on the left."""))
         hh.setSortIndicatorShown(True)
 
     def onHeaderContext(self, pos):
-        gpos = self.form.tableView.mapToGlobal(pos)
+        """Open the context menu related to the list of column.
+
+        There is a button by potential column.
+        """
+        gpos = self.form.tableView.mapToGlobal(pos) # the position,
+        # usable from the browser
         m = QMenu()
         for type, name in self.columns:
             a = m.addAction(name)
@@ -761,9 +879,19 @@ by clicking on one on the left."""))
         m.exec_(gpos)
 
     def toggleField(self, type):
+        """
+        Save the note in the editor
+
+        Add or remove column type. If added, scroll to it. Can't
+        remove if there are less than two columns.
+        """
         self.editor.saveNow(lambda: self._toggleField(type))
 
     def _toggleField(self, type):
+        """
+        Add or remove column type. If added, scroll to it. Can't
+        remove if there are less than two columns.
+        """
         self.model.beginReset()
         if type in self.model.activeCols:
             if len(self.model.activeCols) < 2:
@@ -1211,6 +1339,7 @@ please see the browser documentation.""")
     ######################################################################
 
     def selectedCards(self):
+        """The list of selected card's id"""
         return [self.model.cards[idx.row()] for idx in
                 self.form.tableView.selectionModel().selectedRows()]
 
@@ -1245,9 +1374,20 @@ where id in %s""" % ids2str(sf))
     ######################################################################
 
     def onChangeModel(self):
+        """Starts a GUI letting the user change the model of notes.
+
+        If multiple note type are selected, then show a warning
+        instead.  It saves the editor content before doing any other
+        change it.
+
+        """
         self.editor.saveNow(self._onChangeModel)
 
     def _onChangeModel(self):
+        """Starts a GUI letting the user change the model of notes.
+
+        If multiple note type are selected, then show a warning instead.
+        Don't call this directly, call onChangeModel. """
         nids = self.oneModelNotes()
         if nids:
             ChangeModel(self, nids)
@@ -1365,6 +1505,8 @@ where id in %s""" % ids2str(sf))
 
 
     def _renderPreview(self, cardChanged=False):
+        """Call to _renderScheduledPreview(cardChanged), but ensure at
+        least half a second spent since last call to it"""
         self._cancelPreviewTimer()
         # avoid rendering in quick succession
         elapMS = int((time.time() - self._lastPreviewRender)*1000)
@@ -1385,9 +1527,9 @@ where id in %s""" % ids2str(sf))
 
         if not self._previewWindow:
             return
-        c = self.card
+        card = self.card
         func = "_showQuestion"
-        if not c or not self.singleCard:
+        if not card or not self.singleCard:
             txt = _("(please select 1 card)")
             bodyclass = ""
             self._lastPreviewState = None
@@ -1403,20 +1545,20 @@ where id in %s""" % ids2str(sf))
                 return
 
             # need to force reload even if answer
-            txt = c.q(reload=True)
+            txt = card.q(reload=True)
 
             questionAudio = []
             if self._previewBothSides:
                 questionAudio = allSounds(txt)
             if self._previewState == "answer":
                 func = "_showAnswer"
-                txt = c.a()
+                txt = card.a()
             txt = re.sub(r"\[\[type:[^]]+\]\]", "", txt)
 
-            bodyclass = bodyClass(self.mw.col, c)
+            bodyclass = bodyClass(self.mw.col, card)
 
             clearAudioQueue()
-            if self.mw.reviewer.autoplay(c):
+            if self.mw.reviewer.autoplay(card):
                 # if we're showing both sides at once, play question audio first
                 for audio in questionAudio:
                     play(audio)
@@ -1426,7 +1568,7 @@ where id in %s""" % ids2str(sf))
                         play(audio)
 
             txt = mungeQA(self.col, txt)
-            txt = runFilter("prepareQA", txt, c,
+            txt = runFilter("prepareQA", txt, card,
                             "preview"+self._previewState.capitalize())
             self._lastPreviewState = self._previewStateAndMod()
         self._updatePreviewButtons()
@@ -1442,10 +1584,10 @@ where id in %s""" % ids2str(sf))
         self._renderPreview()
 
     def _previewStateAndMod(self):
-        c = self.card
-        n = c.note()
+        card = self.card
+        n = card.note()
         n.load()
-        return (self._previewState, c.id, n.mod)
+        return (self._previewState, card.id, n.mod)
 
     # Card deletion
     ######################################################################
@@ -1567,18 +1709,18 @@ update cards set usn=?, mod=?, did=? where id in """ + scids,
     ######################################################################
 
     def isSuspended(self):
-        return not not (self.card and self.card.queue == QUEUE_SUSPENDED)
+        return bool (self.card and self.card.queue == QUEUE_SUSPENDED)
 
     def onSuspend(self):
         self.editor.saveNow(self._onSuspend)
 
     def _onSuspend(self):
         sus = not self.isSuspended()
-        c = self.selectedCards()
+        card = self.selectedCards()
         if sus:
-            self.col.sched.suspendCards(c)
+            self.col.sched.suspendCards(card)
         else:
-            self.col.sched.unsuspendCards(c)
+            self.col.sched.unsuspendCards(card)
         self.model.reset()
         self.mw.requireReset()
 
@@ -1932,7 +2074,13 @@ update cards set usn=?, mod=?, did=? where id in """ + scids,
 
 class ChangeModel(QDialog):
 
+    """The dialog window, obtained in the browser by selecting cards and
+    Cards>Change Note Type. It allows to change the type of a note
+    from one type to another.
+
+    """
     def __init__(self, browser, nids):
+        """Create and open a dialog for changing model"""
         QDialog.__init__(self, browser)
         self.browser = browser
         self.nids = nids
@@ -1974,14 +2122,24 @@ class ChangeModel(QDialog):
         self.pauseUpdate = False
 
     def onReset(self):
+        """Change the model changer GUI to the current note type."""
         self.modelChanged(self.browser.col.models.current())
 
     def modelChanged(self, model):
+        """Change the model changer GUI to model
+
+        This should be used if the destination model has been changed.
+        """
         self.targetModel = model
         self.rebuildTemplateMap()
         self.rebuildFieldMap()
 
     def rebuildTemplateMap(self, key=None, attr=None):
+        """Change the "Cards" subwindow of the Change Note Type.
+
+        Actually, if key and attr are given, it may change another
+        subwindow, so the same code is reused for fields.
+        """
         if not key:
             key = "t"
             attr = "tmpls"
@@ -2017,6 +2175,7 @@ class ChangeModel(QDialog):
         setattr(self, key + "indices", indices)
 
     def rebuildFieldMap(self):
+        """Change the "Fields" subwindow of the Change Note Type."""
         return self.rebuildTemplateMap(key="f", attr="flds")
 
     def onComboChanged(self, i, cb, key):
@@ -2040,6 +2199,18 @@ class ChangeModel(QDialog):
         indices[cb] = i
 
     def getTemplateMap(self, old=None, combos=None, new=None):
+        """A map from template's ord of the old model to template's ord of the new
+        model. Or None if no template
+
+        Contrary to what this name indicates, the method may be used
+        without templates. In getFieldMap it is used for fields
+
+        keywords parameter:
+        old -- the list of templates of the old model
+        combos -- the python list of gui's list of template
+        new -- the list of templates of the new model
+        If old is not given, the other two arguments are not used.
+        """
         if not old:
             old = self.oldModel['tmpls']
             combos = self.tcombos
@@ -2048,7 +2219,7 @@ class ChangeModel(QDialog):
         for i, f in enumerate(old):
             idx = combos[i].currentIndex()
             if idx == len(new):
-                # ignore
+                # ignore. len(new) corresponds probably to nothing in the list
                 map[f['ord']] = None
             else:
                 f2 = new[idx]
@@ -2056,25 +2227,37 @@ class ChangeModel(QDialog):
         return map
 
     def getFieldMap(self):
+        """Associating to each field's ord of the source model a field's
+        ord (or None) of the new model."""
         return self.getTemplateMap(
             old=self.oldModel['flds'],
             combos=self.fcombos,
             new=self.targetModel['flds'])
 
     def cleanup(self):
+        """Actions to end this gui.
+
+        Remove hook related to this window, and potentially its model chooser.
+        Save the geometry of the current window in order to keep it for a new reordering
+        """
         remHook("reset", self.onReset)
         remHook("currentModelChanged", self.onReset)
         self.modelChooser.cleanup()
         saveGeom(self, "changeModel")
 
     def reject(self):
+        """Cancelling the changes."""
         self.cleanup()
         return QDialog.reject(self)
 
     def accept(self):
+        """Procede to changing the model, according to the content of the GUI.
+
+        TODO"""
         # check maps
         fmap = self.getFieldMap()
         cmap = self.getTemplateMap()
+        #If there are cards which are sent to nothing:
         if any(True for c in list(cmap.values()) if c is None):
             if not askUser(_("""\
 Any cards mapped to nothing will be deleted. \
