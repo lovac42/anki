@@ -32,7 +32,24 @@ class UnexpectedSchemaChange(Exception):
 
 class Syncer:
 
+    """The hook "sync" takes as parameter a string describing what is
+    going to be done. It seems that, by default, those hook are empty.
+
+    lmod -- last modified of the collection in milliseconds
+    rmod -- last modified of the collection in milliseconds
+    minUsn -- USN of the collection
+    col -- its collection
+    server -- the server. Object of class RemoteServer in pratice
+    syncMsg -- By default the empty string. Otherwise, a message from meta.
+    uname -- username (login/email)
+    tablesLeft -- A subset of ["revlog", "cards", "notes"], stating which tables have not yet be synchronized.
+    cursor -- A cursor to the table revlog, cards, or notes, allowing to find elements not yet received from the database.
+
+    """
+
     def __init__(self, col, server=None):
+        """Save in the Syncer the value of the two parameters. """
+        #It is not clear what is done if server is None. But it never occurs in this code
         self.col = col
         self.server = server
 
@@ -42,7 +59,21 @@ class Syncer:
         self.tablesLeft = []
 
     def sync(self):
-        "Returns 'noChanges', 'fullSync', 'success', etc"
+        """
+        Possible return values:
+        * badAuth: wrong login or password
+        * clockOff: there is more than 5 minutes of difference between
+        the clock here and on server. Thus synchronization rejected.
+        * noChanges: mod's value are the same in collection and
+        server. It means that not a single change occured, thus there
+        are nothing to synchronize.
+        * fullSync: the schema differ in collection and on server. A
+        full sync is thus required.
+        * basicCheckFailed: if the basic check fails
+        * sanityCheckFailed: if the sanity check fails according to
+        sync.
+        * success: everything went all right.
+        """
         self.syncMsg = ""
         self.uname = ""
         # if the deck has any pending changes, flush them first and bump mod
@@ -52,7 +83,7 @@ class Syncer:
         # step 1: login & metadata
         runHook("sync", "login")
         serverMeta = self.server.meta()
-        self.col.log("rmeta", meta)
+        self.col.log("rmeta", serverMeta)
         if not serverMeta:
             return "badAuth"
         # server requested abort?
@@ -112,6 +143,7 @@ class Syncer:
             return self._forceFullSync()
         # step 3: stream large tables from server
         runHook("sync", "server")
+        ################ done
         while 1:
             runHook("sync", "stream")
             chunk = self.server.chunk()
@@ -148,6 +180,7 @@ class Syncer:
         return "sanityCheckFailed"
 
     def _gravesChunk(self, graves):
+        """A pair. If graves contains less than 250 elements, then grave,None. Else the 250 first elements of graves, and the remaining elements)"""
         lim = 250
         chunk = dict(notes=[], cards=[], decks=[])
         for cat in "notes", "cards", "decks":
@@ -162,6 +195,11 @@ class Syncer:
         return chunk, None
 
     def meta(self):
+        """A dictionnary with:
+        -mod, scm, usn according to col's data
+        -ts the actual time stamp
+        -musn, msg and cont, initialized to some default constant
+        """
         return dict(
             mod=self.col.mod,
             scm=self.col.scm,
@@ -173,16 +211,22 @@ class Syncer:
         )
 
     def changes(self):
-        "Bundle up small objects."
+        """Bundle up small objects.
+
+        A dict with models, decks, tags. If mod is newer here than on server, then conf and crt.
+        """
         bundle = dict(models=self.getModels(),
-                 decks=self.getDecks(),
-                 tags=self.getTags())
+                      decks=self.getDecks(),
+                      tags=self.getTags())
         if self.localNewer:
             bundle['conf'] = self.getConf()
             bundle['crt'] = self.col.crt
         return bundle
 
     def mergeChanges(self, localChange, serverChange):
+        """
+        serverChange --
+        """
         # then the other objects
         self.mergeModels(serverChange['models'])
         self.mergeDecks(serverChange['decks'])
@@ -195,6 +239,26 @@ class Syncer:
         self.prepareToChunk()
 
     def sanityCheck(self):
+        """Check whether the synchronization went well.
+
+        USN should not be -1 in cards, notes, revlog, graves, deck,
+        tag, model. If it is the case, return a string giving the name of the
+        table not satisfying it.
+
+        If a non-root deck has no parent, it is created.
+
+        Returns:
+        [three numbers to show in anki
+        list/footer. I.e. Number of new cards, learning repetition,
+        review card. (for selected deck),
+        number of card,
+        number of notes,
+        number of revlog,
+        number of grave,
+        number of models,
+        numbel of decks,
+        number of deck's options.]
+        """
         if not self.col.basicCheck():
             return "failed basic check"
         for type in "cards", "notes", "revlog", "graves":
@@ -247,7 +311,13 @@ class Syncer:
         self.cursor = None
 
     def cursorForTable(self, table):
-        lim = self.usnLim()
+        """A cursor returning the entire line from the table argument, where
+        usn is -1, and replaced by maxUsn.
+
+        The content of the table is not changed however.
+        """
+        lim = self.usnLim() # "usn = -1"
+        x = self.col.db.execute
         if table == "revlog":
             return self.col.db.execute("""
 select id, cid, %d, ease, ivl, lastIvl, factor, time, type
@@ -262,6 +332,15 @@ select id, guid, mid, mod, %d, tags, flds, '', '', flags, data
 from notes where %s""" % (self.maxUsn, lim))
 
     def chunk(self):
+        """A dictionnary containing keys K in 'revlog', 'cards', 'notes' whose
+        usn value is -1. Each entry is an entire line of the table K,
+        except that usn is replaced by maxUsn.
+
+        It also contains 'done', a Boolean stating which states whether every lines are treated.
+
+        If the table is empty, usn is changed from -1 to maxUsn and
+        its name is removed from self.tablesLeft.
+        """
         buf = dict(done=False)
         lim = 250
         while self.tablesLeft and lim:
@@ -285,6 +364,14 @@ from notes where %s""" % (self.maxUsn, lim))
         return buf
 
     def applyChunk(self, chunk):
+        """
+        Everything in chunk is added to the collection, unless it is
+        already in and modified later in the collection than on the server.
+
+        chunk -- a dict containing some key from 'revlog', 'cards', and
+        'notes'. Each of their values are a line (log, card or note),
+        which is new on the server.
+        """
         if "revlog" in chunk:
             self.mergeRevlog(chunk['revlog'])
         if "cards" in chunk:
@@ -296,6 +383,12 @@ from notes where %s""" % (self.maxUsn, lim))
     ##########################################################################
 
     def removed(self):
+        """A dict associating to 'cards', 'notes' and 'decks' the list of ids
+        of such object deleted sync last synchronization. Change the
+        usn value of those graves element to indicate that they have
+        been deleted.
+
+        """
         cards = []
         notes = []
         decks = []
@@ -317,6 +410,11 @@ from notes where %s""" % (self.maxUsn, lim))
         return dict(cards=cards, notes=notes, decks=decks)
 
     def remove(self, graves):
+        """Remove the notes, cards and decks whose id are in graves['notes'],
+        graves['cards'] and graves['decks']. Don't remove child of
+        deleted deck, nor its card if any remain.
+
+        """
         # pretend to be the server so we don't set usn = -1
         self.col.server = True
 
@@ -334,6 +432,10 @@ from notes where %s""" % (self.maxUsn, lim))
     ##########################################################################
 
     def getModels(self):
+        """
+        The list of models whose usn is -1. I.e. the ones which have been created/changed since last sync.
+        Their usn is then changed no maxUsn.
+        """
         mods = [model for model in self.col.models.all() if model['usn'] == -1]
         for model in mods:
             model['usn'] = self.maxUsn
@@ -341,6 +443,11 @@ from notes where %s""" % (self.maxUsn, lim))
         return mods
 
     def mergeModels(self, serverChanges):
+        """
+        serverChange -- a list of model (note type) object. They are assumed to have been changed on server since last sync.
+
+        Each note type whose mod time is greater on server, or which does not exists in collection, is copied into the collection.
+        """
         for serverModel in serverChanges:
             localModel = self.col.models.get(serverModel['id'])
             # if missing locally or server is newer, update
@@ -359,6 +466,11 @@ from notes where %s""" % (self.maxUsn, lim))
     ##########################################################################
 
     def getDecks(self):
+        """A list of size two, with decks and deck's configuration (option),
+        with usn equal to -1. I.e. modified since last sync. Their usn
+        is changed to maxUsn, i.e. the one currently considered.
+
+        """
         decks = [deck for deck in self.col.decks.all() if deck['usn'] == -1]
         for deck in decks:
             deck['usn'] = self.maxUsn
@@ -391,6 +503,11 @@ from notes where %s""" % (self.maxUsn, lim))
     ##########################################################################
 
     def getTags(self):
+        """A list of tags with usn equal to -1. I.e. modified since last
+        sync. Their usn is changed to maxUsn, i.e. the one currently
+        considered.
+
+        """
         tags = []
         for tag, usn in self.col.tags.allItems():
             if usn == -1:
@@ -400,24 +517,47 @@ from notes where %s""" % (self.maxUsn, lim))
         return tags
 
     def mergeTags(self, tags):
+        """Given a list/set of tags, add any tag missing in the registry to
+        the registry. If there is such a new tag, call the hook
+        newTag.
+
+        """
         self.col.tags.register(tags, usn=self.maxUsn)
 
     # Cards/notes/revlog
     ##########################################################################
 
     def mergeRevlog(self, logs):
+        """Each log from logs is added to the table revlog, unless a rev with
+        the same id is already there. (The id is unique with extremly
+        high probability, thus it would be the same review).
+
+        """
         self.col.db.executemany(
             "insert or ignore into revlog values (?,?,?,?,?,?,?,?,?)",
             logs)
 
     def newerRows(self, data, table, modIdx):
+        """
+        The subset of `data` which either are not in the collection
+        (according to their id), or such that the last modification in
+        the server is greater than in the collection.
+
+        data -- a container of tuple, each representing an entry of
+        the table 'table' from the server, i.e. to be updated or
+        created.
+        table -- 'card' or 'note', name of a table
+        modIdx -- index of mod in the tuple
+        """
         ids = (datum[0] for datum in data)
-        lmods = {}
+        lmods = {} # subset of (id,mod) of data's id in which usn is -1.
         for id, mod in self.col.db.execute(
             "select id, mod from %s where id in %s and %s" % (
                 table, ids2str(ids), self.usnLim())):
             lmods[id] = mod
-        update = []
+        update = [] # lines from server (data), which either are not
+        # in the collection, or such that the mod time is greater on
+        # the server than in the collection.
         for datum in data:
             if datum[0] not in lmods or lmods[datum[0]] < datum[modIdx]:
                 update.append(datum)
@@ -425,12 +565,26 @@ from notes where %s""" % (self.maxUsn, lim))
         return update
 
     def mergeCards(self, cards):
+        """Each card from cards is added to the table cards, unless a card
+        with the same id is already there and has a newer mod
+        time. (The id is unique with extremly high probability, thus
+        it would be the same review).
+
+        """
+        rows = self.newerRows(cards, "cards", 4)
         self.col.db.executemany(
             "insert or replace into cards values "
             "(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
-            self.newerRows(cards, "cards", 4))
+            rows)
 
     def mergeNotes(self, notes):
+        """Each note from notes is added to the table notes, unless a note
+        with the same id is already there and has a newer mod
+        time. (The id is unique with extremly high probability, thus
+        it would be the same review).
+
+        The field cache of those notes are then modified.
+        """
         rows = self.newerRows(notes, "notes", 3)
         self.col.db.executemany(
             "insert or replace into notes values (?,?,?,?,?,?,?,?,?,?,?)",
@@ -441,35 +595,56 @@ from notes where %s""" % (self.maxUsn, lim))
     ##########################################################################
 
     def getConf(self):
+        """The conf of the collection."""
         return self.col.conf
 
     def mergeConf(self, conf):
+        """Change collection's conf to the argument"""
         self.col.conf = conf
 
 # Wrapper for requests that tracks upload/download progress
 ##########################################################################
 
 class AnkiRequestsClient:
-
+    """
+    session -- A request session object
+    verify -- Whether to verify the certificate. By default true unless the os ANKI_NOVERIFYSSL is set to truthy.
+    timeout -- as for requests
+    """
     verify = True
     timeout = 60
-
     def __init__(self):
         self.session = requests.Session()
 
     def post(self, url, data, headers):
+        """
+        Similar to a post request, where:
+        * User-Agent name is added
+        * hook httpSend is run
+        * stream is true, timeout and verify are as in the class.
+        """
         data = _MonitoringFile(data) # pytype: disable=wrong-arg-types
         headers['User-Agent'] = self._agentName()
         return self.session.post(
             url, data=data, headers=headers, stream=True, timeout=self.timeout, verify=self.verify) # pytype: disable=wrong-arg-types
 
     def get(self, url, headers=None):
+        """
+        Similar to a post request, where:
+        * User-Agent name is added to header
+        * stream is true, timeout and verify are as in the class.
+        """
         if headers is None:
             headers = {}
         headers['User-Agent'] = self._agentName()
         return self.session.get(url, stream=True, headers=headers, timeout=self.timeout, verify=self.verify)
 
     def streamContent(self, resp):
+        """
+        Return a string containing the content of the entire response to a request.
+
+        If the response is not successful, raise requests.exceptions.HTTPError
+        """
         resp.raise_for_status()
 
         buf = io.BytesIO()
@@ -479,6 +654,7 @@ class AnkiRequestsClient:
         return buf.getvalue()
 
     def _agentName(self):
+        """Anki versionNumber"""
         from anki import version
         return "Anki {}".format(version)
 
@@ -491,6 +667,7 @@ if os.environ.get("ANKI_NOVERIFYSSL"):
 
 class _MonitoringFile(io.BufferedReader):
     def read(self, size=-1):
+        """"Similar to io.BufferedReader's read method, where the hook httpSend is emitted after data is found."""
         data = io.BufferedReader.read(self, HTTP_BUF_SIZE)
         runHook("httpSend", len(data))
         return data
@@ -499,7 +676,14 @@ class _MonitoringFile(io.BufferedReader):
 ##########################################################################
 
 class HttpSyncer:
-
+    """
+    skey -- a random  8 hexadecimal value
+    hostNum -- the value of hostNum in the profile (i.e. a number which states the number of the ankiweb server which is used to synchronize)
+    hkey -- the value of SyncKey in the profile (i.e. a random string replacing the password)
+    postVars -- dictionnary to use in the post request.
+    prefix -- main folder in anki server to use for the synchrozination. By default sync, except for media where it is msync
+    client -- a client, allowing at least to post() and streamContent. By default AnkiRequestsClient
+    """
     def __init__(self, hkey=None, client=None, hostNum=None):
         self.hkey = hkey
         self.skey = checksum(str(random.random()))[:8]
@@ -509,6 +693,11 @@ class HttpSyncer:
         self.prefix = "sync/"
 
     def syncURL(self):
+        """
+        Start of the url to use for synchrozination. Some other subfolder/file may be staten after.
+
+        It depends on whether we are in devmode, and of the hostNum value.s
+        """
         if devMode:
             url = "https://l1sync.ankiweb.net/"
         else:
@@ -516,6 +705,7 @@ class HttpSyncer:
         return url + self.prefix
 
     def assertOk(self, resp):
+        """Raise an exception unless status code of resp is 200"""
         # not using raise_for_status() as aqt expects this error msg
         if resp.status_code != 200:
             raise Exception("Unknown response code: %s" % resp.status_code)
@@ -527,6 +717,31 @@ class HttpSyncer:
     # support file uploading, so this is the more compatible choice.
 
     def _buildPostData(self, fobj, comp):
+        """
+        A pair (headers, buffer) as follow.
+
+        buffer's position is 0. It contains, separated by "--Anki-sync-boundary",
+«Content-Disposition: form-data; name="{key}"
+
+value
+»
+        where key,values come from self.postVars, and also contains key 'c', whose value is 1 if it's compressing, 0 otherwise.
+
+If there is an object, then it also contains
+«
+Content-Disposition: form-data; name="data"; filename="data"\r\n\
+Content-Type: application/octet-stream\r\n\r\n"»
+{object}
+»
+        In any case, it ends with
+«--
+»
+        the header is a dict with 'Content-Type' and 'Content-Length'.
+
+
+        comp -- whether to compress. If truthy, it's the compresslevel passed to gzip.
+        fobj -- an object which can be read.
+        """
         BOUNDARY=b"Anki-sync-boundary"
         bdry = b"--"+BOUNDARY
         buf = io.BytesIO()
@@ -574,6 +789,18 @@ Content-Type: application/octet-stream\r\n\r\n""")
         return headers, buf
 
     def req(self, method, fobj=None, comp=6, badAuthRaises=True):
+        """
+        The answer to a post request, to /method, whose body comes from self.postVars, compression and potentially the object fobj.
+
+        method -- the «file», i.e. last part of the URL. It states which can of data we send/request. It may be:
+        * hostKey, meta for initialization of sync
+        * applyGraves, applyChanges, start, chunk, applyChunk, sanityCheck2, finish, abort for normal syn
+        * download, upload for full sync
+        * begin, mediaChanges, downloadFiles, uploadChanges, mediaSanity, newMediaTest for media
+        fobj -- An object which can be read and must be send
+        comp -- Level of compression to use for gzip.
+        badAuthRaises -- whether to accept 403 status without raising error. Instead return False.
+        """
         headers, body = self._buildPostData(fobj, comp)
 
         req = self.client.post(self.syncURL()+method, data=body, headers=headers)
@@ -605,13 +832,17 @@ class RemoteServer(HttpSyncer):
         return self.hkey
 
     def meta(self):
+        """ Ask the server for an object which should contain
+
+
+        """
         self.postVars = dict(
             k=self.hkey,
             s=self.skey,
         )
+        d = dict(v=SYNC_VER, cv="ankidesktop,%s,%s"%(versionWithBuild(), platDesc()))
         ret = self.req(
-            "meta", io.BytesIO(json.dumps(dict(
-                v=SYNC_VER, cv="ankidesktop,%s,%s"%(versionWithBuild(), platDesc()))).encode("utf8")),
+            "meta", io.BytesIO(json.dumps(d).encode("utf8")),
             badAuthRaises=False)
         if not ret:
             # invalid auth
@@ -622,6 +853,7 @@ class RemoteServer(HttpSyncer):
         return self._run("applyGraves", kw)
 
     def applyChanges(self, **kw):
+        """Send every small change to the server."""
         return self._run("applyChanges", kw)
 
     def start(self, **kw):
@@ -660,7 +892,18 @@ class FullSyncer(HttpSyncer):
         self.col = col
 
     def download(self):
+        """Download a database from the server. If instead it receives
+        "upgradeRequired", a message stating to go on ankiweb is
+        shown. Otherwise, if the downloaded db has no card while
+        current collection has card, it returns
+        "downloadClobber". Otherwise, the downloaded database replace
+        the collection's database.
+
+        It also change message to "Downloading for AnkiWeb...".
+
+        """
         runHook("sync", "download")
+        #whether the collection has at least one card.
         localNotEmpty = self.col.db.scalar("select 1 from cards")
         self.col.close()
         cont = self.req("download")
@@ -710,11 +953,27 @@ class FullSyncer(HttpSyncer):
 class MediaSyncer:
 
     def __init__(self, col, server=None):
+        """Save in the Syncer the value of the two parameters"""
         self.col = col
         self.server = server
         self.downloadCount = 0
 
     def sync(self):
+        """
+        Return either:
+        * "corruptMediaDB": if reading the  database raise an exception
+        * "noChanges": if the usn on collection and server are the same
+        * "OK": if everything was correctly downloaded and uploaded
+        * Any other message  sent by the server during mediaSanity check.
+
+        It sends the following messages:
+        * begin: send hostkey and "ankidesktop,{anki's version number},{platform}:{platform's
+  version}". Returing an id to use until the end of communication
+        * mediaChanges: the name of new/modified medias, and usn in collection. Return name of new/modified media on server
+        * downloadFiles: request files named by the server when necessary, receive zip files with up to 25 files, and save them in the collection.
+        * uploadChanges: Send zip files with up to 25 files.
+        * mediaSanity: sending the number of media to server, to check whether there is the same number online. If not, empty media database and return value sent by the server.
+        """
         # check if there have been any changes
         runHook("sync", "findMedia")
         self.col.log("findChanges")
@@ -851,6 +1110,18 @@ class RemoteMediaServer(HttpSyncer):
         self.prefix = "msync/"
 
     def begin(self):
+        """Send a request to initialize the communication. It contains:
+        * 'k': the hostkey (a number sent during synchronization of data, to identify the user)
+        * 'v': "ankidesktop,{anki's version number},{platform}:{platform's
+        version}", with platform being either win, lin, mac or unknown. In
+        the last case, there are no version sent.
+
+        Set the identification number as provided by the server. This
+        number is used for this communication only.
+
+        Raise an exception if the response contains an error field or is not json.
+
+        """
         self.postVars = dict(
             k=self.hkey,
             v="ankidesktop,%s,%s"%(anki.version, platDesc())
@@ -883,6 +1154,11 @@ class RemoteMediaServer(HttpSyncer):
             self.req("mediaSanity", io.BytesIO(json.dumps(kw).encode("utf8"))))
 
     def _dataOnly(self, resp):
+        """
+        If the error in resp  is truthy, log it, raise an exception. Otherwise, return the data of resp.
+
+        resp -- a json utf8 string. Otherwise raise an exception. Received from the server
+        """
         resp = json.loads(resp.decode("utf8"))
         if resp['err']:
             self.col.log("error returned:%s"%resp['err'])
