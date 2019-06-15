@@ -6,8 +6,18 @@
 
 # pylint: disable=import-error,unused-import
 
+# included implicitly in the past, and relied upon by some add-ons
+import cgi
+# included implicitly in the past, and relied upon by some add-ons
+import decimal
+# useful for add-ons
+import logging
+import logging.config
+import logging.handlers
 # required by requests library
 import queue
+import typing
+import uuid
 
 from anki.utils import isWin
 
@@ -18,13 +28,5 @@ if isWin:
     import pywintypes
 
 # included implicitly in the past, and relied upon by some add-ons
-import cgi
-import uuid
-import decimal
 import PyQt5.QtSvg
 
-# useful for add-ons
-import logging
-import logging.handlers
-import logging.config
-import typing
