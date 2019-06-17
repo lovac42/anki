@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 # Copyright: Ankitects Pty Ltd and contributors
 # License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
+from copy import copy
 import pprint
 import time
 
@@ -192,14 +193,36 @@ lapses=?, left=?, odue=?, odid=?, did=? where id = ?""",
             self.id)
         self.col.log(self)
 
+    def copy(self, nid, copy_creation, copy_review):
+        """Create a copy of current card, for note nid.
+
+        copy_review -- if False, it's similar to a new card. Otherwise, keep every current properties
+        copy_creation -- whether to keep original creation date.
+        copy_log -- whether to copy the logs of the cards of this note
+        """
+        card = copy(self)
+        card_date = card.id if copy_creation else None
+        card.id = timestampID(self.col.db, "cards", t=card_date)
+        if not copy_review:
+            card.type = 0
+            card.ivl = 0
+            card.factor = 0
+            card.reps = 0
+            card.lapses = 0
+            card.left = 0
+            card.odue = 0
+        card.nid = note.id
+        card.flush()
+        return card
+
     def q(self, reload=False, browser=False):
         """The card question with its css.
 
         Keyword arguments:
         reload -- whether the card should be reloaded even if it is already known
-        browser -- whether its        called from the browser (in which case the format strings are
+        browser -- whether its called from the browser (in which case the format strings are
         bqfmt and not qfmt)
-"""
+        """
         return self.css() + self._getQA(reload, browser)['q']
 
     def a(self):
