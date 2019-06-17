@@ -263,6 +263,11 @@ function caretToEnd() {
     s.addRange(r);
 }
 
+function changeSize(fieldNumber){
+	saveNow(true);
+	pycmd("toggleLineAlone:"+fieldNumber);
+}
+
 function onBlur() {
 	/*Tells python that it must save. Either by key if current field
       is still active. Otherwise by blur.  If current field is not
@@ -351,25 +356,56 @@ function onCutOrCopy() {
     return true;
 }
 
-function setFields(fields) {
+function createDiv(ord,  fieldContent, nbCol){
+	return "<td colspan={2}><div id='f{0}' onkeydown='onKey();' oninput='onInput();' onmouseup='onKey();'  onfocus='onFocus(this);' onblur='onBlur();' class='field clearfix' ondragover='onDragOver(this);' onpaste='onPaste(this);' oncopy='onCutOrCopy(this);' oncut='onCutOrCopy(this);' contentEditable=true class=field>{1}</div></td>".format(ord, fieldContent, nbCol);
+}
+
+function createNameTd(ord, fieldName, nbColThisField, nbColTotal, sticky){
+	txt = "<td class='fname' colspan={0}><span>{1}</span>".format(nbColThisField, fieldName);
+	if (nbColTotal>1){
+		txt+= "<input type='button' tabIndex='-1' value='Change size' onClick='changeSize({0})'/>".format(ord);
+	}
+	return txt;
+}
+
+function setFields(fields, nbCol) {
 	/*Replace #fields by the HTML to show the list of fields to edit.
 	  Potentially change buttons
 
-	  fields -- a list of fields, as (name of the field, current value) */
+	  fields -- a list of fields, as (name of the field, current value, whether it has its own line)
+	  nbCol -- number of colum*/
     var txt = "";
+	var width = 100/nbCol;
+	var partialNames = "";
+	var partialFields = "";
+	var lengthLine = 0;
     for (var i = 0; i < fields.length; i++) {
         var fieldName = fields[i][0];
-        var fieldValue = fields[i][1];
-        if (!fieldValue) {
-            fieldValue = "<br>";
+        var fieldContent = fields[i][1];
+		var alone = fields[i][2];
+        if (!fieldContent) {
+            fieldContent = "<br>";
         }
-        txt += "<tr><td class=fname>{0}</td></tr><tr><td width=100%>".format(fieldName);
-        txt += "<div id=f{0} onkeydown='onKey();' oninput='onInput()' onmouseup='onKey();'".format(i);
-        txt += " onfocus='onFocus(this);' onblur='onBlur();' class='field clearfix' ";
-        txt += "ondragover='onDragOver(this);' onpaste='onPaste(this);' ";
-        txt += "oncopy='onCutOrCopy(this);' oncut='onCutOrCopy(this);' ";
-        txt += "contentEditable=true class=field>{0}</div>".format(fieldValue);
-        txt += "</td></tr>";
+		//console.log("fieldName: "+fieldName+", fieldContent: "+fieldContent+", alone: "+alone);
+		nbColThisField = (alone)?nbCol:1;
+		fieldContentHtml = createDiv(i, fieldContent, nbColThisField);
+		fieldNameHtml = createNameTd(i, fieldName, nbColThisField, nbCol)
+		if (alone){
+			nameTd = fieldNameHtml
+			txt += "<tr>"+fieldNameHtml+"</tr><tr>"+fieldContentHtml+"</tr>";
+		}else{
+			lengthLine++;
+			partialNames += fieldNameHtml
+			partialFields += fieldContentHtml
+		}
+		//When a line is full, or last field, append it to txt.
+		if (lengthLine == nbCol || ( i == fields.length -1 && lengthLine>0)){
+			txt+= "<tr>"+partialNames+"</tr>";
+			partialNames = "";
+			txt+= "<tr>"+partialFields+"</tr>";
+			partialFields = "";
+			lengthLine = 0;
+		}
     }
     $("#fields").html("<table cellpadding=0 width=100% style='table-layout: fixed;'>" + txt + "</table>");
     maybeDisableButtons();
