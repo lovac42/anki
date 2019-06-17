@@ -16,8 +16,8 @@ from anki.consts import *
 from anki.hooks import addHook, remHook, runFilter, runHook
 from anki.lang import _, ngettext
 from anki.sound import allSounds, clearAudioQueue, play
-from anki.utils import (bodyClass, fmtTimeSpan, htmlToTextLine, ids2str,
-                        intTime, isMac, isWin)
+from anki.utils import (bodyClass, eltToPos, fmtTimeSpan, htmlToTextLine,
+                        ids2str, intTime, isMac, isWin)
 from aqt.qt import *
 from aqt.utils import (MenuList, SubMenu, askUser, getOnlyText, getTag,
                        mungeQA, openHelp, qtMenuShortcutWorkaround,
@@ -2203,19 +2203,20 @@ class ChangeModel(QDialog):
         self.rebuildTemplateMap()
         self.rebuildFieldMap()
 
-    def rebuildTemplateMap(self, key=None, attr=None):
+    def rebuildTemplateMap(self):
+        self.tsrc = self.getTemplateList(self.oldModel)
+        self.tdst = self.getTemplateList(self.targetModel)
+        return self._rebuildMap("t")
+
+    def _rebuildMap(self, key=None):
         """Change the "Cards" subwindow of the Change Note Type.
 
         Actually, if key and attr are given, it may change another
         subwindow, so the same code is reused for fields.
+        key -- either "t" or "f", for template or fields. What to edit.
         """
-        if not key:
-            key = "t"
-            attr = "tmpls"
         map = getattr(self, key + "widg")
         lay = getattr(self, key + "layout")
-        src = self.oldModel[attr]
-        dst = self.targetModel[attr]
         if map:
             lay.removeWidget(map)
             map.deleteLater()
@@ -2223,19 +2224,25 @@ class ChangeModel(QDialog):
         map = QWidget()
         layout = QGridLayout()
         combos = []
-        targets = [entry['name'] for entry in dst] + [_("Nothing")]
+        targets = [template['name'] for template in getattr(self, key+"dst")]
         indices = {}
-        for i, entry in enumerate(src):
-            layout.addWidget(QLabel(_("Change %s to:") % entry['name']), i, 0)
+        sources = getattr(self,key+"src")
+        sourcesNames = [template["name"] for template in sources]
+        if self.browser.col.conf.get("preserveName", True):
+            assoc = eltToPos(sourcesNames, targets)
+        else:
+            assoc = enumerate(sourcesNames)
+        for indexSrc, (indexDst, templateName) in enumerate(assoc):
+            layout.addWidget(QLabel(_("Change %s to:") % templateName), indexSrc, 0)
             cb = QComboBox()
-            cb.addItems(targets)
-            idx = min(i, len(targets)-1)
+            cb.addItems(targets + [_("Nothing")])
+            idx = min(indexDst, len(targets))
             cb.setCurrentIndex(idx)
             indices[cb] = idx
             cb.currentIndexChanged.connect(
                 lambda i, cb=cb, key=key: self.onComboChanged(i, cb, key))
             combos.append(cb)
-            layout.addWidget(cb, i, 1)
+            layout.addWidget(cb, indexSrc, 1)
         map.setLayout(layout)
         lay.addWidget(map)
         setattr(self, key + "widg", map)
@@ -2245,7 +2252,9 @@ class ChangeModel(QDialog):
 
     def rebuildFieldMap(self):
         """Change the "Fields" subwindow of the Change Note Type."""
-        return self.rebuildTemplateMap(key="f", attr="flds")
+        self.fsrc = self.oldModel["flds"]
+        self.fdst = self.targetModel["flds"]
+        return self._rebuildMap("f")
 
     def onComboChanged(self, i, cb, key):
         indices = getattr(self, key + "indices")
@@ -2267,6 +2276,44 @@ class ChangeModel(QDialog):
                 break
         indices[cb] = i
 
+    def getClozeNumberFromFields(self, flds, s):
+        """Add to the set s the cloze number of flds.
+
+        """
+        clozeFinder = re.compile(r"(?s){{c(?P<number>\d+)::.+?}}")
+        for match in clozeFinder.finditer(flds):
+            number = match.group("number")
+            s.add(int(number))
+        return s
+
+    def getClozeNumberFromNids(self, nids):
+        """Given a list of nids, return the set of cloze number in the fields
+        of notes with one of those nids.
+
+        """
+        s = set()
+        for flds in self.browser.col.db.list(f"""select flds from notes where id in {ids2str(nids)} """):
+            self.getClozeNumberFromFields(flds, s)
+        return s
+
+    def getClozeNumber(self):
+        """The list of cloze number contained in the fields of some notes
+        whose nid belongs to ChangeModel window.
+
+        """
+        return list(self.getClozeNumberFromNids(self.nids))
+
+    def getTemplateList(self, model):
+        """The list of template
+
+        For a normal template, it's actually the list of template.
+        Otherwise, it is, in increasing order, the list of clozes used in self.nid
+        """
+        if model['type'] == MODEL_STD:
+            return model["tmpls"]
+        else:
+            return [{"name":f"Cloze {n}", "ord":n-1} for n in sorted(self.getClozeNumber())]
+
     def getTemplateMap(self, old=None, combos=None, new=None):
         """A map from template's ord of the old model to template's ord of the new
         model. Or None if no template
@@ -2280,10 +2327,22 @@ class ChangeModel(QDialog):
         new -- the list of templates of the new model
         If old is not given, the other two arguments are not used.
         """
-        if not old:
-            old = self.oldModel['tmpls']
-            combos = self.tcombos
-            new = self.targetModel['tmpls']
+        return self._getMap(
+            self.getTemplateList(self.oldModel),
+            self.tcombos,
+            self.getTemplateList(self.targetModel))
+
+    def _getMap(self, old=None, combos=None, new=None):
+        """A map from template's ord of the old model to template's ord of the new
+        model. Or None if no template
+         Contrary to what this name indicates, the method may be used
+        without templates. In getFieldMap it is used for fields
+         keywords parameter:
+        old -- the list of templates of the old model
+        combos -- the python list of gui's list of template
+        new -- the list of templates of the new model
+        If old is not given, the other two arguments are not used.
+        """
         map = {}
         for i, field in enumerate(old):
             idx = combos[i].currentIndex()
@@ -2298,10 +2357,10 @@ class ChangeModel(QDialog):
     def getFieldMap(self):
         """Associating to each field's ord of the source model a field's
         ord (or None) of the new model."""
-        return self.getTemplateMap(
-            old=self.oldModel['flds'],
-            combos=self.fcombos,
-            new=self.targetModel['flds'])
+        return self._getMap(
+            self.oldModel['flds'],
+            self.fcombos,
+            self.targetModel['flds'])
 
     def cleanup(self):
         """Actions to end this gui.
