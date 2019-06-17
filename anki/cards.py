@@ -6,7 +6,7 @@ import time
 
 from anki.consts import *
 from anki.hooks import runHook
-from anki.utils import intTime, joinFields, timestampID
+from anki.utils import ids2str, intTime, joinFields, timestampID
 
 # Cards
 ##########################################################################
@@ -307,3 +307,8 @@ lapses=?, left=?, odue=?, odid=?, did=? where id = ?""",
     def originalDeck(self):
         """Independantly of whether the card is filtered or not."""
         return self.odid or self.did
+
+def siblings(cids):
+    """Return the siblings of cards whose id is in cids"""
+    siblings = mw.col.db.list(f"select id from cards where nid in (select nid from cards where id in {ids2str(cids)})")
+    return siblings
