@@ -596,6 +596,13 @@ class Browser(QMainWindow):
         self.form.actionTags.triggered.connect(self.onFilterButton)
         self.form.actionSidebar.triggered.connect(self.focusSidebar)
         self.form.actionCardList.triggered.connect(self.onCardList)
+        # decks
+        self.form.addPrefix.triggered.connect(self.addPrefix)
+        self.addPrefixShortcut = QShortcut(QKeySequence("Ctrl+Alt+P"), self)
+        self.addPrefixShortcut.activated.connect(self.addPrefix)
+        self.removePrefixShortcut = QShortcut(QKeySequence("Ctrl+Alt+Shift+P"), self)
+        self.removePrefixShortcut.activated.connect(self.removePrefix)
+        self.form.removePrefix.triggered.connect(self.removePrefix)
         # help
         self.form.actionGuide.triggered.connect(self.onHelp)
         # keyboard shortcut for shift+home/end
@@ -1727,6 +1734,52 @@ update cards set usn=?, mod=?, did=? where id in """ + scids,
                             usn, mod, did)
         self.model.endReset()
         self.mw.requireReset()
+
+    def addPrefix(self):
+        self.mw.checkpoint("Add prefix")
+        self.mw.progress.start()
+
+        prefix=getOnlyText(_("Prefix to add:"), default="prefix")
+        for cid in self.selectedCards():
+            card = self.col.getCard(cid)
+            did = card.odid or card.did
+            deckName = self.col.decks.name(did)
+            deck = self.col.decks.get(did, default=False)
+            assert deck
+            newDeckName = "%s::%s"% (prefix,deckName)
+            newDid = self.col.decks.id(newDeckName,type=deck)
+            card.did=newDid
+            card.flush()
+
+        # Reset collection and main window
+        self.col.decks.flush()
+        self.mw.progress.finish()
+        self.col.reset()
+        self.mw.reset()
+        tooltip(_("""Prefix added."""))
+
+    def removePrefix(self):
+        self.mw.checkpoint("Remove prefix")
+        self.mw.progress.start()
+
+        for cid in self.selectedCards():
+            card = self.col.getCard(cid)
+            did = card.odid or card.did
+            deckName = self.col.decks.name(did)
+            deck = self.col.decks.get(did, default=False)
+            assert deck
+            newDeckName = '::'.join(self.col.decks._path(deckName)[1:])
+            newDid = self.col.decks.id(newDeckName,type=deck)
+            card.did=newDid
+            card.flush()
+
+        # Reset collection and main window
+        self.col.decks.flush()
+        self.col.reset()
+        self.mw.reset()
+        self.mw.progress.finish()
+        tooltip(_("""Prefix removed."""))
+
 
     # Tags
     ######################################################################
