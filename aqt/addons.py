@@ -15,8 +15,11 @@ import sys
 import aqt
 import aqt.forms
 from anki.addons import AddonManager as AM
+from anki.addons import readableJson
 from anki.lang import _, ngettext
-from aqt.downloader import downloadIds
+from anki.sync import AnkiRequestsClient
+from anki.utils import intTime
+from aqt.downloader import download, downloadIds
 from aqt.qt import *
 from aqt.utils import (askUser, getFile, isWin, openFolder, openLink,
                        restoreGeom, restoreSplitter, saveGeom, saveSplitter,
@@ -384,8 +387,7 @@ class ConfigEditor(QDialog):
 
     def updateText(self, conf):
         self.form.editor.setPlainText(
-            json.dumps(conf, ensure_ascii=False, sort_keys=True,
-                       indent=4, separators=(',', ': ')))
+            readableJson(json.dumps(conf,sort_keys=True,indent=4, separators=(',', ': '))))
 
     def onClose(self):
         saveGeom(self, "addonconf")
