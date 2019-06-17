@@ -610,7 +610,7 @@ select id from notes where mid = ?)""" % " ".join(map),
         """Generate all cards not yet generated, whose note's model is model.
 
         It's called only when model is saved, a new model is given and template is asked to be computed"""
-        rem = self.col.genCards(self.nids(model))
+        self.col.genCards(self.nids(model))
 
     # Model changing
     ##########################################################################
