@@ -41,7 +41,6 @@ and a change may break them even if they do not detect anything.
 ## tools
 Some script. Most of them are used to compile anki. The only exception
 is tools/runanki.system.in. A copy of this file is used to start anki
-from source.
 
 ## web
 This title is kinda misleading. This file is not actually used for
