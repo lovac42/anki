@@ -422,7 +422,7 @@ class Editor:
             self.mw.progress.timer(10, callback, False)
             return
         self.saveTags()
-        self.web.evalWithCallback("saveNow(%d)" % keepFocus, lambda res: callback())
+        self.web.evalWithCallback(f"""saveNow({str(keepFocus).lower()})""", lambda res: callback())
 
     def checkValid(self):
         cols = []
