@@ -713,7 +713,7 @@ where c.nid = n.id and c.id in %s group by nid""" % ids2str(cids)):
                 for row in self._qaData(where)]
 
     def _renderQA(self, data, qfmt=None, afmt=None):
-        """Returns hash of id, question, answer.
+        """Returns dict with id, question, answer, and whether a field is shown in question.
 
         Keyword arguments:
         data -- [cid, nid, mid, did, ord, tags, flds] (see db
