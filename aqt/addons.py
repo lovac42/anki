@@ -107,6 +107,8 @@ class AddonManager:
 
     def loadAddons(self):
         for dir in self.allAddons():
+            if dir in incorporatedAddonsDict or (re.match(r"^\d+$", dir) and int(dir) in incorporatedAddonsDict):
+                continue
             meta = self.addonMeta(dir)
             if meta.get("disabled"):
                 continue
@@ -883,3 +885,23 @@ class ConfigEditor(QDialog):
 
         self.onClose()
         super().accept()
+
+## Add-ons incorporated in this fork.
+
+class Addon:
+    def __init__(self, name = None, id = None, mod = None, gitHash = None, gitRepo = None):
+        self.name = name
+        self.id = id
+        self.mod = mod
+        self.gitHash = gitHash
+        self.gitRepo = gitRepo
+
+    def __hash__(self):
+        return self.id or hash(self.name)
+
+""" Set of characteristic of Add-ons incorporated here"""
+incorporatedAddonsSet = {
+}
+
+incorporatedAddonsDict = {**{addon.name: addon for addon in incorporatedAddonsSet if addon.name},
+                          **{addon.id: addon for addon in incorporatedAddonsSet if addon.id}}
