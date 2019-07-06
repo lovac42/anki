@@ -98,7 +98,7 @@ class NoteImporter(Importer):
 
     def mappingOk(self):
         """Whether something is mapped to the first field"""
-        return self.model['flds'][0]['name'] in self.mapping
+        return (self.col.conf.get("allowEmptyFirstField", False)) or self.model['flds'][0]['name'] in self.mapping
 
     def foreignNotes(self):
         "Return a list of foreign notes for importing."
@@ -125,7 +125,8 @@ class NoteImporter(Importer):
             else:
                 csums[csum] = [id]
         firsts = {}#mapping sending first field of added note to true
-        fld0idx = self.mapping.index(self.model['flds'][0]['name'])
+        fld0name = self.model['flds'][0]['name']
+        fld0idx = self.mapping.index(fld0name) if fld0name in self.mapping else None
         self._fmap = self.col.models.fieldMap(self.model)
         self._nextID = timestampID(self.col.db, "notes")
         # loop through the notes
@@ -148,55 +149,57 @@ class NoteImporter(Importer):
                     note.fields[fieldIndex] = note.fields[fieldIndex].replace("\note", "<br>")
                 note.fields[fieldIndex] = unicodedata.normalize("NFC", note.fields[fieldIndex])
             note.tags = [unicodedata.normalize("NFC", tag) for tag in note.tags]
-            fld0 = note.fields[fld0idx]
-            csum = fieldChecksum(fld0)
-            # first field must exist
-            if not fld0:
-                self.log.append(_("Empty first field: %s") %
-                                " ".join(note.fields))
-                continue
-            # earlier in import?
-            if fld0 in firsts and self.importMode != addMode:
-                # duplicates in source file; log and ignore
-                self.log.append(_("Appeared twice in file: %s") %
-                                fld0)
-                continue
-            firsts[fld0] = True
-            # already exists?
+            ###########start test fld0
             found = False#Whether a note with a similar first field was found
-            if csum in csums:
-                # csum is not a guarantee; have to check
-                for id in csums[csum]:
-                    flds = self.col.db.scalar(
-                        "select flds from notes where id = ?", id)
-                    sflds = splitFields(flds)
-                    if fld0 == sflds[0]:
-                        # duplicate
-                        found = True
-                        if self.importMode == updateMode:
-                            data = self.updateData(note, id, sflds)
-                            if data:
-                                updates.append(data)
-                                updateLog.append(updateLogTxt % fld0)
+            if (fld0idx is not None and not self.col.conf.get("multipleNoteWithSameFirstFieldInImport", False)):#Don't test for duplicate if there is no first field
+                fld0 = note.fields[fld0idx]
+                csum = fieldChecksum(fld0)
+                # first field must exist
+                if not fld0:
+                    self.log.append(_("Empty first field: %s") %
+                                    " ".join(note.fields))
+                    continue
+                # earlier in import?
+                if fld0 in firsts and self.importMode != 2:
+                    # duplicates in source file; log and ignore
+                    self.log.append(_("Appeared twice in file: %s") %
+                                    fld0)
+                    continue
+                firsts[fld0] = True
+                # already exists?
+                if csum in csums:
+                    # csum is not a guarantee; have to check
+                    for id in csums[csum]:
+                        flds = self.col.db.scalar(
+                            "select flds from notes where id = ?", id)
+                        sflds = splitFields(flds)
+                        if fld0 == sflds[0]:
+                            # duplicate
+                            found = True
+                            if self.importMode == 0:
+                                data = self.updateData(note, id, sflds)
+                                if data:
+                                    updates.append(data)
+                                    updateLog.append(updateLogTxt % fld0)
+                                    dupeCount += 1
+                                    found = True
+                            elif self.importMode == 1:
                                 dupeCount += 1
-                                found = True
-                        elif self.importMode == ignoreMode:
-                            dupeCount += 1
-                        elif self.importMode == addMode:
-                            # allow duplicates in this case
-                            if fld0 not in dupes:
-                                # only show message once, no matter how many
-                                # duplicates are in the collection already
-                                updateLog.append(dupeLogTxt % fld0)
-                                dupes.append(fld0)
-                            found = False
+                            elif self.importMode == 2:
+                                # allow duplicates in this case
+                                if fld0 not in dupes:
+                                    # only show message once, no matter how many
+                                    # duplicates are in the collection already
+                                    updateLog.append(dupeLogTxt % fld0)
+                                    dupes.append(fld0)
+                                found = False
             # newly add
             if not found:
                 data = self.newData(note)
                 if data:
                     new.append(data)
                     # note that we've seen this note once already
-                    firsts[fld0] = True
+                    if fld0idx:firsts[fld0] = True
         self.addNew(new)
         self.addUpdates(updates)
         # make sure to update sflds, etc
@@ -214,6 +217,8 @@ class NoteImporter(Importer):
         # in order due?
         if conf['new']['order'] == NEW_CARDS_RANDOM:
             self.col.sched.randomizeCards(did)
+        else:
+            self.col.sched.orderCards(did)
 
         part1 = ngettext("%d note added", "%d notes added", len(new)) % len(new)
         part2 = ngettext("%d note updated", "%d notes updated",
