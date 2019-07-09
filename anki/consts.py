@@ -90,6 +90,10 @@ BUTTON_TWO = 2
 BUTTON_THREE = 3
 BUTTON_FOUR = 4
 
+# Leech actions
+LEECH_SUSPEND = 0
+LEECH_TAGONLY = 1
+
 # Labels
 ##########################################################################
 
