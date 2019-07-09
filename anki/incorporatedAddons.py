@@ -14,6 +14,7 @@ class Addon:
 
 """ Set of characteristic of Add-ons incorporated here"""
 incorporatedAddonsSet = {
+    Addon("Limit number of cards by day both new and review", 602339056, 1563554921, "b69b7c62e95746e0942b3c63147d9fe204775edb", "https://github.com/Arthur-Milchior/anki-limit-to-both-new-and-revs"),
 }
 
 incorporatedAddonsDict = {**{addon.name: addon for addon in incorporatedAddonsSet if addon.name},

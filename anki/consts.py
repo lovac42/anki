@@ -139,6 +139,7 @@ colSusp = "#ff0"
 colNew = "#000099"
 colRev = "#007700"
 colDue = "#007700"
+colToday = "red"
 
 # Websites' page
 appWebsite="http://ankisrs.net/"
