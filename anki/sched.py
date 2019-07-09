@@ -427,7 +427,7 @@ select count() from
             f"""
 select count() from cards where id in (
 select id from cards where did in %s and queue = {QUEUE_NEW_CRAM} limit ?)"""
-            % (ids2str(self.col.decks.active()), self.reportLimit))
+            % ids2str(self.col.decks.active()), self.reportLimit)
 
     # Learning queues
     ##########################################################################
@@ -785,7 +785,7 @@ did = ? and queue = {QUEUE_REV} and due <= ? limit ?""",
             """
 select count() from cards where id in (
 select id from cards where did in %s and queue = {QUEUE_REV} and due <= ? limit ?)"""
-            % (ids2str(self.col.decks.active()), self.today, self.reportLimit))
+            % ids2str(self.col.decks.active(), self.today, self.reportLimit))
 
     # Answering a review card
     ##########################################################################
@@ -991,8 +991,7 @@ due = odue, odue = 0, odid = 0, usn = ? where %s""" % (lim),
         elif o == DYN_DUE:
             t = "c.due"
         elif o == DYN_DUEPRIORITY:
-            t = "(case when queue=%d and due <= %d then (ivl / cast(%d-due+0.001 as real)) else 100000+due end)" % (QUEUE_REV,
-                    self.today, self.today)
+            t = f"(case when queue={QUEUE_REV} and due <= %d then (ivl / cast(%d-due+0.001 as real)) else 100000+due end)" % (self.today, self.today)
         else:
             # if we don't understand the term, default to due order
             t = "c.due"
