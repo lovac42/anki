@@ -638,7 +638,7 @@ class FullSyncer(HttpSyncer):
 
     def download(self):
         runHook("sync", "download")
-        localNotEmpty = self.col.db.scalar("select 1 from cards")
+        localNotEmpty = self.col.db.scalar("select 1 from cards limit 1")
         self.col.close()
         cont = self.req("download")
         tpath = self.col.path + ".tmp"
@@ -649,7 +649,7 @@ class FullSyncer(HttpSyncer):
         # check the received file is ok
         d = DB(tpath)
         assert d.scalar("pragma integrity_check") == "ok"
-        remoteEmpty = not d.scalar("select 1 from cards")
+        remoteEmpty = not d.scalar("select 1 from cards limit 1")
         d.close()
         # accidental clobber?
         if localNotEmpty and remoteEmpty:

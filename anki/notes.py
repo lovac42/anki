@@ -50,7 +50,7 @@ from notes where id = ?""", self.id)
         tags = self.stringTags()
         fields = self.joinedFields()
         if not mod and self.col.db.scalar(
-            "select 1 from notes where id = ? and tags = ? and flds = ?",
+            "select 1 from notes where id = ? and tags = ? and flds = ? limit 1",
             self.id, tags, fields):
             return
         csum = fieldChecksum(self.fields[0])
@@ -151,7 +151,7 @@ insert or replace into notes values (?,?,?,?,?,?,?,?,?,?,?)""",
     def _preFlush(self):
         # have we been added yet?
         self.newlyAdded = not self.col.db.scalar(
-            "select 1 from cards where nid = ?", self.id)
+            "select 1 from cards where nid = ? limit 1", self.id)
 
     def _postFlush(self):
         # generate missing cards
