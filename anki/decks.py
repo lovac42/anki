@@ -26,6 +26,7 @@ browserCollapsed -- true when deck collapsed in browser,
 id -- deck ID (automatically generated long),
 mod -- last modification time,
 mid -- the model of the deck
+tmp -- some values which should not be saved in json (not always here)
 """
 
 
@@ -51,6 +52,7 @@ mod -- Last modification time
 usn -- see USN documentation
 dyn -- Whether this deck is dynamic. Not present in the default configurations
 id -- deck ID (automatically generated long). Not present in the default configurations.
+tmp -- some values which should not be saved in json (not always here)
 
 The configuration related to new cards is composed of:
 delays -- The list of successive delay between the learning steps of
@@ -201,7 +203,11 @@ class DeckManager:
         dconf -- json dic associating to each id (as string) its configuration(option)
         """
         self.decks = json.loads(decks)
+        for deck in self.decks.values():
+            deck["tmp"] = dict()
         self.dconf = json.loads(dconf)
+        for dconf in self.decks.values():
+            dconf["tmp"] = dict()
         # set limits to within bounds
         found = False
         for c in list(self.dconf.values()):
@@ -231,9 +237,16 @@ class DeckManager:
         changes happenned.
         """
         if self.changed:
+            decks = {did: copy.copy(deck) for did, deck in self.decks.items()}
+            for did, deck in decks.items():
+                if "tmp" in deck: del deck["tmp"]
+            dconfs = {dcid: copy.copy(dconf) for dcid, dconf in self.dconf.items()}
+            for did, dconf in dconfs.items():
+                if "tmp" in dconf: del dconf["tmp"]
+
             self.col.db.execute("update col set decks=?, dconf=?",
-                                 json.dumps(self.decks),
-                                 json.dumps(self.dconf))
+                                 json.dumps(decks),
+                                 json.dumps(dconfs))
             self.changed = False
 
     # Deck save/load
