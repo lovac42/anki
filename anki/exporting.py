@@ -38,6 +38,9 @@ class Exporter:
         file.close()
 
     def processText(self, text):
+        """remove HTML if not includeHTML, add quote if required, replace tab
+        by eight spaces, newline by a line, and escape quote."""
+
         if self.includeHTML is False:
             text = self.stripHTML(text)
 
