@@ -211,16 +211,6 @@ class Scheduler(BothScheduler):
         # collapse or finish
         return self._getLrnCard(collapse=True)
 
-    # New cards
-    ##########################################################################
-
-    def _deckNewLimitSingle(self, g):
-        "Limit for deck without parent limits."
-        if g['dyn']:
-            return self.dynReportLimit
-        c = self.col.decks.confForDid(g['id'])
-        return max(0, c['new']['perDay'] - g['newToday'][1])
-
     # Learning queues
     ##########################################################################
 
@@ -440,16 +430,7 @@ and due <= ? limit ?)""",
         return self._deckRevLimitSingle(d)
 
     def _deckRevLimitSingle(self, d, parentLimit=None):
-        # invalid deck selected?
-        if not d:
-            return 0
-
-        if d['dyn']:
-            return self.dynReportLimit
-
-        c = self.col.decks.confForDid(d['id'])
-        lim = max(0, c['rev']['perDay'] - d['revToday'][1])
-
+        lim = super()._deckRevLimitSingle(d)
         if parentLimit is not None:
             return min(parentLimit, lim)
         elif '::' not in d['name']:

@@ -237,24 +237,6 @@ class Scheduler(BothScheduler):
         # collapse or finish
         return self._getLrnCard(collapse=True)
 
-    # New cards
-    ##########################################################################
-
-    def _deckNewLimitSingle(self, g):
-        """Maximum number of new card to see today for deck g, not considering parent limit.
-
-        If g is a dynamic deck, then reportLimit.
-        Otherwise the number of card to see in this deck option, plus the number of card exceptionnaly added to this deck today.
-
-        keyword arguments:
-        g -- a deck dictionnary
-        """
-        if g['dyn']:
-            return self.reportLimit
-        c = self.col.decks.confForDid(g['id'])
-        ret = max(0, c['new']['perDay'] - g['newToday'][1])
-        return ret
-
     # Learning queues
     ##########################################################################
 
@@ -477,17 +459,6 @@ and due <= ? limit ?)""" ,
 
     def _deckRevLimit(self, did):
         return self._deckNewLimit(did, self._deckRevLimitSingle)
-
-    def _deckRevLimitSingle(self, d):
-        """Maximum number of card to review today in deck d.
-
-        self.reportLimit for dynamic deck. Otherwise the number of review according to deck option, plus the number of review added in custom study today.
-        keyword arguments:
-        d -- a deck object"""
-        if d['dyn']:
-            return self.reportLimit
-        c = self.col.decks.confForDid(d['id'])
-        return max(0, c['rev']['perDay'] - d['revToday'][1])
 
     def _revForDeck(self, did, lim):
         """number of cards to review today for deck did
