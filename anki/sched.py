@@ -94,9 +94,6 @@ class Scheduler(BothScheduler):
             f"update cards set mod=?,usn=?,queue=type where queue = {QUEUE_USER_BURIED} and did in %s"
             % (sids), intTime(), self.col.usn())
 
-    # Rev/lrn/time daily stats
-    ##########################################################################
-
     # Deck list
     ##########################################################################
 
@@ -108,14 +105,8 @@ class Scheduler(BothScheduler):
         decks.sort(key=itemgetter('name'))
         lims = {}
         data = []
-        def parent(name):
-            parts = name.split("::")
-            if len(parts) < 2:
-                return None
-            parts = parts[:-1]
-            return "::".join(parts)
         for deck in decks:
-            p = parent(deck['name'])
+            p = self.col.decks.parentName(deck['name'])
             # new
             nlim = self._deckNewLimitSingle(deck)
             if p:

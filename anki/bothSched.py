@@ -468,9 +468,6 @@ select count() from cards where id in (
 select id from cards where did in %s and queue = {QUEUE_REV} and due <= ? limit ?)"""
             % ids2str(self.col.decks.active()), self.today, self.reportLimit)
 
-    # Answering a review card
-    ##########################################################################
-
     # Interval management
     ##########################################################################
 

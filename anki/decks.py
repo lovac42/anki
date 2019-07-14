@@ -466,12 +466,11 @@ class DeckManager:
                 self.save(deck)
 
             # immediate parent must exist
-            if "::" in deck['name']:
-                immediateParent = "::".join(deck['name'].split("::")[:-1])
-                if immediateParent not in names:
-                    self.col.log("fix deck with missing parent", deck['name'])
-                    self._ensureParents(deck['name'])
-                    names.add(immediateParent)
+            immediateParent = self.parentName(deck['name'])
+            if immediateParent is not None and immediateParent not in names:
+                self.col.log("fix deck with missing parent", deck['name'])
+                self._ensureParents(deck['name'])
+                names.add(immediateParent)
 
             names.add(deck['name'])
 
@@ -529,16 +528,14 @@ class DeckManager:
         childMap = {}
 
         # go through all decks, sorted by name
-        for deck in sorted(self.all(), key=operator.itemgetter("name")):
-            node = {}
-            childMap[deck['id']] = node
+        for deck in self.all(sort=true):
+            childMap[deck['id']] = {}
 
             # add note to immediate parent
-            parts = deck['name'].split("::")
-            if len(parts) > 1:
-                immediateParent = "::".join(parts[:-1])
+            immediateParent = self.parentName(deck['name'])
+            if immediateParent is not None:
                 pid = nameMap[immediateParent]['id']
-                childMap[pid][deck['id']] = node
+                childMap[pid][deck['id']] = childMap[deck['id']]
 
         return childMap
 
@@ -600,3 +597,13 @@ class DeckManager:
 
     def isDyn(self, did):
         return self.get(did)['dyn']
+
+    # Deck utils
+    ##########################################################################
+    def parentName(self, name):
+        """The name of the parent name, or None if there is none"""
+        parts = name.rsplit("::", 1)
+        if len(parts)==2:
+            return parts[0]
+        else:
+            return None
