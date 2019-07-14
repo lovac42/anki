@@ -391,8 +391,8 @@ select count() from cards where did in %s and queue = {QUEUE_PREVIEW}
                 lim = min(lim, self._deckRevLimitSingle(ancestor))
             return lim
 
-    def _revForDeck(self, did, lim, childMap):
-        dids = [did] + self.col.decks.childDids(did, childMap)
+    def _revForDeck(self, did, lim, sort=True, childMap=None):
+        dids = self.col.decks.childDids(did, childMap=childMap, includeSelf=True)
         lim = min(lim, self.reportLimit)
         return self.col.db.scalar(
             f"""
