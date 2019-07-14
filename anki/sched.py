@@ -101,8 +101,8 @@ class Scheduler(BothScheduler):
         "Returns [deckname, did, rev, lrn, new]"
         self._checkDay()
         self.col.decks.checkIntegrity()
-        decks = self.col.decks.all()
-        decks.sort(key=itemgetter('name'))
+        decks = self.col.decks.all(sort=True)
+        #lims -- associating to each deck maximum number of new card and of review. Taking custom study into account
         lims = {}
         data = []
         for deck in decks:
