@@ -107,9 +107,6 @@ class Scheduler(BothScheduler):
             f"update cards set mod=?,usn=?,queue=type where queue = {QUEUE_USER_BURIED} and did in %s"
             % (sids), intTime(), self.col.usn())
 
-    # Rev/lrn/time daily stats
-    ##########################################################################
-
     # Deck list
     ##########################################################################
 
@@ -126,14 +123,8 @@ class Scheduler(BothScheduler):
         #lims -- associating to each deck maximum number of new card and of review. Taking custom study into account
         lims = {}
         data = []
-        def parent(name):
-            parts = name.split("::")
-            if len(parts) < 2:
-                return None
-            parts = parts[:-1]
-            return "::".join(parts)
         for deck in decks:
-            p = parent(deck['name'])
+            p = self.col.decks.parentName(deck['name'])
             # new
             #nlim -- maximal number of new card, taking parent into account
             nlim = self._deckNewLimitSingle(deck)
@@ -961,9 +952,3 @@ did = ?, queue = %s, due = ?, usn = ? where id = ?""" % queue, data)
                 (f"update cards set queue={QUEUE_USER_BURIED},mod=?,usn=? where id in ")+ids2str(toBury),
                 intTime(), self.col.usn())
             self.col.log(toBury)
-
-    # Resetting
-    ##########################################################################
-
-    # Repositioning new cards
-    ##########################################################################
