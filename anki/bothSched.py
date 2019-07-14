@@ -106,8 +106,7 @@ order by due""" % (self._deckLimit()),
         to this decks and all of its ancestors.
         """
         key = type+"Today"
-        for deck in ([self.col.decks.get(card.did)] +
-                  self.col.decks.parents(card.did)):
+        for deck in self.col.decks.parents(card.did, includeSelf=True):
             # add
             deck[key][1] += cnt
             self.col.decks.save(deck)
@@ -262,10 +261,9 @@ did = ? and queue = {QUEUE_NEW_CRAM} limit ?)""", did, lim)
     def _deckNewLimit(self, did, fn=None):
         if not fn:
             fn = self._deckNewLimitSingle
-        sel = self.col.decks.get(did)
         lim = -1
         # for the deck and each of its parents
-        for deck in [sel] + self.col.decks.parents(did):
+        for deck in self.col.decks.parents(did, includeSelf=True):
             rem = fn(deck)
             if lim == -1:
                 lim = rem
