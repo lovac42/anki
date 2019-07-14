@@ -771,7 +771,7 @@ same id."""
 
         return childMap
 
-    def parents(self, did, nameMap=None):
+    def parents(self, did, nameMap=None, includeSelf=False):
         """The list of all ancestors of did, as deck objects.
 
         The list starts with the toplevel ancestors of did and its
@@ -782,11 +782,14 @@ same id."""
         nameMap -- dictionnary: deck id-> Node
         """
         parents = []
-        for part in self.get(did)['name'].split("::")[:-1]:
-            if not parents:
-                parents.append(part)
-            else:
-                parents.append(parents[-1] + "::" + part)
+        last = ""
+        parts = self.get(did)['name'].split("::")
+        if not includeSelf:
+            parts = parts[:-1]
+        for part in parts
+            current = last + part
+            parents.append(current)
+            last = current+"::"
         # convert to objects
         for c, p in enumerate(parents):
             if nameMap:
