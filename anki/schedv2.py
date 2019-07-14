@@ -96,8 +96,7 @@ class Scheduler(BothScheduler):
         "Returns [deckname, did, rev, lrn, new]"
         self._checkDay()
         self.col.decks.checkIntegrity()
-        decks = self.col.decks.all()
-        decks.sort(key=itemgetter('name'))
+        decks = self.col.decks.all(sort=True)
         lims = {}
         data = []
         childMap = self.col.decks.childMap()
@@ -432,8 +431,8 @@ and due <= ? limit ?)""",
                 lim = min(lim, self._deckRevLimitSingle(parent, parentLimit=lim))
             return lim
 
-    def _revForDeck(self, did, lim, childMap):
-        dids = [did] + self.col.decks.childDids(did, childMap)
+    def _revForDeck(self, did, lim, sort=True):
+        dids = self.col.decks.childDids(did, childMap, includeSelf=True)
         lim = min(lim, self.reportLimit)
         return self.col.db.scalar(
             f"""

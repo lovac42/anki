@@ -120,8 +120,7 @@ order by due""" % (self._deckLimit()),
         """
         cur = self.col.decks.current()
         parents = self.col.decks.parents(cur['id'])
-        children = [self.col.decks.get(did) for (name, did) in
-                    self.col.decks.children(cur['id'])]
+        children = self.col.decks.childrenDecks(cur['id'])
         for g in [cur] + parents + children:
             # add
             g['newToday'][1] -= new
