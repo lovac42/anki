@@ -424,9 +424,9 @@ class DeckManager:
         # ensure we have parents
         newName = self._ensureParents(newName)
         # rename children
-        for grp in self.childrenDecks(g['id'], includeSelf=True):   self.all():
-            grp['name'] = grp['name'].replace(g['name']+ "::",
-                                                  newName + "::", 1)
+        oldName = g['name']
+        for grp in self.childrenDecks(g['id'], includeSelf=True):
+            grp['name'] = grp['name'].replace(f"{oldName}::", f"{newName}::", 1)
             self.save(grp)
         # ensure we have parents again, as we may have renamed parent->child
         newName = self._ensureParents(newName)
@@ -793,7 +793,7 @@ same id."""
         parts = self.get(did)['name'].split("::")
         if not includeSelf:
             parts = parts[:-1]
-        for part in parts
+        for part in parts:
             current = last + part
             parents.append(current)
             last = current+"::"
