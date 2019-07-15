@@ -84,7 +84,6 @@ class Preferences(QDialog):
             f.hwAccel.setVisible(False)
         else:
             f.hwAccel.setChecked(self.mw.pm.glMode() != "software")
-        f.newSpread.addItems(list(newCardSchedulingLabels().values()))
         if self.mw.col.schedVer() != 2:
             f.dayLearnFirst.setVisible(False)
         else:
