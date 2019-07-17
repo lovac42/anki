@@ -426,7 +426,7 @@ class DeckManager:
         # rename children
         oldName = g['name']
         for grp in self.childrenDecks(g['id'], includeSelf=True):
-            grp['name'] = grp['name'].replace(f"{oldName}::", f"{newName}::", 1)
+            grp['name'] = grp['name'].replace(f"{oldName}", f"{newName}", 1)
             self.save(grp)
         # ensure we have parents again, as we may have renamed parent->child
         newName = self._ensureParents(newName)
@@ -729,7 +729,7 @@ same id."""
         # current deck
         self.col.conf['curDeck'] = did
         # and active decks (current + all children)
-        self.col.conf['activeDecks'] = self.childDids(did, sorted=True, includeSelf=True)
+        self.col.conf['activeDecks'] = self.childDids(did, sort=True, includeSelf=True)
         self.changed = True
 
     def children(self, did, includeSelf=False, sort=False):
@@ -753,7 +753,7 @@ same id."""
         did -- the id of the deck we consider
         childMap -- dictionnary, associating to a deck id its node as returned by .childMap()"""
         # get ancestors names
-        return [g['id'] for g in self.childrenDecks(includeSelf=includeSelf, sort=sort)]
+        return [g['id'] for g in self.childrenDecks(did, includeSelf=includeSelf, sort=sort)]
 
     def childMap(self):
         """A tree, containing for each pair parent/child, an entry of the form:
@@ -767,7 +767,7 @@ same id."""
         childMap = {}
 
         # go through all decks, sorted by name
-        for deck in self.all(sort=true):
+        for deck in self.all(sort=True):
             childMap[deck['id']] = {}
 
             # add note to immediate parent

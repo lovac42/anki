@@ -431,8 +431,8 @@ and due <= ? limit ?)""",
                 lim = min(lim, self._deckRevLimitSingle(parent, parentLimit=lim))
             return lim
 
-    def _revForDeck(self, did, lim, sort=True):
-        dids = self.col.decks.childDids(did, childMap, includeSelf=True)
+    def _revForDeck(self, did, lim, sort=True, childMap=None):
+        dids = self.col.decks.childDids(did, childMap=childMap, includeSelf=True)
         lim = min(lim, self.reportLimit)
         return self.col.db.scalar(
             f"""
