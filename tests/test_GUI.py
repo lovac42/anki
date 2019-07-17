@@ -1,4 +1,13 @@
 import aqt
+import shutil
+
 def test_gui():
-    aqt.run(["Anki","--base","tests/support", "-p", "TEST"])
-    print("Ended running")
+    orig = "tests/support"
+    copy = "tests/supportCopy"
+    try:
+        shutil.rmtree(copy)
+    except:
+        pass
+    shutil.copytree(orig, copy)
+    aqt.run(["Anki","--base", copy, "-p", "TEST"])
+    shutil.rmtree(copy)
