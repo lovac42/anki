@@ -1,0 +1,29 @@
+[1563319389] collection.py:__init__(): /home/arthur/anki/source/tests/support/Utilisateur 1/collection.anki2, 2.1.14
+[1563319389] sched.py:_updateCutoff(): 0, 1563328800
+[1563327207] collection.py:__init__(): /home/arthur/anki/source/tests/support/Utilisateur 1/collection.anki2, 2.1.14
+[1563327207] sched.py:_updateCutoff(): 0, 1563328800
+[1563327225] collection.py:__init__(): /home/arthur/anki/source/tests/support/TEST/collection.anki2, 2.1.14
+[1563327225] sched.py:_updateCutoff(): 0, 1563328800
+[1563327233] collection.py:__init__(): /home/arthur/anki/source/tests/support/TEST/collection.anki2, 2.1.14
+[1563327233] sched.py:_updateCutoff(): 0, 1563328800
+[1563327241] collection.py:__init__(): /home/arthur/anki/source/tests/support/TEST/collection.anki2, 2.1.14
+[1563327241] sched.py:_updateCutoff(): 0, 1563328800
+[1563327260] collection.py:__init__(): /home/arthur/anki/source/tests/support/TEST/collection.anki2, 2.1.14
+[1563327260] sched.py:_updateCutoff(): 0, 1563328800
+[1563327276] collection.py:__init__(): /home/arthur/anki/source/tests/support/TEST/collection.anki2, 2.1.14
+[1563327276] sched.py:_updateCutoff(): 0, 1563328800
+[1563327312] collection.py:__init__(): /home/arthur/anki/source/tests/support/TEST/collection.anki2, 2.1.14
+[1563327312] sched.py:_updateCutoff(): 0, 1563328800
+[1563328168] collection.py:__init__(): /home/arthur/anki/source/tests/support/TEST/collection.anki2, 2.1.14
+[1563328168] sched.py:_updateCutoff(): 0, 1563328800
+[2019-07-17 04:17:08.452975] collection.py:__init__(): /home/arthur/anki/source/tests/support/TEST/collection.anki2, 2.1.15
+[2019-07-17 04:17:08.458924] sched.py:_updateCutoff(): 1, 1563415200
+[2019-07-17 04:17:08.459486] sched.py:unburyCards(): []
+[2019-07-17 04:18:49.476326] collection.py:__init__(): /home/arthur/anki/source/tests/support/TEST/collection.anki2, 2.1.15
+[2019-07-17 04:18:49.485206] sched.py:_updateCutoff(): 1, 1563415200
+[2019-07-17 04:21:51.948905] collection.py:__init__(): /home/arthur/anki/source/tests/support/TEST/collection.anki2, 2.1.15
+[2019-07-17 04:21:51.950397] sched.py:_updateCutoff(): 1, 1563415200
+[2019-07-17 04:34:05.960370] collection.py:__init__(): /home/arthur/anki/source/tests/support/TEST/collection.anki2, 2.1.15
+[2019-07-17 04:34:05.962382] sched.py:_updateCutoff(): 1, 1563415200
+[2019-07-17 04:34:21.764310] collection.py:__init__(): /home/arthur/anki/source/tests/support/TEST/collection.anki2, 2.1.15
+[2019-07-17 04:34:21.766212] sched.py:_updateCutoff(): 1, 1563415200
