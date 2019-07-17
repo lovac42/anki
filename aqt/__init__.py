@@ -284,6 +284,7 @@ def parseArgs(argv):
     parser.usage = "%(prog)s [OPTIONS] [file to import]"
     parser.add_argument("-b", "--base", help="path to base folder", default="")
     parser.add_argument("-p", "--profile", help="profile name to load", default="")
+    parser.add_argument("-c", "--collectiof", help="collection file to load", default="")
     parser.add_argument("-l", "--lang", help="interface language (en, de, etc)")
     return parser.parse_known_args(argv[1:])
 
