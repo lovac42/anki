@@ -257,7 +257,7 @@ and due = ?""" % self._limit(), self.col.sched.today+1)
             lim += " and due-:today >= %d" % start
         if end is not None:
             lim += " and day < %d" % end
-        return self.col.db.all("""
+        return self.col.db.all(f"""
 select (due-:today)/:chunk as day,
 sum(case when ivl < 21 then 1 else 0 end), -- yng
 sum(case when ivl >= 21 then 1 else 0 end) -- mtr
@@ -619,10 +619,10 @@ select count(), avg(ivl), max(ivl) from cards where did in %s and queue = {QUEUE
             ease4repl = "ease"
         return self.col.db.all(f"""
 select (case
-when type in (CARD_NEW,CARD_DUE) then 0
+when type in ({CARD_NEW},{CARD_DUE}) then 0
 when lastIvl < 21 then 1
 else 2 end) as thetype,
-(case when type in (CARD_NEW,CARD_DUE) and ease = 4 then %s else ease end), count() from revlog %s
+(case when type in ({CARD_NEW},{CARD_DUE}) and ease = 4 then %s else ease end), count() from revlog %s
 group by thetype, ease
 order by thetype, ease""" % (ease4repl, lim))
 
@@ -754,7 +754,7 @@ max(factor) / 10.0
 from cards where did in %s and queue = {QUEUE_REV}""" % self._limit())
 
     def _cards(self):
-        return self.col.db.first("""
+        return self.col.db.first(f"""
 select
 sum(case when queue={QUEUE_REV} and ivl >= 21 then 1 else 0 end), -- mtr
 sum(case when queue in ({QUEUE_LRN},{QUEUE_DAY_LRN}) or (queue={QUEUE_REV} and ivl < 21) then 1 else 0 end), -- yng/lrn
