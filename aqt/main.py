@@ -1290,6 +1290,7 @@ will be lost. Continue?"""))
         s = self.debugDiagShort = QShortcut(QKeySequence("ctrl+shift+l"), d)
         s.activated.connect(frm.text.clear)
         d.show()
+        return d
 
     def _captureOutput(self, on):
         mw = self

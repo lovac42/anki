@@ -27,3 +27,5 @@
 [2019-07-17 04:34:05.962382] sched.py:_updateCutoff(): 1, 1563415200
 [2019-07-17 04:34:21.764310] collection.py:__init__(): /home/arthur/anki/source/tests/support/TEST/collection.anki2, 2.1.15
 [2019-07-17 04:34:21.766212] sched.py:_updateCutoff(): 1, 1563415200
+[2019-07-17 04:42:03.134027] collection.py:__init__(): /home/arthur/anki/source/tests/support/TEST/collection.anki2, 2.1.15
+[2019-07-17 04:42:03.135556] sched.py:_updateCutoff(): 1, 1563415200
