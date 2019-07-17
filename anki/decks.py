@@ -239,10 +239,10 @@ class DeckManager:
         if self.changed:
             decks = {did: copy.copy(deck) for did, deck in self.decks.items()}
             for did, deck in decks.items():
-                del deck["tmp"]
+                if "tmp" in deck: del deck["tmp"]
             dconfs = {dcid: copy.copy(dconf) for dcid, dconf in self.dconf.items()}
             for did, dconf in dconfs.items():
-                del dconf["tmp"]
+                if "tmp" in dconf: del dconf["tmp"]
 
             self.col.db.execute("update col set decks=?, dconf=?",
                                  json.dumps(decks),
