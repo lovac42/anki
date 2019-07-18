@@ -76,6 +76,9 @@ class DeckBrowser:
         elif cmd == "drag":
             draggedDeckDid, ontoDeckDid = arg.split(',')
             self._dragDeckOnto(draggedDeckDid, ontoDeckDid)
+        elif cmd == "dragColumn":
+            draggedPos, ontoPos = arg.split(',')
+            self._dragColumnOnto(int(draggedPos), int(ontoPos))
         elif cmd == "collapse":
             self._collapse(arg)
         return False
@@ -159,9 +162,9 @@ where id > ?""", (self.mw.col.sched.dayCutoff-86400)*1000)
         return "".join(["""
     <tr>"""
                         ,*[f"""
-      <th {column.get("header class","")}>
+      <th colid={idx} {column.get("header class","")}>
         {_(column.get("header",column.get("name","")))}
-      </th>""" for column in self._getColumns()]
+      </th>""" for idx, column in enumerate(self._getColumns())]
                         ,"""
     </tr>"""])
 
@@ -378,6 +381,23 @@ where id > ?""", (self.mw.col.sched.dayCutoff-86400)*1000)
         except DeckRenameError as e:
             return showWarning(e.description)
 
+        self.show()
+
+    def _dragColumnOnto(self, draggedPos, ontoPos):
+        """Ensure that draggedDeckDid becomes a subdeck of ontoDeckDid.
+
+        If it is impossible, (because ontoDeckDid is a filtered deck),
+        then show a warning. Update the window accordingly.
+
+        """
+        columns = self._getColumns()
+        assert draggedPos<len(columns) and ontoPos<=len(columns)
+        if draggedPos == ontoPos:
+            return
+        if draggedPos < ontoPos:
+            ontoPos -=1
+        column = columns.pop(draggedPos)
+        columns.insert(ontoPos, column)
         self.show()
 
     def _delete(self, did):
