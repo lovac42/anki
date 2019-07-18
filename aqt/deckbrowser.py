@@ -147,7 +147,7 @@ where id > ?""", (self.mw.col.sched.dayCutoff-86400)*1000)
         return buf
 
     def _deckRow(self, node, depth, cnt, nameMap):
-        name, did, due, lrn, new, children = node
+        name, did, rev, lrn, new, children = node
         deck = self.mw.col.decks.get(did)
         if did == 1 and cnt > 1 and not children:
             # if the default deck is empty, hide it
@@ -161,7 +161,7 @@ where id > ?""", (self.mw.col.sched.dayCutoff-86400)*1000)
         prefix = "-"
         if self.mw.col.decks.get(did)['collapsed']:
             prefix = "+"
-        due += lrn
+        due = rev + lrn
         def indent():
             return "&nbsp;"*6*depth
         if did == self.mw.col.conf['curDeck']:
