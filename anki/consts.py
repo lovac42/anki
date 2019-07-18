@@ -179,6 +179,19 @@ defaultColors = dict(
     flag4 = flagColours[4],
 )
 
+
+defaultColumns = [{"name":"name", "header": "Deck", "header class": "colspan=5 align=left"},
+                  {"name":"due", "header": "Due",},
+                  {"name":"new", "header": "New",},
+                  {"name":"gear", "header class": "class=optscol"},
+                  {"name":"rev",},
+                  {"name":"buried",},
+                  {"name":"suspended",},
+                  {"name":"lrn",},
+                  {"name":"today",},
+                  {"name":"flag 2",},
+                  ]
+
 # Websites' page
 appWebsite="http://ankisrs.net/"
 appChanges="http://ankisrs.net/docs/changes.html"
