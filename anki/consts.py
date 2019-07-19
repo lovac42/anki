@@ -185,7 +185,7 @@ defaultColumns = [{"name":"name", "header": "Deck", "header class": "colspan=5 a
                   {"name":"suspended",},
                   {"name":"lrn",},
                   {"name":"today",},
-                  {"name":"flag 2",},
+                  {"name":"flag2",},
                   ]
 
 # Websites' page
