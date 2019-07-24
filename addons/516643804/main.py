@@ -14,16 +14,14 @@ License: GNU AGPLv3 <https://www.gnu.org/licenses/agpl.html>
 
 import os
 
+from anki.hooks import addHook, runHook, wrap
+from anki.utils import json
+from aqt.addcards import AddCards
+from aqt.editor import Editor
 from aqt.qt import *
 
-from aqt.editor import Editor
-from aqt.addcards import AddCards
-
-from anki.hooks import wrap, addHook, runHook
-from anki.utils import json
-
-from .consts import *
 from .config import local_conf
+from .consts import *
 
 icon_path = os.path.join(addon_path, "icons")
 
