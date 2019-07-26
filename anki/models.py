@@ -248,9 +248,14 @@ class ModelManager:
         m['id'] = None
         return m
 
+    def modSchema(self):
+        from aqt import mw
+        onlyMod = mw is None or mw.pm.profile.get("changeModelWithoutFullSync", False)
+        self.col.modSchema(check=True, onlyMod = onlyMod)
+
     def rem(self, m):
         "Delete model, and all its cards/notes."
-        self.col.modSchema(check=True)
+        self.modSchema()
         current = self.current()['id'] == m['id']
         # delete notes/cards
         self.col.remCards(self.col.db.list("""
@@ -379,7 +384,7 @@ and notes.mid = ? and cards.ord = ?""", m['id'], ord)
         idx -- the identifier of a field
         """
         assert 0 <= idx < len(m['flds'])
-        self.col.modSchema(check=True)
+        self.modSchema()
         m['sortf'] = idx
         self.col.updateFieldCache(self.nids(m))
         self.save(m)
@@ -395,7 +400,7 @@ and notes.mid = ? and cards.ord = ?""", m['id'], ord)
         """
         # only mod schema if model isn't new
         if m['id']:
-            self.col.modSchema(check=True)
+            self.modSchema()
         m['flds'].append(field)
         self._updateFieldOrds(m)
         self.save(m)
@@ -413,7 +418,7 @@ and notes.mid = ? and cards.ord = ?""", m['id'], ord)
 
         m -- the model
         field -- the field object"""
-        self.col.modSchema(check=True)
+        self.modSchema()
         # save old sort field
         sortFldName = m['flds'][m['sortf']]['name']
         idx = m['flds'].index(field)
@@ -441,7 +446,7 @@ and notes.mid = ? and cards.ord = ?""", m['id'], ord)
         idx -- new position, integer
         field -- a field object
         """
-        self.col.modSchema(check=True)
+        self.modSchema()
         oldidx = m['flds'].index(field)
         if oldidx == idx:
             return
@@ -470,7 +475,7 @@ and notes.mid = ? and cards.ord = ?""", m['id'], ord)
         newName -- either a name. Or None if the field is deleted.
 
         """
-        self.col.modSchema(check=True)
+        self.modSchema()
         #Regexp associating to a mustache the name of its field
         pat = r'{{([^{}]*)([:#^/]|[^:#/^}][^:}]*?:|)%s}}'
         def wrap(txt):
@@ -535,7 +540,7 @@ and notes.mid = ? and cards.ord = ?""", m['id'], ord)
 
         "Note: should call col.genCards() afterwards."
         if m['id']:
-            self.col.modSchema(check=True)
+            self.modSchema()
         m['tmpls'].append(template)
         self._updateTemplOrds(m)
         self.save(m)
@@ -562,7 +567,7 @@ having count() < 2
 limit 1""" % ids2str(cids)):
             return False
         # ok to proceed; remove cards
-        self.col.modSchema(check=True)
+        self.modSchema()
         self.col.remCards(cids)
         # shift ordinals
         self.col.db.execute("""
@@ -627,9 +632,7 @@ select id from notes where mid = ?)""" % " ".join(map),
         fmap -- the dictionnary sending to each fields'ord of the old model a field'ord of the new model
         cmap -- the dictionnary sending to each card type's ord of the old model a card type's ord of the new model
         """
-        from aqt import mw
-        if mw and not mw.pm.profile.get("changeModelWithoutFullSync", False):
-            self.col.modSchema(check=True)
+        self.modSchema()
         assert newModel['id'] == m['id'] or (fmap and cmap)
         if fmap:
             self._changeNotes(nids, newModel, fmap)
