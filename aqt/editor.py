@@ -265,7 +265,7 @@ class Editor:
         self.saveNow(self._onCardLayout)
 
     def _onCardLayout(self):
-        "open the editor of card type. On current card if there is one
+        """open the editor of card type. On current card if there is one
         (i.e. in browser, or from editor), or card 0 otherwise
         (i.e. when creating notes)
 
