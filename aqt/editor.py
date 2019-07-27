@@ -325,9 +325,8 @@ class Editor:
             self.note.flush()
             self.mw.requireReset()
 
-    def onFocus(self):
+    def onFocus(self, num):
         # focused into field?
-        (type, num) = cmd.split(":", 1)
         self.currentField = int(num)
         runHook("editFocusGained", self.note, self.currentField)
 
@@ -920,6 +919,7 @@ to a cloze type first, via Edit>Change Note Type."""))
         cutOrCopy=onCutOrCopy,
         key=onKey,
         blur=onBlur,
+        focus=onFocus,
         toggleLineAlone=onToggleLineAlone,
         #mceTrigger=onMceTrigger,
     )
