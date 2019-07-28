@@ -906,7 +906,6 @@ class Addon:
 
 """ Set of characteristic of Add-ons incorporated here"""
 incorporatedAddonsSet = {
-    Addon("Change a notes type without requesting a database upload", 719871418, 1564111171, "6eace45f446a218e966782d33c34c9c28a2e9fae", "https://github.com/Arthur-Milchior/anki-change-note-type"),
 }
 
 incorporatedAddonsDict = {**{addon.name: addon for addon in incorporatedAddonsSet if addon.name},
