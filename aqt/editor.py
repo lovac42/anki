@@ -528,8 +528,8 @@ class Editor:
         fieldNumber = int(fieldNumber)
         fieldObject = self.model['flds'][fieldNumber]
         fieldObject["sticky"] = not fieldObject.get("sticky", False)
-        self.mw.col.models.save(self.model)
-        self.loadNote()
+        self.mw.col.models.save(self.model, recomputeReq=False)
+        self.saveNow(self.loadNote)
 
     # Tag handling
     ######################################################################
