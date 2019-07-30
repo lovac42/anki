@@ -39,40 +39,68 @@ class Finder:
         self.search['is'] = self._findCardState
         runHook("search", self.search)
 
-    def findCards(self, query, order=False):
-        "Return a list of card ids for QUERY."
-        tokens = self._tokenize(query)
-        preds, args = self._where(tokens)
-        if preds is None:
-            raise Exception("invalidSearch")
-        order, rev = self._order(order)
-        sql = self._query(preds, order)
-        try:
-            res = self.col.db.list(sql, *args)
-        except:
-            # invalid grouping
-            return []
-        if rev:
-            res.reverse()
-        return res
+    def find(self, query, ifInvalid, sqlBase, order=""):
+        """
+        Return the result of the query
 
-    def findNotes(self, query):
+        query -- a query as in browser
+        ifInvalid -- method returning some value to return if the query is invalid
+        sqlBase -- methods which, given preds and order, states in which table/joined table to select
+        order -- if it's not empty, the string containing "order by"
+
+        """
+        if order is True:
+            #used only for test
+            order = self._order()
+        if order:
+            order = f" order by {order}"
         tokens = self._tokenize(query)
         preds, args = self._where(tokens)
         if preds is None:
-            return []
+            return ifInvalid()
         if preds:
             preds = "(" + preds + ")"
         else:
             preds = "1"
-        sql = """
-select distinct(n.id) from cards c, notes n where c.nid=n.id and """+preds
+        sql = sqlBase(preds, order)
+        sql += preds
+        if order:
+            sql += " " + order
         try:
-            res = self.col.db.list(sql, *args)
+            return self.col.db.list(sql, *args)
         except:
             # invalid grouping
             return []
+
+    def findCards(self, query, order=False):
+        """Return the set of card ids, of card satisfying predicate preds,
+        where c is a card and n its note, ordered according to the sql
+        `order`"""
+        order, rev = self._order(order)
+        # can we skip the note table?
+        def ifInvalid():
+            raise Exception("invalidSearch")
+        def sqlBase(preds, order):
+            if "n." not in preds and "n." not in order:
+                return "select c.id from cards c where "
+            else:
+                return "select c.id from cards c, notes n where c.nid=n.id and "
+        # order
+        res = self.find(query, ifInvalid, sqlBase, order)
+        if rev:
+            res.reverse()
         return res
+
+
+    def findNotes(self, query):
+        "Return a list of notes ids for QUERY."
+        def sqlBase(*args, **kwargs):
+            return """
+select distinct(n.id) from cards c, notes n where c.nid=n.id and """
+        def ifInvalid():
+            return []
+        return self.find(query, ifInvalid, sqlBase)
+
 
     # Tokenizing
     ######################################################################
@@ -189,32 +217,11 @@ select distinct(n.id) from cards c, notes n where c.nid=n.id and """+preds
             return None, None
         return s['q'], args
 
-    def _query(self, preds, order):
-        # can we skip the note table?
-        if "n." not in preds and "n." not in order:
-            sql = "select c.id from cards c where "
-        else:
-            sql = "select c.id from cards c, notes n where c.nid=n.id and "
-        # combine with preds
-        if preds:
-            sql += "(" + preds + ")"
-        else:
-            sql += "1"
-        # order
-        if order:
-            sql += " " + order
-        return sql
-
     # Ordering
     ######################################################################
 
-    def _order(self, order):
-        if not order:
-            return "", False
-        elif order is not True:
-            # custom order string provided
-            return " order by " + order, False
-        # use deck default
+    def _order(self):
+        # required only for tests
         type = self.col.conf['sortType']
         sort = None
         if type.startswith("note"):
@@ -240,7 +247,7 @@ select distinct(n.id) from cards c, notes n where c.nid=n.id and """+preds
         if not sort:
             # deck has invalid sort order; revert to noteCrt
             sort = "n.id, c.ord"
-        return " order by " + sort, self.col.conf['sortBackwards']
+        return sort
 
     # Commands
     ######################################################################
