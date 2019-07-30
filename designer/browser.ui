@@ -249,6 +249,8 @@
     <addaction name="actionSelectNotes"/>
     <addaction name="actionInvertSelection"/>
     <addaction name="separator"/>
+    <addaction name="actionRefresh"/>
+    <addaction name="separator"/>
     <addaction name="actionClose"/>
    </widget>
    <widget class="QMenu" name="menuJump">
@@ -609,6 +611,11 @@
    </property>
    <property name="shortcut">
     <string notr="true">Ctrl+K</string>
+   </property>
+  </action>
+  <action name="actionRefresh">
+   <property name="text">
+    <string>Refresh</string>
    </property>
   </action>
  </widget>
