@@ -447,6 +447,20 @@ class Browser(QMainWindow):
         self.setupSearch()
         self.show()
 
+    def dealWithShowNotes(self, showNotes):
+        self.mw.col.conf["advbrowse_uniqueNote"] = showNotes
+        self.showNotes = showNotes
+        self.form.menu_Cards.setEnabled(not showNotes)
+
+    def warnOnShowNotes(self, what):
+        """Return self.showNotes. If we show note, then warn that action what
+        is impossible.
+
+        """
+        if self.showNotes:
+            tooltip(_(f"You can't {what} a note. Please switch to card mode before doing this action."))
+        return self.showNotes
+
     def setupMenus(self):
         # pylint: disable=unnecessary-lambda
         # actions
@@ -1212,6 +1226,8 @@ by clicking on one on the left."""))
     ######################################################################
 
     def showCardInfo(self):
+        if self.warnOnShowNotes("show info of"):
+            return
         if not self.card:
             return
         info, cs = self._cardInfoData()
@@ -1592,6 +1608,8 @@ where id in %s""" % ids2str(sf))
     ######################################################################
 
     def setDeck(self):
+        if self.warnOnShowNotes("change the deck of"):
+            return
         self.editor.saveNow(self._setDeck)
 
     def _setDeck(self):
@@ -1672,6 +1690,8 @@ update cards set usn=?, mod=?, did=? where id in """ + scids,
         return bool (self.card and self.card.queue == QUEUE_SUSPENDED)
 
     def onSuspend(self):
+        if self.warnOnShowNotes("suspend"):
+            return
         self.editor.saveNow(self._onSuspend)
 
     def _onSuspend(self):
@@ -1688,6 +1708,8 @@ update cards set usn=?, mod=?, did=? where id in """ + scids,
     ######################################################################
 
     def onSetFlag(self, n):
+        if self.warnOnShowNotes("change the flag of"):
+            return
         # flag needs toggling off?
         if n == self.card.userFlag():
             n = 0
@@ -1724,6 +1746,8 @@ update cards set usn=?, mod=?, did=? where id in """ + scids,
     ######################################################################
 
     def reposition(self):
+        if self.warnOnShowNotes("reposition"):
+            return
         self.editor.saveNow(self._reposition)
 
     def _reposition(self):
@@ -1758,6 +1782,8 @@ update cards set usn=?, mod=?, did=? where id in """ + scids,
     ######################################################################
 
     def reschedule(self):
+        if self.warnOnShowNotes("reschedule"):
+            return
         self.editor.saveNow(self._reschedule)
 
     def _reschedule(self):
