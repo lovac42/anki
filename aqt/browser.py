@@ -82,6 +82,7 @@ class DataModel(QAbstractTableModel):
     activeCols -- a descriptor, sending _activeCols, but without
     the cards columns if it's note type and without the columns we don't know how to use (they may have been added to the list of selected columns by a version of anki/add-on with more columns)
     selectedCards -- a dictionnary containing the set of selected card's id, associating them to True. Seems that the associated value is never used. Used to restore a selection after some edition
+    minutes -- whether to show minutes in the columns
     """
     activeCols = ActiveCols()
     def __init__(self, browser):
@@ -93,6 +94,7 @@ class DataModel(QAbstractTableModel):
         self.activeCols = [BrowserColumn.getBrowserColumn(type) for type in activeColsNames]
         self.cards = []
         self.cardObjs = {}
+        self.minutes = self.col.conf.get("minutesInBrowser", False)
 
     def getCard(self, index):
         """The card object at position index in the list"""
@@ -336,7 +338,7 @@ class DataModel(QAbstractTableModel):
         col = index.column()
         column = self.activeCols[col]
         card = self.getCard(index)
-        return column.content(card, self)
+        return column.content(card, self.browser)
 
     def isRTL(self, index):
         col = index.column()
@@ -493,6 +495,8 @@ class Browser(QMainWindow):
         f.actionSidebar.triggered.connect(self.focusSidebar)
         f.actionCardList.triggered.connect(self.onCardList)
         # Columns
+        f.actionShow_Hours_and_Minutes.triggered.connect(self.toggleHoursAndMinutes)
+        f.actionShow_Hours_and_Minutes.setChecked(self.model.minutes)
         # help
         f.actionGuide.triggered.connect(self.onHelp)
         # keyboard shortcut for shift+home/end
@@ -828,6 +832,19 @@ by clicking on one on the left."""))
                 a.setEnabled(False)
             a.toggled.connect(lambda b, t=type: self.toggleField(t))
         topMenu.exec_(gpos)
+
+    def toggleHoursAndMinutes(self):
+        """
+        Save the note in the editor
+
+        Show/hide hours and minutes
+        """
+        self.editor.saveNow(lambda: self._toggleHoursAndMinutes())
+
+    def _toggleHoursAndMinutes(self):
+        self.model.minutes = not self.model.minutes
+        self.col.conf["minutesInBrowser"] = self.model.minutes
+        self.model.reset()
 
     def toggleField(self, type):
         """

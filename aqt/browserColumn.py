@@ -124,11 +124,14 @@ BrowserColumn(
     menu=["Card"],
 )
 
+def format(browser):
+    return "%Y-%m-%d"+( " %H:%M" if browser.model.minutes else "")
+
 """Date at wich the card's note was created"""
 BrowserColumn(
     type="noteCrt",
     name="Created",
-    content=lambda card, browser: time.strftime("%Y-%m-%d", time.localtime(card.note().id/1000)),
+    content=lambda card, browser: time.strftime(format(browser), time.localtime(card.note().id/1000)),
     sort="n.id, c.ord",
     menu=["Card"],
 )
@@ -137,7 +140,7 @@ BrowserColumn(
 BrowserColumn(
     type="noteMod",
     name="Edited",
-    content=lambda card, browser: time.strftime("%Y-%m-%d", time.localtime(card.note().mod)),
+    content=lambda card, browser: time.strftime(format(browser), time.localtime(card.note().mod)),
     sort="n.mod, c.ord",
     menu=["Note"],
 )
@@ -146,10 +149,11 @@ BrowserColumn(
 BrowserColumn(
     type="cardMod",
     name="Changed",
-    content=lambda card, browser: time.strftime("%Y-%m-%d", time.localtime(card.mod)),
+    content=lambda card, browser: time.strftime(format(browser), time.localtime(card.mod)),
     sort="c.mod",
     menu=["Card"],
 )
+
 
 """Number of reviews to do"""
 BrowserColumn(
