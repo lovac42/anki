@@ -3,6 +3,7 @@ from nose.tools import assert_raises
 
 from anki.find import Finder
 from tests.shared import getEmptyCol
+from aqt.browserColumn import BrowserColumn
 
 def test_parse():
     f = Finder(None)
@@ -116,16 +117,17 @@ def test_findCards():
     assert len(deck.findCards("front:*")) == 5
     # ordering
     deck.conf['sortType'] = "noteCrt"
-    assert deck.findCards("front:*", order=True)[-1] in latestCardIds
-    assert deck.findCards("", order=True)[-1] in latestCardIds
+    assert deck.findCards("front:*", order=BrowserColumn.getBrowserColumn("noteCrt").sort)[-1] in latestCardIds
+    assert deck.findCards("", order=BrowserColumn.getBrowserColumn("noteCrt").sort)[-1] in latestCardIds
     deck.conf['sortType'] = "noteFld"
-    assert deck.findCards("", order=True)[0] == catCard.id
-    assert deck.findCards("", order=True)[-1] in latestCardIds
+    l = deck.findCards("", order=BrowserColumn.getBrowserColumn("noteFld").sort)
+    assert l[0] == catCard.id
+    assert deck.findCards("", order=BrowserColumn.getBrowserColumn("noteFld").sort)[-1] in latestCardIds
     deck.conf['sortType'] = "cardMod"
-    assert deck.findCards("", order=True)[-1] in latestCardIds
-    assert deck.findCards("", order=True)[0] == firstCardId
+    assert deck.findCards("", order=BrowserColumn.getBrowserColumn("cardMod").sort)[-1] in latestCardIds
+    assert deck.findCards("", order=BrowserColumn.getBrowserColumn("cardMod").sort)[0] == firstCardId
     deck.conf['sortBackwards'] = True
-    assert deck.findCards("", order=True)[0] in latestCardIds
+    assert deck.findCards("", order=BrowserColumn.getBrowserColumn("cardMod").sort, rev=True)[0] in latestCardIds
     # model
     assert len(deck.findCards("note:basic")) == 5
     assert len(deck.findCards("-note:basic")) == 0

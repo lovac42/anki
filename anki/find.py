@@ -58,16 +58,22 @@ class Finder:
             # invalid grouping
             return []
 
-    def findCards(self, query, order=False):
+    def findCards(self, query, order=False, rev=None):
         """Return the set of card ids, of card satisfying predicate preds,
         where c is a card and n its note, ordered according to the sql
-        `order`"""
-        order, rev = self._order(order)
+        `order`
+        query -- a query from the browser
+        order -- either a Boolean, stating that we should use the
+        browser's default order. Or a string to put in the sql query
+        after "order by". This string may also contains a limit
+        """
+        if order:
+            order = f" order by {order}"
         # can we skip the note table?
         def ifInvalid():
             raise Exception("invalidSearch")
         def sqlBase(preds, order):
-            if "n." not in preds and "n." not in order:
+            if "n." not in preds and ((not order) or "n." not in order):
                 return "select c.id from cards c where "
             else:
                 return "select c.id from cards c, notes n where c.nid=n.id and "
@@ -76,7 +82,6 @@ class Finder:
         if rev:
             res.reverse()
         return res
-
 
     def findNotes(self, query):
         "Return a list of notes ids for QUERY."
@@ -202,43 +207,6 @@ select distinct(n.id) from cards c, notes n where c.nid=n.id and """
         if s['bad']:
             return None, None
         return s['q'], args
-
-    # Ordering
-    ######################################################################
-
-    def _order(self, order):
-        if not order:
-            return "", False
-        elif order is not True:
-            # custom order string provided
-            return " order by " + order, False
-        # use deck default
-        type = self.col.conf['sortType']
-        sort = None
-        if type.startswith("note"):
-            if type == "noteCrt":
-                sort = "n.id, c.ord"
-            elif type == "noteMod":
-                sort = "n.mod, c.ord"
-            elif type == "noteFld":
-                sort = "n.sfld collate nocase, c.ord"
-        elif type.startswith("card"):
-            if type == "cardMod":
-                sort = "c.mod"
-            elif type == "cardReps":
-                sort = "c.reps"
-            elif type == "cardDue":
-                sort = "c.type, c.due"
-            elif type == "cardEase":
-                sort = "c.factor"
-            elif type == "cardLapses":
-                sort = "c.lapses"
-            elif type == "cardIvl":
-                sort = "c.ivl"
-        if not sort:
-            # deck has invalid sort order; revert to noteCrt
-            sort = "n.id, c.ord"
-        return " order by " + sort, self.col.conf['sortBackwards']
 
     # Commands
     ######################################################################

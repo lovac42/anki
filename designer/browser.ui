@@ -91,6 +91,13 @@
           <property name="verticalSpacing">
            <number>0</number>
           </property>
+          <item row="0" column="2">
+           <widget class="QPushButton" name="searchButton">
+            <property name="text">
+             <string>Search</string>
+            </property>
+           </widget>
+          </item>
           <item row="0" column="1">
            <widget class="QComboBox" name="searchEdit">
             <property name="sizePolicy">
@@ -104,13 +111,6 @@
             </property>
             <property name="insertPolicy">
              <enum>QComboBox::NoInsert</enum>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="2">
-           <widget class="QPushButton" name="searchButton">
-            <property name="text">
-             <string>Search</string>
             </property>
            </widget>
           </item>
@@ -236,7 +236,7 @@
      <x>0</x>
      <y>0</y>
      <width>750</width>
-     <height>22</height>
+     <height>20</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuEdit">
@@ -316,10 +316,16 @@
     <addaction name="separator"/>
     <addaction name="actionDelete"/>
    </widget>
+   <widget class="QMenu" name="menuColumns">
+    <property name="title">
+     <string>&amp;Columns</string>
+    </property>
+   </widget>
    <addaction name="menuEdit"/>
    <addaction name="menu_Notes"/>
    <addaction name="menu_Cards"/>
    <addaction name="menuJump"/>
+   <addaction name="menuColumns"/>
    <addaction name="menu_Help"/>
   </widget>
   <action name="actionReschedule">
