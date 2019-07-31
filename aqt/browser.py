@@ -148,7 +148,7 @@ class DataModel(QAbstractTableModel):
         choice)
 
         """
-        if orientation == Qt.Vertical or role != Qt.DisplayRole or section < len(self.activeCols):
+        if orientation == Qt.Vertical or not(role == Qt.DisplayRole and section < len(self.activeCols)):
             return
         type = self.columnType(section)
         txt = None
@@ -305,12 +305,12 @@ class DataModel(QAbstractTableModel):
         row = index.row()
         col = index.column()
         type = self.columnType(col)
-        c = self.getCard(index)
+        card = self.getCard(index)
         method = getattr(self, f"{type}Content", None)
         if method:
             return method(card, row, col)
 
-    def noteFldContent(card, row, col):
+    def noteFldContent(self, card, row, col):
         """The content of the sorting field, on a single line."""
         f = card.note()
         model = f.model()
@@ -318,14 +318,14 @@ class DataModel(QAbstractTableModel):
         sortField = f.fields[sortIdx]
         return htmlToTextLine(sortField)
 
-    def templateContent(card, row, col):
+    def templateContent(self, card, row, col):
         """Name of the card type. With its number if it's a cloze card"""
         t = card.template()['name']
         if card.model()['type'] == MODEL_CLOZE:
             t += " %d" % (card.ord+1)
         return t
 
-    def cardDueContent(card, row, col):
+    def cardDueContent(self, card, row, col):
         """
         The content of the 'due' column in the browser.
         * (filtered) if the card is in a filtered deck
@@ -343,35 +343,35 @@ class DataModel(QAbstractTableModel):
             t = "(" + t + ")"
         return t
 
-    def noteCrtContent(card, row, col):
+    def noteCrtContent(self, card, row, col):
         """Date at wich the card's note was created"""
         return time.strftime("%Y-%m-%d", time.localtime(card.note().id/1000))
 
-    def noteModContent(card, row, col):
+    def noteModContent(self, card, row, col):
         """Date at wich the card's note was last modified"""
         return time.strftime("%Y-%m-%d", time.localtime(card.note().mod))
 
-    def cardModContent(card, row, col):
+    def cardModContent(self, card, row, col):
         """Date at wich the card note was last modified"""
         return time.strftime("%Y-%m-%d", time.localtime(card.mod))
 
-    def cardRepsContent(card, row, col):
+    def cardRepsContent(self, card, row, col):
         """Number of reviews to do"""
         return str(card.reps)
 
-    def cardLaspsesContent(card, row, col):
+    def cardLaspsesContent(self, card, row, col):
         """Number of times the card lapsed"""
         return str(card.lapses)
 
-    def noteTagsContent(card, row, col):
+    def noteTagsContent(self, card, row, col):
         """The list of tags for this card's note."""
         return " ".join(card.note().tags)
 
-    def noteContent(card, row, col):
+    def noteContent(self, card, row, col):
         """The name of the card's note's type"""
         return card.model()['name']
 
-    def cardIvlContent(card, row, col):
+    def cardIvlContent(self, card, row, col):
         """Whether card is new, in learning, or some representation of the
         interval as a number of days."""
         if card.type == 0:
@@ -380,13 +380,13 @@ class DataModel(QAbstractTableModel):
             return _("(learning)")
         return fmtTimeSpan(card.ivl*86400)
 
-    def cardEaseContent(card, row, col):
+    def cardEaseContent(self, card, row, col):
         """Either (new) or the ease fo the card as a percentage."""
         if card.type == 0:
             return _("(new)")
         return "%d%%" % (card.factor/10)
 
-    def deckContent(card, row, col):
+    def deckContent(self, card, row, col):
         """Name of the card's deck (with original deck in parenthesis if there
         is one)
 
@@ -399,13 +399,13 @@ class DataModel(QAbstractTableModel):
         # normal deck
         return self.browser.mw.col.decks.name(card.did)
 
-    def question(self, card, **args):
+    def question(self, card, *args, **kwargs):
         """The question side of card, fitted in a single line"""
         # args because this allow questionContent to be equal to question
         return htmlToTextLine(card.q(browser=True))
     questionContent = question
 
-    def answer(self, card, **args):
+    def answer(self, card, *args, **kwargs):
         """The answer side on a single line.
 
         Either bafmt if it is defined. Otherwise normal answer,
@@ -811,16 +811,16 @@ class Browser(QMainWindow):
             self.mw, self.form.fieldsArea, self)
 
     def onRowChanged(self, current, previous):
-        "Save the none. Hide or show editor depending on which cards are
+        """Save the none. Hide or show editor depending on which cards are
         selected.
 
-        "
+        """
         self.editor.saveNow(lambda: self._onRowChanged(current, previous))
 
     def _onRowChanged(self, current, previous):
-        "Hide or show editor depending on which cards are selected.
+        """Hide or show editor depending on which cards are selected.
 
-        "
+        """
         update = self.updateTitle()
         show = self.model.cards and update == 1
         self.form.splitter.widget(1).setVisible(not not show)
