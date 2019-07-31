@@ -1263,6 +1263,8 @@ by clicking on one on the left."""))
     ######################################################################
 
     def showCardInfo(self):
+        if self.warnOnShowNotes("show info of"):
+            return
         if not self.card:
             return
         info, cs = self._cardInfoData()
@@ -1649,6 +1651,8 @@ where id in %s""" % ids2str(sn))
     ######################################################################
 
     def setDeck(self):
+        if self.warnOnShowNotes("change the deck of"):
+            return
         self.editor.saveNow(self._setDeck)
 
     def _setDeck(self):
@@ -1729,6 +1733,8 @@ update cards set usn=?, mod=?, did=? where id in """ + scids,
         return bool (self.card and self.card.queue == QUEUE_SUSPENDED)
 
     def onSuspend(self):
+        if self.warnOnShowNotes("suspend"):
+            return
         self.editor.saveNow(self._onSuspend)
 
     def _onSuspend(self):
@@ -1782,6 +1788,8 @@ update cards set usn=?, mod=?, did=? where id in """ + scids,
     ######################################################################
 
     def reposition(self):
+        if self.warnOnShowNotes("reposition"):
+            return
         self.editor.saveNow(self._reposition)
 
     def _reposition(self):
@@ -1831,6 +1839,8 @@ update cards set usn=?, mod=?, did=? where id in """ + scids,
     ######################################################################
 
     def reschedule(self):
+        if self.warnOnShowNotes("reschedule"):
+            return
         self.editor.saveNow(self._reschedule)
 
     def _reschedule(self):
