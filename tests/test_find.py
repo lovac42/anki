@@ -1,5 +1,6 @@
 # coding: utf-8
 from anki.find import Finder
+from aqt.browserColumn import BrowserColumn
 from nose.tools import assert_raises
 from tests.shared import getEmptyCol
 
@@ -119,7 +120,8 @@ def test_findCards():
     assert deck.findCards("front:*", order=True)[-1] in latestCardIds
     assert deck.findCards("", order=True)[-1] in latestCardIds
     deck.conf['sortType'] = "noteFld"
-    assert deck.findCards("", order=True)[0] == catCard.id
+    l = deck.findCards("", order=True)
+    assert l[0] == catCard.id
     assert deck.findCards("", order=True)[-1] in latestCardIds
     deck.conf['sortType'] = "cardMod"
     assert deck.findCards("", order=True)[-1] in latestCardIds
