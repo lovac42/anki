@@ -320,6 +320,7 @@
     <property name="title">
      <string>&amp;Columns</string>
     </property>
+    <addaction name="actionShow_Hours_and_Minutes"/>
    </widget>
    <addaction name="menuEdit"/>
    <addaction name="menu_Notes"/>
@@ -603,6 +604,14 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+K</string>
+   </property>
+  </action>
+  <action name="actionShow_Hours_and_Minutes">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Show &amp;Hours and Minutes</string>
    </property>
   </action>
  </widget>
