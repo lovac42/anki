@@ -96,8 +96,8 @@ class Finder:
         groupBy = "c.nid" if oneByNote else ""
         selectCard = "min(c.id)" if oneByNote else "c.id"
         def sqlBase(preds, order):
-            if "n." not in preds and "n." not in order:
-                return f"select {selectCard}{selectNote} from cards c where "
+            if "n." not in preds and ((not order) or "n." not in order):
+                return "select c.id from cards c where "
             else:
                 return f"select {selectCard}{selectNote} from cards c, notes n where c.nid=n.id and "
         # order
