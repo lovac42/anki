@@ -89,7 +89,8 @@ class DataModel(QAbstractTableModel):
         self.browser = browser
         self.col = browser.col
         defaultColsNames = ["noteFld", "template", "cardDue", "deck"]
-        activeColsNames = self.col.conf.get("activeCols", defaultColsNames)
+        activeStandardColsNames = self.col.conf.get("activeCols", defaultColsNames)
+        activeColsNames = self.col.conf.get("advbrowse_activeCols", activeStandardColsNames)
         self.activeCols = [BrowserColumn.getBrowserColumn(type) for type in activeColsNames]
         self.cards = []
         self.cardObjs = {}
@@ -557,7 +558,7 @@ class Browser(QMainWindow):
         saveGeom(self, "editor")
         saveState(self, "editor")
         saveHeader(self.form.tableView.horizontalHeader(), "editor")
-        self.col.conf['activeCols'] = [column.type for column in self.model._activeCols]
+        self.col.conf['advbrowse_activeCols'] = [column.type for column in self.model._activeCols]
         self.col.setMod()
         self.teardownHooks()
         self.mw.maybeReset()
