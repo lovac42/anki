@@ -580,29 +580,39 @@
          <height>461</height>
         </rect>
        </property>
-        <item>
-         <widget class="QLabel" name="label_3">
-          <property name="text">
-           <string>Configure the graphical user interface.</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <spacer name="verticalSpacer_6">
-          <property name="orientation">
-           <enum>Qt::Vertical</enum>
-          </property>
-          <property name="sizeHint" stdset="0">
-           <size>
-            <width>20</width>
-            <height>40</height>
-           </size>
-          </property>
-         </spacer>
-        </item>
-       </layout>
-      </widget>
+       <item>
+        <widget class="QLabel" name="label_3">
+         <property name="text">
+          <string>Configure the graphical user interface.</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="advancedColumnsInBrowser">
+         <property name="toolTip">
+          <string>For example, you can see the id of every objects, the 'queue' and 'type' values of cards...</string>
+         </property>
+         <property name="text">
+          <string>Show advanced columns in browser</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <spacer name="verticalSpacer_6">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>40</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+      </layout>
      </widget>
+   </widget>
    </item>
    <item>
     <widget class="QDialogButtonBox" name="buttonBox">
