@@ -320,6 +320,7 @@
     <property name="title">
      <string>&amp;Columns</string>
     </property>
+    <addaction name="actionShow_Advanced_Columns"/>
    </widget>
    <addaction name="menuEdit"/>
    <addaction name="menu_Notes"/>
@@ -603,6 +604,11 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+K</string>
+   </property>
+  </action>
+  <action name="actionShow_Advanced_Columns">
+   <property name="text">
+    <string>Show Advanced Columns</string>
    </property>
   </action>
  </widget>

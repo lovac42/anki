@@ -92,6 +92,7 @@ class DataModel(QAbstractTableModel):
         activeStandardColsNames = self.col.conf.get("activeCols", defaultColsNames)
         activeColsNames = self.col.conf.get("advbrowse_activeCols", activeStandardColsNames)
         self.activeCols = [BrowserColumn.getBrowserColumn(type) for type in activeColsNames]
+        self.advancedColumns = self.col.conf.get("advancedColumnsInBrowser", False)
         self.cards = []
         self.cardObjs = {}
 
@@ -494,6 +495,9 @@ class Browser(QMainWindow):
         f.actionSidebar.triggered.connect(self.focusSidebar)
         f.actionCardList.triggered.connect(self.onCardList)
         # Columns
+        f.actionShow_Advanced_Columns.triggered.connect(self.toggleAdvancedColumns)
+        f.actionShow_Advanced_Columns.setCheckable(True)
+        f.actionShow_Advanced_Columns.setChecked(self.model.advancedColumns)
         # help
         f.actionGuide.triggered.connect(self.onHelp)
         # keyboard shortcut for shift+home/end
@@ -828,7 +832,20 @@ by clicking on one on the left."""))
             if column.showAsPotential(self) and not column.show(self):
                 a.setEnabled(False)
             a.toggled.connect(lambda b, t=type: self.toggleField(t))
+        #toggle advanced fields
+        a = m.addAction(_("Show advanced fields"))
+        a.setCheckable(True)
+        a.setChecked(self.col.conf.get("advancedColumnsInBrowser", False))
+        a.toggled.connect(self.toggleAdvancedColumns)
         topMenu.exec_(gpos)
+
+    def toggleAdvancedColumns(self):
+        self.editor.saveNow(self._toggleAdvancedColumns)
+
+    def _toggleAdvancedColumns(self):
+        self.model.advancedColumns = not self.model.advancedColumns
+        self.col.conf["advancedColumnsInBrowser"] = self.model.advancedColumns
+        self.model.reset()
 
     def toggleField(self, type):
         """
