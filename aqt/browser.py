@@ -455,6 +455,7 @@ class Browser(QMainWindow):
         QMainWindow.__init__(self, None, Qt.Window)
         self.mw = mw
         self.col = self.mw.col
+        self.showNotes = self.mw.col.conf.get("advbrowse_uniqueNote",False)
         self.sortBackwards = self.col.conf['sortBackwards']
         self.lastFilter = ""
         self.focusTo = None
@@ -477,6 +478,23 @@ class Browser(QMainWindow):
         self.onUndoState(self.mw.form.actionUndo.isEnabled())
         self.setupSearch(search=search, focusedCard=focusedCard, selectedCards=selectedCards)
         self.show()
+
+    def dealWithShowNotes(self, showNotes):
+        self.editor.saveNow(lambda:self._dealWithShowNotes(showNotes))
+
+    def _dealWithShowNotes(self, showNotes):
+        self.mw.col.conf["advbrowse_uniqueNote"] = showNotes
+        self.showNotes = showNotes
+        self.form.menu_Cards.setEnabled(not showNotes)
+
+    def warnOnShowNotes(self, what):
+        """Return self.showNotes. If we show note, then warn that action what
+        is impossible.
+
+        """
+        if self.showNotes:
+            tooltip(_(f"You can't {what} a note. Please switch to card mode before doing this action."))
+        return self.showNotes
 
     def setupMenus(self):
         # pylint: disable=unnecessary-lambda
@@ -525,6 +543,7 @@ class Browser(QMainWindow):
         self.form.actionCardList.triggered.connect(self.onCardList)
         # help
         self.form.actionGuide.triggered.connect(self.onHelp)
+        self.form.actionShowNotesCards.triggered.connect(lambda:self.dealWithShowNotes(not self.showNotes))
         # keyboard shortcut for shift+home/end
         self.pgUpCut = QShortcut(QKeySequence("Shift+Home"), self)
         self.pgUpCut.activated.connect(self.onFirstCard)
@@ -853,6 +872,14 @@ by clicking on one on the left."""))
                 action.setCheckable(True)
                 action.setChecked(column.type in self.model.activeCols)
                 action.toggled.connect(lambda button, type=column.type: self.toggleField(type))
+
+        # toggle note/card
+        a = topMenu.addAction(_("Use Note mode"))
+        a.setCheckable(True)
+        a.setChecked(self.showNotes)
+        a.toggled.connect(lambda:self.dealWithShowNotes(not self.showNotes))
+
+        #
         topMenu.exec_(gpos)
 
     def addMenu(self, menu):
