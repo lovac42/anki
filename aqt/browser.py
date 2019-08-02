@@ -60,6 +60,7 @@ class DataModel(QAbstractTableModel):
         self.sortKey = None
         self.activeCols = self.col.conf.get(
             "activeCols", ["noteFld", "template", "cardDue", "deck"])
+        self.advancedColumns = self.col.conf.get("advancedColumnsInBrowser", False)
         self.setupColumns()
         self.cards = []
         self.cardObjs = {}
@@ -562,6 +563,10 @@ class Browser(QMainWindow):
         self.form.actionTags.triggered.connect(self.onFilterButton)
         self.form.actionSidebar.triggered.connect(self.focusSidebar)
         self.form.actionCardList.triggered.connect(self.onCardList)
+        # Columns
+        self.form.actionShow_Advanced_Columns.triggered.connect(self.toggleAdvancedColumns)
+        self.form.actionShow_Advanced_Columns.setCheckable(True)
+        self.form.actionShow_Advanced_Columns.setChecked(self.model.advancedColumns)
         # help
         self.form.actionGuide.triggered.connect(self.onHelp)
         # keyboard shortcut for shift+home/end
@@ -892,6 +897,10 @@ by clicking on one on the left."""))
                 action.setCheckable(True)
                 action.setChecked(column.type in self.model.activeCols)
                 action.toggled.connect(lambda button, type=column.type: self.toggleField(type))
+        a = topMenu.addAction(_("Show advanced fields"))
+        a.setCheckable(True)
+        a.setChecked(self.col.conf.get("advancedColumnsInBrowser", False))
+        a.toggled.connect(self.toggleAdvancedColumns)
         topMenu.exec_(gpos)
 
     def addMenu(self, menu):
@@ -931,6 +940,14 @@ by clicking on one on the left."""))
             row = self.currentRow()
             idx = self.model.index(row, len(self.model.activeCols) - 1)
             self.form.tableView.scrollTo(idx)
+
+    def toggleAdvancedColumns(self):
+        self.editor.saveNow(self._toggleAdvancedColumns)
+
+    def _toggleAdvancedColumns(self):
+        self.model.advancedColumns = not self.model.advancedColumns
+        self.col.conf["advancedColumnsInBrowser"] = self.model.advancedColumns
+        self.model.reset()
 
     def setColumnSizes(self):
         hh = self.form.tableView.horizontalHeader()
