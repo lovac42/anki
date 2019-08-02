@@ -320,6 +320,7 @@
     <property name="title">
      <string>&amp;Columns</string>
     </property>
+    <addaction name="actionShow_Notes_Cards"/>
    </widget>
    <addaction name="menuEdit"/>
    <addaction name="menu_Notes"/>
@@ -603,6 +604,14 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+K</string>
+   </property>
+  </action>
+  <action name="actionShow_Notes_Cards">
+   <property name="text">
+    <string>Toggle Notes/Cards Mode</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Alt+N</string>
    </property>
   </action>
  </widget>

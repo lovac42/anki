@@ -422,6 +422,7 @@ class Browser(QMainWindow):
         QMainWindow.__init__(self, None, Qt.Window)
         self.mw = mw
         self.col = self.mw.col
+        self.showNotes = self.mw.col.conf.get("advbrowse_uniqueNote",False)
         self.sortKey = self.col.conf['sortType']
         self.sortBackwards = self.col.conf['sortBackwards']
         self.lastFilter = ""
@@ -827,6 +828,14 @@ by clicking on one on the left."""))
             if column.showAsPotential(self) and not column.show(self):
                 a.setEnabled(False)
             a.toggled.connect(lambda b, t=type: self.toggleField(t))
+
+        # toggle note/card
+        a = m.addAction(_("Use Note mode"))
+        a.setCheckable(True)
+        a.setChecked(self.showNotes)
+        a.toggled.connect(lambda:self.dealWithShowNotes(not self.showNotes))
+
+        #
         topMenu.exec_(gpos)
 
     def toggleField(self, type):
