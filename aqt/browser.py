@@ -233,65 +233,130 @@ class DataModel(QAbstractTableModel):
         row = index.row()
         col = index.column()
         type = self.columnType(col)
-        c = self.getCard(index)
-        if type == "question":
-            return self.question(c)
-        elif type == "answer":
-            return self.answer(c)
-        elif type == "noteFld":
-            f = c.note()
-            return htmlToTextLine(f.fields[self.col.models.sortIdx(f.model())])
-        elif type == "template":
-            t = c.template()['name']
-            if c.model()['type'] == MODEL_CLOZE:
-                t += " %d" % (c.ord+1)
-            return t
-        elif type == "cardDue":
-            # catch invalid dates
-            try:
-                t = self.nextDue(c, index)
-            except:
+        method = getattr(self, f"{type}Content", None)
+        if method:
+            card = self.getCard(index)
+            return method(card, row, col)
+
+    @staticmethod
+    def noteFldContent(card, row, col):
+        """The content of the sorting field, on a single line."""
+        f = card.note()
+        model = f.model()
+        sortIdx = card.col.models.sortIdx(model)
+        sortField = f.fields[sortIdx]
+        return htmlToTextLine(sortField)
+
+    @staticmethod
+    def templateContent(card, row, col):
+        """Name of the card type. With its number if it's a cloze card"""
+        t = card.template()['name']
+        if card.model()['type'] == MODEL_CLOZE:
+            t += " %d" % (card.ord+1)
+        return t
+
+    @staticmethod
+    def cardDueContent(card, row, col):
+        """
+        The content of the 'due' column in the browser.
+        * (filtered) if the card is in a filtered deck
+        * the due integer if the card is new
+        * the due date if the card is in learning or review mode.
+
+        Parenthesis if suspended or buried
+        """
+        # catch invalid dates
+        try:
+            if card.odid:
+                t= _("(filtered)")
+            elif card.queue == QUEUE_NEW_CRAM or card.type == CARD_NEW:
+                t = str(card.due)
+            elif card.queue == QUEUE_LRN:
+                t = time.strftime("%Y-%m-%d", time.localtime(card.due))
+            elif ((card.queue in (QUEUE_REV, QUEUE_DAY_LRN))
+                  or (card.type == CARD_DUE and
+                      card.queue < 0#suspended or buried
+                  )):
+                t = time.strftime("%Y-%m-%d", time.localtime(time.time() + ((card.due - card.col.sched.today)*86400)))
+            else:
                 t = ""
-            if c.queue < 0:#supsended or buried
-                t = "(" + t + ")"
-            return t
-        elif type == "noteCrt":
-            return time.strftime("%Y-%m-%d", time.localtime(c.note().id/1000))
-        elif type == "noteMod":
-            return time.strftime("%Y-%m-%d", time.localtime(c.note().mod))
-        elif type == "cardMod":
-            return time.strftime("%Y-%m-%d", time.localtime(c.mod))
-        elif type == "cardReps":
-            return str(c.reps)
-        elif type == "cardLapses":
-            return str(c.lapses)
-        elif type == "noteTags":
-            return " ".join(c.note().tags)
-        elif type == "note":
-            return c.model()['name']
-        elif type == "cardIvl":
-            if c.type == 0:
-                return _("(new)")
-            elif c.type == 1:
-                return _("(learning)")
-            return fmtTimeSpan(c.ivl*86400)
-        elif type == "cardEase":
-            if c.type == 0:
-                return _("(new)")
-            return "%d%%" % (c.factor/10)
-        elif type == "deck":
-            if c.odid:
-                # in a cram deck
-                return "%s (%s)" % (
-                    self.browser.mw.col.decks.name(c.did),
-                    self.browser.mw.col.decks.name(c.odid))
-            # normal deck
-            return self.browser.mw.col.decks.name(c.did)
+        except:
+            t = ""
+        if card.queue < 0:#supsended or buried
+            t = "(" + t + ")"
+        return t
 
-    def question(self, c):
+    @staticmethod
+    def noteCrtContent(card, row, col):
+        """Date at wich the card's note was created"""
+        return time.strftime("%Y-%m-%d", time.localtime(card.note().id/1000))
+
+    @staticmethod
+    def noteModContent(card, row, col):
+        """Date at wich the card's note was last modified"""
+        return time.strftime("%Y-%m-%d", time.localtime(card.note().mod))
+
+    @staticmethod
+    def cardModContent(card, row, col):
+        """Date at wich the card note was last modified"""
+        return time.strftime("%Y-%m-%d", time.localtime(card.mod))
+
+    @staticmethod
+    def cardRepsContent(card, row, col):
+        """Number of reviews to do"""
+        return str(card.reps)
+
+    @staticmethod
+    def cardLaspsesContent(card, row, col):
+        """Number of times the card lapsed"""
+        return str(card.lapses)
+
+    @staticmethod
+    def noteTagsContent(card, row, col):
+        """The list of tags for this card's note."""
+        return " ".join(card.note().tags)
+
+    @staticmethod
+    def noteContent(card, row, col):
+        """The name of the card's note's type"""
+        return card.model()['name']
+
+    @staticmethod
+    def cardIvlContent(card, row, col):
+        """Whether card is new, in learning, or some representation of the
+        interval as a number of days."""
+        if card.type == 0:
+            return _("(new)")
+        elif card.type == 1:
+            return _("(learning)")
+        return fmtTimeSpan(card.ivl*86400)
+
+    @staticmethod
+    def cardEaseContent(card, row, col):
+        """Either (new) or the ease fo the card as a percentage."""
+        if card.type == 0:
+            return _("(new)")
+        return "%d%%" % (card.factor/10)
+
+    @staticmethod
+    def deckContent(card, row, col):
+        """Name of the card's deck (with original deck in parenthesis if there
+        is one)
+
+        """
+        if card.odid:
+            # in a cram deck
+            return "%s (%s)" % (
+                card.col.decks.name(card.did),
+                card.col.decks.name(card.odid))
+        # normal deck
+        return card.col.decks.name(card.did)
+
+    def question(self, c, *args):
         return htmlToTextLine(c.q(browser=True))
+    questionContent = question
 
-    def answer(self, c):
+    def answer(self, c, *args):
         if c.template().get('bafmt'):
             # they have provided a template, use it verbatim
             c.q(browser=True)
@@ -302,21 +367,7 @@ class DataModel(QAbstractTableModel):
         if a.startswith(q):
             return a[len(q):].strip()
         return a
-
-    def nextDue(self, c, index):
-        if c.odid:
-            return _("(filtered)")
-        elif c.queue == QUEUE_LRN:
-            date = c.due
-        elif c.queue == QUEUE_NEW_CRAM or c.type == CARD_NEW:
-            return str(c.due)
-        elif c.queue in (QUEUE_REV, QUEUE_DAY_LRN) or (c.type == CARD_DUE and
-                                                          c.queue < 0#suspended or buried
-        ):
-            date = time.time() + ((c.due - self.col.sched.today)*86400)
-        else:
-            return ""
-        return time.strftime("%Y-%m-%d", time.localtime(date))
+    answerContent = answer
 
     def isRTL(self, index):
         col = index.column()
