@@ -813,14 +813,14 @@ where c.nid == note.id
 
     def findCards(self, query, order=False):
         "Return a list of cards satisfying query, sorted by order. See finder.FindCards for more details."
-        return anki.find.Finder(self).findCards(query, order)
+        return anki.find.Finder(self).findCards(query=query, order=order)
 
     def findNotesWithOneCard(self, *args, **kwargs):
         return anki.find.Finder(self).findNotesWithOneCard(*args, **kwargs)
 
     def findNotes(self, *args, **kwargs):
         "Return a list of notes ids for QUERY. See finder.findNotes for more details"
-        return anki.find.Finder(self).findNotes(query)
+        return anki.find.Finder(self).findNotes(*args, **kwargs)
 
     def findReplace(self, nids, src, dst, regex=None, field=None, fold=True):
         return anki.find.findReplace(self, nids, src, dst, regex, field, fold)
