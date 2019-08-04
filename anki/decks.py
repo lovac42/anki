@@ -163,7 +163,7 @@ class DeckManager:
             # child of an existing deck then it needs to be renamed
             deck = self.get(did)
             if '::' in deck['name']:
-                base = deck['name'].split("::")[-1]
+                base = DeckManager._basename(deck['name'])
                 suffix = ""
                 while True:
                     # find an unused name
@@ -325,6 +325,7 @@ class DeckManager:
 
     def _path(self, name):
         return name.split("::")
+
     def _basename(self, name):
         return self._path(name)[-1]
 
@@ -631,10 +632,11 @@ class DeckManager:
 
     # Deck utils
     ##########################################################################
-    def parentName(self, name):
-        """The name of the parent name, or None if there is none"""
+    @staticmethod
+    def parentName(name):
+        """Direct parent, or None"""
         parts = name.rsplit("::", 1)
-        if len(parts)==2:
+        if len(parts) == 2:
             return parts[0]
         else:
             return None
