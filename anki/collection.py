@@ -615,11 +615,11 @@ where c.nid == f.id
     # Finding cards
     ##########################################################################
 
-    def findCards(self, query, order=False):
-        return anki.find.Finder(self).findCards(query, order)
+    def findCards(self, *args, **kwargs):
+        return anki.find.Finder(self).findCards(*args, **kwargs)
 
-    def findNotes(self, query):
-        return anki.find.Finder(self).findNotes(query)
+    def findNotes(self, *args, **kwargs):
+        return anki.find.Finder(self).findNotes(*args, **kwargs)
 
     def findReplace(self, nids, src, dst, regex=None, field=None, fold=True):
         return anki.find.findReplace(self, nids, src, dst, regex, field, fold)
