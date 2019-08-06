@@ -420,3 +420,9 @@ def versionWithBuild():
     except:
         build = "dev"
     return "%s (%s)" % (version, build)
+
+def identity(x):
+    return x
+
+def negation(x):
+    return not x
