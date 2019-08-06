@@ -7,7 +7,9 @@ import time
 
 import anki.lang
 import aqt
+from anki.consts import *
 from anki.lang import _
+from anki.utils import identity, negation
 from aqt.qt import *
 from aqt.utils import askUser, openHelp, showInfo
 
@@ -29,10 +31,10 @@ class Preferences(QDialog):
         self.form.buttonBox.helpRequested.connect(lambda: openHelp("profileprefs"))
         self.silentlyClose = True
         self.setupLang()
+        self.setupBackup()
         self.setupCollection()
         self.setupNetwork()
-        self.setupBackup()
-        self.setupOptions()
+        self.dealWithSettings(self.setupOneSetting)
         self.show()
 
     def accept(self):
@@ -41,8 +43,7 @@ class Preferences(QDialog):
             return
         self.updateCollection()
         self.updateNetwork()
-        self.updateBackup()
-        self.updateOptions()
+        self.dealWithSettings(self.updateOneSetting)
         self.mw.pm.save()
         self.mw.reset()
         self.done(0)
@@ -76,7 +77,6 @@ class Preferences(QDialog):
     ######################################################################
 
     def setupCollection(self):
-        import anki.consts as c
         f = self.form
         qc = self.mw.col.conf
         self._setupDayCutoff()
@@ -84,15 +84,7 @@ class Preferences(QDialog):
             f.hwAccel.setVisible(False)
         else:
             f.hwAccel.setChecked(self.mw.pm.glMode() != "software")
-        f.lrnCutoff.setValue(qc['collapseTime']/60.0)
-        f.timeLimit.setValue(qc['timeLim']/60.0)
-        f.showEstimates.setChecked(qc['estTimes'])
-        f.showProgress.setChecked(qc['dueCounts'])
-        f.nightMode.setChecked(qc.get("nightMode", False))
-        f.newSpread.addItems(list(c.newCardSchedulingLabels().values()))
-        f.newSpread.setCurrentIndex(qc['newSpread'])
-        f.useCurrent.setCurrentIndex(int(not qc.get("addToCur", True)))
-        f.dayLearnFirst.setChecked(qc.get("dayLearnFirst", False))
+        f.newSpread.addItems(list(newCardSchedulingLabels().values()))
         if self.mw.col.schedVer() != 2:
             f.dayLearnFirst.setVisible(False)
         else:
@@ -113,14 +105,6 @@ class Preferences(QDialog):
                 showInfo(_("Changes will take effect when you restart Anki."))
 
         qc = d.conf
-        qc['dueCounts'] = f.showProgress.isChecked()
-        qc['estTimes'] = f.showEstimates.isChecked()
-        qc['newSpread'] = f.newSpread.currentIndex()
-        qc['nightMode'] = f.nightMode.isChecked()
-        qc['timeLim'] = f.timeLimit.value()*60
-        qc['collapseTime'] = f.lrnCutoff.value()*60
-        qc['addToCur'] = not f.useCurrent.currentIndex()
-        qc['dayLearnFirst'] = f.dayLearnFirst.isChecked()
         self._updateDayCutoff()
         self._updateSchedVer(f.newSched.isChecked())
         d.setMod()
@@ -157,10 +141,10 @@ class Preferences(QDialog):
 
     def _setupDayCutoffV1(self):
         self.startDate = datetime.datetime.fromtimestamp(self.mw.col.crt)
-        self.form.dayOffset.setValue(self.startDate.hour)
+        self.form.rollover.setValue(self.startDate.hour)
 
     def _setupDayCutoffV2(self):
-        self.form.dayOffset.setValue(self.mw.col.conf.get("rollover", 4))
+        self.setupOneSetting("rollover", 4, "numeric")
 
     def _updateDayCutoff(self):
         if self.mw.col.schedVer() == 2:
@@ -169,23 +153,20 @@ class Preferences(QDialog):
             self._updateDayCutoffV1()
 
     def _updateDayCutoffV1(self):
-        hrs = self.form.dayOffset.value()
+        hrs = self.form.rollover.value()
         old = self.startDate
         date = datetime.datetime(
             old.year, old.month, old.day, hrs)
         self.mw.col.crt = int(time.mktime(date.timetuple()))
 
     def _updateDayCutoffV2(self):
-        self.mw.col.conf['rollover'] = self.form.dayOffset.value()
+        self.updateOneSetting("rollover", 4, "numeric")
+
 
     # Network
     ######################################################################
 
     def setupNetwork(self):
-        self.form.syncOnProgramOpen.setChecked(
-            self.prof['autoSync'])
-        self.form.syncMedia.setChecked(
-            self.prof['syncMedia'])
         if not self.prof['syncKey']:
             self._hideAuth()
         else:
@@ -205,26 +186,93 @@ Not currently enabled; click the sync button in the main window to enable."""))
         self._hideAuth()
 
     def updateNetwork(self):
-        self.prof['autoSync'] = self.form.syncOnProgramOpen.isChecked()
-        self.prof['syncMedia'] = self.form.syncMedia.isChecked()
         if self.form.fullSync.isChecked():
             self.mw.col.modSchema(check=False)
             self.mw.col.setMod()
 
-    # Backup
-    ######################################################################
-
-    def setupBackup(self):
-        self.form.numBackups.setValue(self.prof['numBackups'])
-
-    def updateBackup(self):
-        self.prof['numBackups'] = self.form.numBackups.value()
-
     # Basic & Advanced Options
     ######################################################################
 
-    def setupOptions(self):
-        self.form.pastePNG.setChecked(self.prof.get("pastePNG", False))
+   def setupBackup(self):
+        self.form.openBackupFolder.linkActivated.connect(self.onOpenBackup)
 
-    def updateOptions(self):
-        self.prof['pastePNG'] = self.form.pastePNG.isChecked()
+    def onOpenBackup(self):
+        openFolder(self.mw.pm.backupFolder())
+
+    # General settings
+    ########################
+
+    allSettings = [
+        # Collection
+        {"name":"collapseTime", "fromCol": lambda x:x/60.0, "toCol": lambda x: x*60.0, "kind":"numeric"},
+        {"name":"timeLim", "fromCol": lambda x:x/60.0, "toCol": lambda x: x*60.0, "kind":"numeric"},
+        "estTimes",
+        "dueCounts",
+        "nightMode",
+        {"name": "newSpread", "kind":"combo"},
+        {"name": "addToCur", "kind":"combo", "fromCol": lambda x: int (not x), "toCol": negation},
+        "dayLearnFirst",
+        #{"name":"rollover", "default": "4"} Different between v1 and v2 , so can't use easily
+        # Network
+        {"name":"autoSync", "sync":False},
+        {"name":"syncMedia", "sync":False},
+        # Backup
+        {"name":"numBackups", "kind":"numeric", "sync":False},
+        # advanced option
+        {"name":"pastePNG", "sync":False},
+    ]
+
+    def setupOneSetting(self, name, default=False, kind="check", sync=True, fromCol=identity, toCol=identity):
+        """Ensure that the preference manager default values for widget
+        `name` is set correctly.
+
+        name -- name of the widget; it's also the name used in the configuration
+        default -- The value to take if the value is not in the profile/configuration
+        kind -- either check, numberic or combo. Their default value are the falsy ones.
+        sync -- whether the value should be synchronized. In this case
+        it is in configuration of collection. Otherwise it is in
+        profile's preference.
+        fromCol -- function to apply to elements taken in the collection before sending them to the interface
+        toCol -- function to apply to values from interface before saving them in collection
+        """
+        storeValue = self.mw.col.conf if sync else self.prof
+        widget = getattr(self.form, name)
+        if kind == "numeric" and default is False:
+            default = 0
+        value = storeValue.get(name, default)
+        function = {
+            "check": "setChecked",
+            "numeric": "setValue",
+            "combo": "setCurrentIndex"
+        }.get(kind)
+        getattr(widget, function)(fromCol(value))
+
+    def updateOneSetting(self, name, default=False, kind="check", sync=True, fromCol=identity, toCol=identity):
+        """Save the value from the preference manager' widget
+        `name`.
+
+        Same argument as in setupOneSetting"""
+        storeValue = self.mw.col.conf if sync else self.prof
+        widget = getattr(self.form, name)
+        function = {
+            "check": "isChecked",
+            "numeric": "value",
+            "combo": "currentIndex",
+        }.get(kind)
+        value = getattr(widget, function)()
+        storeValue[name] = toCol(value)
+
+    def dealWithSettings(self, method):
+        """Apply method methods with argumets from extraOptions, depending on
+        the type of argument."""
+        try:
+            for args in self.allSettings:
+                if isinstance(args, tuple):
+                    method(*args)
+                elif isinstance(args, dict):
+                    method(**args)
+                elif isinstance(args, str):
+                    method(args)
+        except:
+            print(f"problem with {args}")
+            raise
