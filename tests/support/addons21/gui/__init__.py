@@ -1,5 +1,6 @@
 import time
 
+import aqt
 from anki.hooks import addHook
 from aqt import mw
 from aqt.qt import *
@@ -29,7 +30,7 @@ def test():
     ensureStudy()
     edit = mw.onEditCurrent()
 
-    browser = mw.onBrowse()
+    browser = aqt.dialogs.open("Browser", mw, search=" ")
     browser.close()
     addCard = mw.onAddCard()
     addCard.close()
