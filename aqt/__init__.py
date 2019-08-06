@@ -86,7 +86,7 @@ class DialogManager:
     }
 
 
-    def open(self, name, *args):
+    def open(self, name, *args, **kwargs):
         """Open a window of kind name.
 
         Open (and show) the one already opened, if it
@@ -103,10 +103,10 @@ class DialogManager:
             instance.activateWindow()
             instance.raise_()
             if hasattr(instance,"reopen"):
-                instance.reopen(*args)
+                instance.reopen(*args, **kwargs)
             return instance
         else:
-            instance = creator(*args)
+            instance = creator(*args, **kwargs)
             self._dialogs[name][1] = instance
             return instance
 
