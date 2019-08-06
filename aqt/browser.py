@@ -33,7 +33,22 @@ from anki.sound import clearAudioQueue, allSounds, play
 
 class DataModel(QAbstractTableModel):
 
-    def __init__(self, browser):
+    """
+    The model for the table, showing informations on a list of cards in the browser.
+
+    Implemented as a separate class because that is how QT show those tables.
+
+    sortKey -- never used
+    activeCols -- the list of name of columns to display in the browser
+    cards -- the set of cards corresponding to current browser's search
+    cardObjs -- dictionnady from card's id to the card object. It
+    allows to avoid reloading cards already seen since browser was
+    opened. If a nose is «refreshed» then it is remove from the
+    dic. It is emptied during reset.
+    focusedCard -- the last thing focused, assuming it was a single line. Used to restore a selection after edition/deletion.
+    selectedCards -- a dictionnary containing the set of selected card's id, associating them to True. Seems that the associated value is never used. Used to restore a selection after some edition
+    """
+    def __init__(self, browser, focusedCard=None, selectedCards=None):
         QAbstractTableModel.__init__(self)
         self.browser = browser
         self.col = browser.col
@@ -42,6 +57,8 @@ class DataModel(QAbstractTableModel):
             "activeCols", ["noteFld", "template", "cardDue", "deck"])
         self.cards = []
         self.cardObjs = {}
+        self.focusedCard = focusedCard
+        self.selectedCards = selectedCards
 
     def getCard(self, index):
         id = self.cards[index.row()]
@@ -172,6 +189,7 @@ class DataModel(QAbstractTableModel):
         self.endReset()
 
     def saveSelection(self):
+        """Set selectedCards and focusedCard according to what their represent"""
         cards = self.browser.selectedCards()
         self.selectedCards = dict([(id, True) for id in cards])
         if getattr(self.browser, 'card', None):
@@ -436,10 +454,11 @@ class StatusDelegate(QItemDelegate):
 
 class Browser(QMainWindow):
 
-    def __init__(self, mw, search=None):
+    def __init__(self, mw, search=None, focusedCard=None, selectedCards=None):
         """
 
         search -- the search query to use when opening the browser
+        focusedCard, selectedCards -- as in DataModel
         """
         QMainWindow.__init__(self, None, Qt.Window)
         self.mw = mw
@@ -464,7 +483,7 @@ class Browser(QMainWindow):
         self.setupEditor()
         self.updateFont()
         self.onUndoState(self.mw.form.actionUndo.isEnabled())
-        self.setupSearch(search)
+        self.setupSearch(search=search, focusedCard=focusedCard, selectedCards=selectedCards)
         self.show()
 
     def setupMenus(self):
@@ -610,13 +629,15 @@ class Browser(QMainWindow):
     # Searching
     ######################################################################
 
-    def setupSearch(self, search=None):
+    def setupSearch(self, search=None, focusedCard=None, selectedCards=None):
         self.form.searchButton.clicked.connect(self.onSearchActivated)
         self.form.searchEdit.lineEdit().returnPressed.connect(self.onSearchActivated)
         self.form.searchEdit.setCompleter(None)
         self._searchPrompt = search or _("<type here to search; hit enter to show current deck>")
         self.form.searchEdit.addItems([self._searchPrompt] + self.mw.pm.profile['searchHistory'])
         self._lastSearchTxt = search or "is:current"
+        self.card = focusedCard
+        self.model.selectedCards = selectedCards
         self.search()
         # then replace text for easily showing the deck
         self.form.searchEdit.lineEdit().setText(self._searchPrompt)
