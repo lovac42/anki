@@ -920,7 +920,20 @@ QTreeWidget {
 
     def onBrowse(self):
         """Open the browser window."""
-        return aqt.dialogs.open("Browser", self)
+        search = None
+        focusedCard = None
+        if self.state == "review":
+            focusedCard = self.reviewer.card
+            whatToShow = self.col.conf.get("browserFromReviewer", "nid")
+            if whatToShow == "cid":
+                search = f"cid:{focusedCard.id}"
+            elif whatToShow == "nid":
+                search = f"nid:{focusedCard.note().id}"
+            elif whatToShow == "did":
+                search = f"deck:{self.col.decks.get(focusedCard.did)['name']}"
+        elif self.state == "overview":
+            search = f"deck:{self.col.decks.get(self.col.conf['curDeck'])['name']}"
+        return aqt.dialogs.open("Browser", self, search, focusedCard)
 
     def onEditCurrent(self):
         """Open the editing window."""
