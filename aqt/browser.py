@@ -813,13 +813,26 @@ by clicking on one on the left."""))
         """
         gpos = self.form.tableView.mapToGlobal(pos) # the position,
         # usable from the browser
-        menu = QMenu()
+        topMenu = QMenu()
+        menuDict = dict()
         for column in self.model.columns.values():
-            action = menu.addAction(column.name)
+            currentDict = menuDict
+            currentMenu = topMenu
+            for submenuName in column.menu:
+                if submenuName in currentDict:
+                    currentDict, currentMenu = currentDict[submenuName]
+                else:
+                    newDict = dict()
+                    newMenu = currentMenu.addMenu(submenuName)
+                    currentDict[submenuName] = newDict, newMenu
+                    currentMenu = newMenu
+                    currentDict = newDict
+
+            action = currentMenu.addAction(column.name)
             action.setCheckable(True)
             action.setChecked(column.type in self.model.activeCols)
             action.toggled.connect(lambda button, type=column.type: self.toggleField(type))
-        menu.exec_(gpos)
+        topMenu.exec_(gpos)
 
     def toggleField(self, type):
         """

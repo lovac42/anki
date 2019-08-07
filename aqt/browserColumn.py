@@ -10,9 +10,10 @@ class BrowserColumn:
     name -- the (translated) name of the column
     note -- whether this show informations relative to note. Otherwise it's to the card.
     sort -- the text to use in finder to sort by this column. None means this columns can't be sorted.
+    menu -- the list of submenus of context menu in which this column is
     """
     defaultSort = "note.id, card.ord"
-    def __init__(self, type, name, sort=None, note=None):
+    def __init__(self, type, name, menu=True, sort=None, note=None):
         """All methods names ends with BrowserColumn. Only the part before has to be given.
         If methodName is not indicated, then it's assumed to be the same as
         type. Except if it starts with card or note, in which case
@@ -29,6 +30,10 @@ class BrowserColumn:
         if sort is None:
             sort = self.defaultSort
         self.sort = sort
+        if menu is True:
+            menu = ["Note"] if self.note else ["Card"]
+        assert(isinstance(menu, list))
+        self.menu = menu
 
     def getBase(self, card):
         if self.note:
@@ -45,15 +50,16 @@ class ColumnByMethod(BrowserColumn):
     """
     methodName -- a method in the class card/note according to self.note.
     """
-    def __init__(self, type, name, sort=None, methodName=None, note=None):
+    def __init__(self, type, name, sort=None, methodName=None, menu=True, note=None):
         """All methods names ends with BrowserColumn. Only the part before has to be given.
         If methodName is not indicated, then it's assumed to be the same as
         type. Except if it starts with card or note, in which case
         those four letters are omitted, and the next letter is put in
         lower case.
-
         """
-        super().__init__(type, name, sort, note)
+        if sort is None:
+            sort = BrowserColumn.defaultSort
+        super().__init__(type, name, menu, sort, note)
         if methodName is not None:
             self.methodName = methodName
         else:
@@ -68,9 +74,9 @@ class ColumnByMethod(BrowserColumn):
 
 
 class DateColumnFromQuery(BrowserColumn):
-    def __init__(self, type, name, query):
+    def __init__(self, type, name, query, menu=True):
         self.query = query
-        super().__init__(type, name, sort=query)
+        super().__init__(type, name, menu, sort=query)
 
     def content(self, card):
         base =self.getBase(card)
