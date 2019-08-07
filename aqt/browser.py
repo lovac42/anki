@@ -424,6 +424,7 @@ class Browser(QMainWindow):
         QMainWindow.__init__(self, None, Qt.Window)
         self.mw = mw
         self.col = self.mw.col
+        self.showNotes = self.mw.col.conf.get("advbrowse_uniqueNote",False)
         self.sortKey = self.col.conf['sortType']
         self.sortBackwards = self.col.conf['sortBackwards']
         self.lastFilter = ""
@@ -447,6 +448,20 @@ class Browser(QMainWindow):
         self.onUndoState(self.mw.form.actionUndo.isEnabled())
         self.setupSearch()
         self.show()
+
+    def dealWithShowNotes(self, showNotes):
+        self.mw.col.conf["advbrowse_uniqueNote"] = showNotes
+        self.showNotes = showNotes
+        self.form.menu_Cards.setEnabled(not showNotes)
+
+    def warnOnShowNotes(self, what):
+        """Return self.showNotes. If we show note, then warn that action what
+        is impossible.
+
+        """
+        if self.showNotes:
+            tooltip(_(f"You can't {what} a note. Please switch to card mode before doing this action."))
+        return self.showNotes
 
     def setupMenus(self):
         # pylint: disable=unnecessary-lambda
@@ -831,6 +846,14 @@ by clicking on one on the left."""))
             if column.showAsPotential(self) and not column.show(self):
                 a.setEnabled(False)
             a.toggled.connect(lambda b, t=type: self.toggleField(t))
+
+        # toggle note/card
+        a = m.addAction(_("Use Note mode"))
+        a.setCheckable(True)
+        a.setChecked(self.showNotes)
+        a.toggled.connect(lambda:self.dealWithShowNotes(not self.showNotes))
+
+        #
         topMenu.exec_(gpos)
 
     def toggleHoursAndMinutes(self):
@@ -861,7 +884,7 @@ by clicking on one on the left."""))
         remove if there are less than two columns.
         """
         self.model.beginReset()
-        if type in self.model.activeCols:
+        if type in self.model._activeCols:
             if len(self.model.activeCols) < 2:
                 self.model.endReset()
                 return showInfo(_("You must have at least one column."))
@@ -874,6 +897,7 @@ by clicking on one on the left."""))
         self.setSortIndicator()
         self.setColumnSizes()
         self.model.endReset()
+        self.onSearchActivated()
         # if we added a column, scroll to it
         if adding:
             row = self.currentRow()
@@ -1220,6 +1244,8 @@ by clicking on one on the left."""))
     ######################################################################
 
     def showCardInfo(self):
+        if self.warnOnShowNotes("show info of"):
+            return
         if not self.card:
             return
         info, cs = self._cardInfoData()
@@ -1600,6 +1626,8 @@ where id in %s""" % ids2str(sf))
     ######################################################################
 
     def setDeck(self):
+        if self.warnOnShowNotes("change the deck of"):
+            return
         self.editor.saveNow(self._setDeck)
 
     def _setDeck(self):
@@ -1680,6 +1708,8 @@ update cards set usn=?, mod=?, did=? where id in """ + scids,
         return bool (self.card and self.card.queue == QUEUE_SUSPENDED)
 
     def onSuspend(self):
+        if self.warnOnShowNotes("suspend"):
+            return
         self.editor.saveNow(self._onSuspend)
 
     def _onSuspend(self):
@@ -1696,6 +1726,8 @@ update cards set usn=?, mod=?, did=? where id in """ + scids,
     ######################################################################
 
     def onSetFlag(self, n):
+        if self.warnOnShowNotes("change the flag of"):
+            return
         # flag needs toggling off?
         if n == self.card.userFlag():
             n = 0
@@ -1732,6 +1764,8 @@ update cards set usn=?, mod=?, did=? where id in """ + scids,
     ######################################################################
 
     def reposition(self):
+        if self.warnOnShowNotes("reposition"):
+            return
         self.editor.saveNow(self._reposition)
 
     def _reposition(self):
@@ -1766,6 +1800,8 @@ update cards set usn=?, mod=?, did=? where id in """ + scids,
     ######################################################################
 
     def reschedule(self):
+        if self.warnOnShowNotes("reschedule"):
+            return
         self.editor.saveNow(self._reschedule)
 
     def _reschedule(self):
