@@ -322,6 +322,7 @@
     </property>
     <addaction name="actionShow_Hours_and_Minutes"/>
     <addaction name="actionShow_Notes_Cards"/>
+    <addaction name="actionShow_Advanced_Columns"/>
    </widget>
    <addaction name="menuEdit"/>
    <addaction name="menu_Notes"/>
@@ -621,6 +622,11 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+Alt+N</string>
+   </property>
+  </action>
+  <action name="actionShow_Advanced_Columns">
+   <property name="text">
+    <string>Show Advanced Columns</string>
    </property>
   </action>
  </widget>

@@ -90,8 +90,10 @@ class DataModel(QAbstractTableModel):
         self.browser = browser
         self.col = browser.col
         defaultColsNames = ["noteFld", "template", "cardDue", "deck"]
-        activeColsNames = self.col.conf.get("activeCols", defaultColsNames)
+        activeStandardColsNames = self.col.conf.get("activeCols", defaultColsNames)
+        activeColsNames = self.col.conf.get("advbrowse_activeCols", activeStandardColsNames)
         self.activeCols = [BrowserColumn.getBrowserColumn(type) for type in activeColsNames]
+        self.advancedColumns = self.col.conf.get("advancedColumnsInBrowser", False)
         self.cards = []
         self.cardObjs = {}
         self.minutes = self.col.conf.get("minutesInBrowser", False)
@@ -512,6 +514,9 @@ class Browser(QMainWindow):
         # Columns
         f.actionShow_Hours_and_Minutes.triggered.connect(self.toggleHoursAndMinutes)
         f.actionShow_Hours_and_Minutes.setChecked(self.model.minutes)
+        f.actionShow_Advanced_Columns.triggered.connect(self.toggleAdvancedColumns)
+        f.actionShow_Advanced_Columns.setCheckable(True)
+        f.actionShow_Advanced_Columns.setChecked(self.model.advancedColumns)
         # help
         f.actionGuide.triggered.connect(self.onHelp)
         # keyboard shortcut for shift+home/end
@@ -576,7 +581,7 @@ class Browser(QMainWindow):
         saveGeom(self, "editor")
         saveState(self, "editor")
         saveHeader(self.form.tableView.horizontalHeader(), "editor")
-        self.col.conf['activeCols'] = [column.type for column in self.model._activeCols]
+        self.col.conf['advbrowse_activeCols'] = [column.type for column in self.model._activeCols]
         self.col.setMod()
         self.teardownHooks()
         self.mw.maybeReset()
@@ -854,6 +859,11 @@ by clicking on one on the left."""))
         a.toggled.connect(lambda:self.dealWithShowNotes(not self.showNotes))
 
         #
+        #toggle advanced fields
+        a = m.addAction(_("Show advanced fields"))
+        a.setCheckable(True)
+        a.setChecked(self.col.conf.get("advancedColumnsInBrowser", False))
+        a.toggled.connect(self.toggleAdvancedColumns)
         topMenu.exec_(gpos)
 
     def toggleHoursAndMinutes(self):
@@ -867,6 +877,14 @@ by clicking on one on the left."""))
     def _toggleHoursAndMinutes(self):
         self.model.minutes = not self.model.minutes
         self.col.conf["minutesInBrowser"] = self.model.minutes
+        self.model.reset()
+
+    def toggleAdvancedColumns(self):
+        self.editor.saveNow(self._toggleAdvancedColumns)
+
+    def _toggleAdvancedColumns(self):
+        self.model.advancedColumns = not self.model.advancedColumns
+        self.col.conf["advancedColumnsInBrowser"] = self.model.advancedColumns
         self.model.reset()
 
     def toggleField(self, type):

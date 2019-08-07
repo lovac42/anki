@@ -18,15 +18,28 @@ class BrowserColumn:
 
     Return None if it can't be sorted"""
 
+    """Whether the field content show advanced content, not used by normal users."""
+    advanced=False
+
     typeToObject = dict()
-    def __init__(self, type, name, content, hide=False, sort=None, menu=[]):
+    def __init__(self, type, name, content, hide=False, sort=None, menu=[], advanced=False):
         self.type = type
         self.name = _(name)
         self.typeToObject[self.type] = self
         self.hide = hide
-        self.sort = sort
+        self._sort = sort
         self.content = content
         self.menu = menu
+        self.advanced = advanced
+
+    def getSort(self):
+        if isinstance(self._sort, str):
+            return self._sort
+        elif callable(self._sort):
+            return self._sort()
+        else:
+            raise Exception(f"sort as an unexpected type in {self.type}")
+    sort = property(getSort)
 
     def __eq__(self, other):
         if isinstance(other, BrowserColumn):
@@ -54,6 +67,8 @@ class BrowserColumn:
             or (self.menu[0]=="Card" and browser.showNotes)
         ):
             return False
+        if self.advanced and not browser.model.advancedColumns:
+            return False
         return True
 
     def showAsPotential(self, browser):
@@ -66,6 +81,8 @@ class BrowserColumn:
 
         if (self.hide
         ):
+            return False
+        if self.advanced and not browser.model.advancedColumns:
             return False
         return True
 
@@ -275,3 +292,317 @@ class ColumnList(list):
             if column.type == type:
                 return True
             return False
+
+# Columns from Advanced Browser
+##############################
+def timeFmt(tm):
+    # stole this from anki.stats.CardStats#time()
+    str = ""
+    if tm is None:
+        return str
+    if tm >= 60:
+        str = fmtTimeSpan((tm / 60) * 60, short=True, point=-1, unit=1)
+    if tm % 60 != 0 or not str:
+        str += fmtTimeSpan(tm % 60, point=2 if not str else -1, short=True)
+    return str
+
+def strftimeIfArgument(timeString):
+    if timeString:
+        return time.strftime("%Y-%m-%d", time.localtime(timeString / 1000))
+    else:
+        return ""
+
+BrowserColumn(
+    # First review
+    type='cfirst',
+    name='First Review',
+    content=lambda card,col : strftimeIfArgument(col.db.scalar("select min(id) from revlog where cid = ?", card.id)),
+    sort="(select min(id) from revlog where cid = c.id)"
+)
+
+
+
+BrowserColumn(
+    # Last review
+    type='clast',
+    name='Last Review',
+    content=lambda card,col :strftimeIfArgument(col.db.scalar(
+            "select max(id) from revlog where cid = ?", card.id)),
+    sort="(select max(id) from revlog where cid = c.id)"
+)
+
+
+
+BrowserColumn(
+    # Average time
+    type='cavgtime',
+    name='Time (Average)',
+    content=lambda card,col :strftimeIfArgument(col.db.scalar(
+            "select avg(time)/1000.0 from revlog where cid = ?", card.id)),
+    sort="(select avg(time) from revlog where cid = c.id)"
+)
+
+
+
+BrowserColumn(
+    # Total time
+    type='ctottime',
+    name='Time (Total)',
+    content=lambda card,col :timeFmt(col.db.scalar(
+            "select sum(time)/1000.0 from revlog where cid = ?", card.id)),
+    sort="(select sum(time) from revlog where cid = c.id)"
+)
+
+
+BrowserColumn(
+    # Fastest time
+    type='cfasttime',
+    name='Fastest Review',
+    content=lambda card,col : timeFmt(col.db.scalar(
+            "select time/1000.0 from revlog where cid = ? "
+            "order by time asc limit 1", card.id)),
+    sort="""(select time/1000.0 from revlog where cid = c.id)
+           order by time asc limit 1)"""
+)
+
+BrowserColumn(
+        # Slowest time
+    type='cslowtime',
+    name='Slowest Review',
+    content=lambda card,col :timeFmt(col.db.scalar(
+            "select time/1000.0 from revlog where cid = ? "
+            "order by time desc limit 1", card.id)),
+    sort="""(select time/1000.0 from revlog where cid = c.id)
+           order by time desc limit 1)"""
+)
+
+# Tags
+BrowserColumn(
+    type='noteTags',
+    name='Tags',
+    content=lambda card,col : " ".join(card.note().tags),
+    sort="(select tags from notes where id = c.nid)"
+)
+
+
+
+def overdueSort():
+    from aqt import mw #todo: find a way to take collection without using mw, if possible without transforming sort into a function.
+    return f"""
+(select
+  (case
+    when odid then ""
+    when queue =1 then ""
+    when queue = 0 then ""
+    when type=0 then "",
+    when due<{mw.col.sched.today} and (queue in (2, 3) or (type=2 and queue<0)),
+    then {mw.col.sched.today}-due
+    else ""
+  end)
+  from cards where id = c.id)"""
+
+def overdueContent(card, col):
+    if card.odid or card.queue == 1:
+        return
+    elif card.queue == 0 or card.type == 0:
+        return
+    elif card.queue in (2,3) or (card.type == 2 and card.queue < 0):
+        lateness = col.sched.today - card.due
+        if lateness > 0 :
+            return f"{lateness} day{'s' if lateness > 1 else ''}"
+        else:
+            return
+
+BrowserColumn(
+    # Overdue interval
+    type='coverdueivl',
+    name="Overdue Interval",
+    content=overdueContent,
+    sort=overdueSort
+)
+
+def previewContent(card, col):
+    ivl = col.db.scalar(
+        "select ivl from revlog where cid = ? "
+        "order by id desc limit 1 offset 1", card.id)
+    if ivl is None:
+        return
+    elif ivl == 0:
+        return "0 days"
+    elif ivl > 0:
+        return fmtTimeSpan(ivl*86400)
+    else:
+        return timeFmt(-ivl)
+
+BrowserColumn(
+    # Previous interval
+    type='cprevivl',
+    name="Previous Interval",
+    content=previewContent,
+    sort= """(select ivl from revlog where cid = c.id order by id desc limit 1
+           offset 1)"""
+)
+
+BrowserColumn(
+    # Percent correct
+    type='cpct',
+    name='Percent Correct',
+    content=lambda card,col : "" if card.reps <= 0 else "{:2.0f}%".format(
+        100 - ((card.lapses / float(card.reps)) * 100)),
+    sort="cast(c.lapses as real)/c.reps"
+)
+
+
+BrowserColumn(
+    # Previous duration
+    type='cprevdur',
+    name="Previous Duration",
+    content=lambda card,col : timeFmt(col.db.scalar(
+            "select time/1000.0 from revlog where cid = ? "
+            "order by id desc limit 1", card.id)),
+    sort="""(select time/1000.0 from revlog where cid = c.id)
+           order by id desc limit 1)"""
+)
+
+# Internal columns
+##################
+BrowserColumn(
+    type="nid",
+    name="Note ID",
+    advanced=True,
+    content=lambda card,col : card.note().id,
+    sort="n.id"
+)
+
+BrowserColumn(
+    type="nguid",
+    name="Note Guid",
+    advanced=True,
+    content=lambda card,col : card.note().guid,
+    sort="n.guid"
+)
+
+
+BrowserColumn(
+    type="nmid",
+    name="Model ID",
+    advanced=True,
+    content=lambda card,col : card.note().mid,
+    sort="n.mid"
+)
+
+
+BrowserColumn(
+    type="nusn",
+    name="Note USN",
+    advanced=True,
+    content=lambda card,col : card.note().usn,
+    sort="n.usn"
+)
+
+
+BrowserColumn(
+    type="nfields",
+    name="Note Fields",
+    advanced=True,
+    content=lambda card,col : u"\u25A0".join(card.note().fields),
+    sort="n.flds"
+)
+
+
+BrowserColumn(
+    type="nflags",
+    name="Note Flags",
+    advanced=True,
+    content=lambda card,col : card.note().flags,
+    sort="n.flags"
+)
+
+
+BrowserColumn(
+    type="ndata",
+    name="Note Data",
+    advanced=True,
+    content=lambda card,col : card.note().data,
+    sort="n.data"
+)
+
+BrowserColumn(
+    type="cid",
+    name="Card ID",
+    advanced=True,
+    content=lambda card,col : card.id,
+    sort="c.id"
+)
+
+BrowserColumn(
+    type="cdid",
+    name="Deck ID",
+    advanced=True,
+    content=lambda card,col : card.did,
+    sort="c.did"
+)
+
+BrowserColumn(
+    type="codid",
+    name="Original Deck ID",
+    advanced=True,
+    content=lambda card,col : card.odid,
+    sort="c.odid"
+)
+
+BrowserColumn(
+    type="cord",
+    name="Card Ordinal",
+    advanced=True,
+    content=lambda card,col : card.ord,
+    sort="c.ord"
+)
+
+BrowserColumn(
+    type="cusn",
+    name="Card USN",
+    advanced=True,
+    content=lambda card,col : card.usn,
+    sort="c.usn"
+)
+
+BrowserColumn(
+    type="ctype",
+    name="Card Type",
+    advanced=True,
+    content=lambda card,col : card.type,
+    sort="c.type"
+)
+
+BrowserColumn(
+    type="cqueue",
+    name="Card Queue",
+    advanced = True,
+    content=lambda card,col : card.queue,
+    sort="c.queue"
+)
+
+BrowserColumn(
+    type="cleft",
+    name="Card Left",
+    advanced=True,
+    content=lambda card,col : card.left,
+    sort="c.left"
+)
+
+BrowserColumn(
+    type="codue",
+    name="Card Original Due",  # I think,
+    advanced=True,
+    content=lambda card,col : card.odue,
+    sort="c.odue"
+)
+
+BrowserColumn(
+    type="cflags",
+    name="Card Flags",
+    advanced=True,
+    content=lambda card,col : card.flags,
+    sort="c.flags"
+)
