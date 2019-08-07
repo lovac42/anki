@@ -935,12 +935,27 @@ by clicking on one on the left."""))
         """
         gpos = self.form.tableView.mapToGlobal(pos) # the position,
         # usable from the browser
-        menu = QMenu()
-        l = [(type, column.name) for type, column in BrowserColumn.typeToObject.items() if column.showAsPotential()]
-        l.sort(key=itemgetter(1))
-        for type, name in l:
-            action = menu.addAction(name)
-            action.setCheckable(True)
+        topMenu = QMenu()
+        menuDict = dict()
+        l = [(type, column)
+             for type, column in BrowserColumn.typeToObject.items()
+             if column.showAsPotential()]
+        l.sort(key=lambda type_column:type_column[1].name)
+        for type, column in l:
+            currentDict = menuDict
+            currentMenu = topMenu
+            for submenuName in column.menu:
+                if submenuName in currentDict:
+                    currentDict, currentMenu = currentDict[submenuName]
+                else:
+                    newDict = dict()
+                    newMenu = currentMenu.addMenu(submenuName)
+                    currentDict[submenuName] = newDict, newMenu
+                    currentMenu = newMenu
+                    currentDict = newDict
+
+            a = currentMenu.addAction(column.name)
+            a.setCheckable(True)
             if type in self.model.activeCols:
                 action.setChecked(True)
             if column.showAsPotential(self) and not column.show(self):
