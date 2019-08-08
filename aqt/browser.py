@@ -27,7 +27,7 @@ from anki.hooks import runHook, addHook, remHook, runFilter
 from aqt.webview import AnkiWebView
 from anki.consts import *
 from anki.sound import clearAudioQueue, allSounds, play
-from aqt.browserColumn import BrowserColumn, ColumnList
+from aqt.browserColumn import BrowserColumn, ColumnList, unknownColumn, basicColumns, internal, extra
 
 
 """The set of column names related to cards. Hence which should not be
@@ -82,16 +82,26 @@ class DataModel(QAbstractTableModel):
     activeCols -- a descriptor, sending _activeCols, but without
     the cards columns if it's note type and without the columns we don't know how to use (they may have been added to the list of selected columns by a version of anki/add-on with more columns)
     selectedCards -- a dictionnary containing the set of selected card's id, associating them to True. Seems that the associated value is never used. Used to restore a selection after some edition
+    potentialColumns -- dictionnary from column type to columns, for each columns which we might potentially show
+    absentColumns -- set of columns type already searched and missing
     """
     activeCols = ActiveCols()
     def __init__(self, browser):
         QAbstractTableModel.__init__(self)
         self.browser = browser
         self.col = browser.col
+        self.potentialColumns = dict()
+        self.absentColumns = set()
         defaultColsNames = ["noteFld", "template", "cardDue", "deck"]
         activeStandardColsNames = self.col.conf.get("activeCols", defaultColsNames)
+        if not activeStandardColsNames:
+            self.col.conf["activeCols"] = defaultColsNames
+            activeStandardColsNames = defaultColsNames
         activeColsNames = self.col.conf.get("advbrowse_activeCols", activeStandardColsNames)
-        self.activeCols = [BrowserColumn.getBrowserColumn(type) for type in activeColsNames]
+        if not activeColsNames:
+            self.col.conf["activeCols"] = activeColsNames
+            activeStandardColsNames = activeColsNames
+        self.activeCols = [self.getColumnByType(type) for type in activeColsNames]
         self.advancedColumns = self.col.conf.get("advancedColumnsInBrowser", False)
         self.cards = []
         self.cardObjs = {}
@@ -216,7 +226,7 @@ class DataModel(QAbstractTableModel):
         self.cards = []
         invalid = False
         try:
-            sortColumn = BrowserColumn.getBrowserColumn(self.browser.sortKey)
+            sortColumn = self.getColumnByType(self.browser.sortKey)
             self.cards = self.col.findCards(txt, order=sortColumn.sort, rev=self.browser.sortBackwards)
         except Exception as e:
             if str(e) == "invalidSearch":
@@ -350,6 +360,30 @@ class DataModel(QAbstractTableModel):
         card = self.getCard(index)
         nt = card.note().model()
         return nt['flds'][self.col.models.sortIdx(nt)]['rtl']
+
+    def getColumnByType(self, type):
+        print(f"Looking for type {type}")
+        if type in self.absentColumns:
+            print("it is absent")
+            return unknownColumn(type)
+        if type in self.potentialColumns:
+            r = self.potentialColumns[type]
+            print(f"it is already here, returning {r}")
+            return r
+        found = False
+        print("We need to process")
+        for column in self.potentialColumnsList():
+            if column.type not in self.potentialColumns:
+                self.potentialColumns[column.type] = column
+                found = True
+        if found:
+            r = self.potentialColumns[type]
+            print(f"it's new here, returning {r}")
+            return r
+        self.absentColumns.add(type)
+
+    def potentialColumnsList(self):
+        return basicColumns+internal+extra
 
 # Line painter
 ######################################################################
@@ -808,11 +842,11 @@ by clicking on one on the left."""))
         # usable from the browser
         topMenu = QMenu()
         menuDict = dict()
-        l = [(type, column)
-             for type, column in BrowserColumn.typeToObject.items()
-             if column.showAsPotential()]
-        l.sort(key=lambda type_column:type_column[1].name)
-        for type, column in l:
+        l = [column
+             for column in self.model.potentialColumnsList()
+             if column.showAsPotential(self)]
+        l.sort(key=lambda column:column.name)
+        for column in l:
             currentDict = menuDict
             currentMenu = topMenu
             for submenuName in column.menu:
@@ -827,11 +861,11 @@ by clicking on one on the left."""))
 
             a = currentMenu.addAction(column.name)
             a.setCheckable(True)
-            if type in self.model.activeCols:
+            if column.type in self.model.activeCols:
                 a.setChecked(True)
             if column.showAsPotential(self) and not column.show(self):
                 a.setEnabled(False)
-            a.toggled.connect(lambda b, t=type: self.toggleField(t))
+            a.toggled.connect(lambda b, t=column.type: self.toggleField(t))
         #toggle advanced fields
         a = topMenu.addAction(_("Show advanced fields"))
         a.setCheckable(True)
@@ -869,7 +903,7 @@ by clicking on one on the left."""))
             self.model._activeCols.remove(type)
             adding=False
         else:
-            self.model._activeCols.append(BrowserColumn.getBrowserColumn(type))
+            self.model._activeCols.append(self.model.getColumnByType(type))
             adding=True
         # sorted field may have been hidden
         self.setSortIndicator()
@@ -954,6 +988,8 @@ by clicking on one on the left."""))
     def maybeRefreshSidebar(self):
         if self.sidebarDockWidget.isVisible():
             self.buildTree()
+        self.model.absentColumns = dict()
+        self.model.potentialColumnsList = dict()
 
     def buildTree(self):
         self.sidebarTree.clear()
