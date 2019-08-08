@@ -360,23 +360,18 @@ class DataModel(QAbstractTableModel):
         return nt['flds'][self.col.models.sortIdx(nt)]['rtl']
 
     def getColumnByType(self, type):
-        print(f"Looking for type {type}")
         if type in self.absentColumns:
-            print("it is absent")
             return unknownColumn(type)
         if type in self.potentialColumns:
             r = self.potentialColumns[type]
-            print(f"it is already here, returning {r}")
             return r
         found = False
-        print("We need to process")
         for column in self.potentialColumnsList():
             if column.type not in self.potentialColumns:
                 self.potentialColumns[column.type] = column
                 found = True
         if found:
             r = self.potentialColumns[type]
-            print(f"it's new here, returning {r}")
             return r
         self.absentColumns.add(type)
 
