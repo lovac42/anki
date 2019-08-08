@@ -220,10 +220,7 @@ class DataModel(QAbstractTableModel):
         invalid = False
         try:
             sortColumn = self.getColumnByType(self.browser.sortKey)
-            if not self.browser.showNotes: #Keep one card by note
-                self.cards = self.col.findCards(txt, order=sortColumn.sort, rev=self.browser.sortBackwards)
-            else:
-                self.cards = [cid for cid, nid in self.col.findNotesWithOneCard(txt, order=sortColumn.sort, rev=self.browser.sortBackwards):]
+            self.cards = self.col.findCards(txt, order=sortColumn.sort, rev=self.browser.sortBackwards, oneByNote=self.browser.showNotes)
         except Exception as e:
             if str(e) == "invalidSearch":
                 self.cards = []
