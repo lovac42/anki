@@ -39,7 +39,23 @@ class Finder:
         self.search['is'] = self._findCardState
         runHook("search", self.search)
 
-    def find(self, query, ifInvalid, sqlBase, order=""):
+    def find(self, query, ifInvalid, sqlBase, order="", groupBy="", tuples=False, rev=False):
+        """
+        Return the result of the query
+
+        query -- a query as in browser
+        ifInvalid -- method returning some value to return if the query is invalid
+        sqlBase -- methods which, given preds and order, states in which table/joined table to select
+        order -- if it's not empty, the string containing "order by"
+        tupdes -- whether the query should return tuple. By default it returns only a list of id.
+        rev -- whether values should be returned in reversed order
+
+        """
+        if order is True:
+            #used only for test
+            order = self._order()
+        if order:
+            order = f" order by {order}"
         tokens = self._tokenize(query)
         preds, args = self._where(tokens)
         if preds is None:
@@ -50,48 +66,51 @@ class Finder:
             preds = "1"
         sql = sqlBase(preds, order)
         sql += preds
+        if groupBy:
+            sql += " group by "+groupBy
         if order:
             sql += " " + order
         try:
-            return self.col.db.list(sql, *args)
-        except:
+            if tuples:
+                l = self.col.db.all(sql, *args)
+            else:
+                l = self.col.db.list(sql, *args)
+            if rev:
+                l.reverse()
+            return l
+        except Exception as e:
             # invalid grouping
+            print(f"On query «{query}», sql «{sql}» return empty because of {e}")
             return []
 
-    def findCards(self, query, order=False, rev=None):
+    def findCards(self, *args, withNids=False, oneByNote=False, **kwargs):
         """Return the set of card ids, of card satisfying predicate preds,
         where c is a card and n its note, ordered according to the sql
         `order`
-        query -- a query from the browser
-        order -- either a Boolean, stating that we should use the
-        browser's default order. Or a string to put in the sql query
-        after "order by". This string may also contains a limit
-        """
-        if order:
-            order = f" order by {order}"
+
+        withNids -- whether the query should also returns note ids"""
         # can we skip the note table?
         def ifInvalid():
             raise Exception("invalidSearch")
+        selectNote = ", c.nid" if withNids else ""
+        groupBy = "c.nid" if oneByNote else ""
+        selectCard = "min(c.id)" if oneByNote else "c.id"
         def sqlBase(preds, order):
             if "n." not in preds and ((not order) or "n." not in order):
-                return "select c.id from cards c where "
+                return f"select {selectCard}{selectNote} from cards c where "
             else:
-                return "select c.id from cards c, notes n where c.nid=n.id and "
+                return f"select {selectCard}{selectNote} from cards c, notes n where c.nid=n.id and "
         # order
-        res = self.find(query, ifInvalid, sqlBase, order)
-        if rev:
-            res.reverse()
-        return res
+        return self.find(*args, ifInvalid=ifInvalid, sqlBase=sqlBase, tuples=withNids, groupBy=groupBy, **kwargs)
 
-    def findNotes(self, query):
-        "Return a list of notes ids for QUERY."
+    def findNotes(self, *args, **kwargs):
+        """Return a list of notes ids for QUERY."""
         def sqlBase(*args, **kwargs):
             return """
 select distinct(n.id) from cards c, notes n where c.nid=n.id and """
         def ifInvalid():
             return []
-        return self.find(query, ifInvalid, sqlBase)
-
+        return self.find(*args, ifInvalid=ifInvalid, sqlBase=sqlBase, **kwargs)
 
     # Tokenizing
     ######################################################################
@@ -207,6 +226,38 @@ select distinct(n.id) from cards c, notes n where c.nid=n.id and """
         if s['bad']:
             return None, None
         return s['q'], args
+
+    # Ordering
+    ######################################################################
+
+    def _order(self):
+        # required only for tests
+        type = self.col.conf['sortType']
+        sort = None
+        if type.startswith("note"):
+            if type == "noteCrt":
+                sort = "n.id, c.ord"
+            elif type == "noteMod":
+                sort = "n.mod, c.ord"
+            elif type == "noteFld":
+                sort = "n.sfld collate nocase, c.ord"
+        elif type.startswith("card"):
+            if type == "cardMod":
+                sort = "c.mod"
+            elif type == "cardReps":
+                sort = "c.reps"
+            elif type == "cardDue":
+                sort = "c.type, c.due"
+            elif type == "cardEase":
+                sort = "c.factor"
+            elif type == "cardLapses":
+                sort = "c.lapses"
+            elif type == "cardIvl":
+                sort = "c.ivl"
+        if not sort:
+            # deck has invalid sort order; revert to noteCrt
+            sort = "n.id, c.ord"
+        return sort
 
     # Commands
     ######################################################################

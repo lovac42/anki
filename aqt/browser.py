@@ -72,7 +72,8 @@ class DataModel(QAbstractTableModel):
 
     Implemented as a separate class because that is how QT show those tables.
 
-    activeCols -- the list of BrowserColumn to show
+    sortKey -- never used
+    activeCols -- the list of name of columns to display in the browser
     cards -- the set of cards corresponding to current browser's search
     cardObjs -- dictionnady from card's id to the card object. It
     allows to avoid reloading cards already seen since browser was
@@ -86,7 +87,7 @@ class DataModel(QAbstractTableModel):
     absentColumns -- set of columns type already searched and missing
     """
     activeCols = ActiveCols()
-    def __init__(self, browser):
+    def __init__(self, browser, focusedCard=None, selectedCards=None):
         QAbstractTableModel.__init__(self)
         self.browser = browser
         self.col = browser.col
@@ -105,6 +106,8 @@ class DataModel(QAbstractTableModel):
         self.advancedColumns = self.col.conf.get("advancedColumnsInBrowser", False)
         self.cards = []
         self.cardObjs = {}
+        self.focusedCard = focusedCard
+        self.selectedCards = selectedCards
 
     def getCard(self, index):
         """The card object at position index in the list"""
@@ -270,7 +273,7 @@ class DataModel(QAbstractTableModel):
         self.endReset()
 
     def saveSelection(self):
-        """Set selectedCards and focusedCards according to what their represent"""
+        """Set selectedCards and focusedCard according to what their represent"""
         cards = self.browser.selectedCards()
         self.selectedCards = dict([(id, True) for id in cards])
         if getattr(self.browser, 'card', None):
@@ -454,7 +457,12 @@ class Browser(QMainWindow):
     _lastPreviewRender -- when was the last call to _renderScheduledPreview
     """
 
-    def __init__(self, mw):
+    def __init__(self, mw, search=None, focusedCard=None, selectedCards=None):
+        """
+
+        search -- the search query to use when opening the browser
+        focusedCard, selectedCards -- as in DataModel
+        """
         QMainWindow.__init__(self, None, Qt.Window)
         self.mw = mw
         self.col = self.mw.col
@@ -479,7 +487,7 @@ class Browser(QMainWindow):
         self.setupEditor()
         self.updateFont()
         self.onUndoState(self.mw.form.actionUndo.isEnabled())
-        self.setupSearch()
+        self.setupSearch(search=search, focusedCard=focusedCard, selectedCards=selectedCards)
         self.show()
 
     def setupMenus(self):
@@ -622,13 +630,15 @@ class Browser(QMainWindow):
     # Searching
     ######################################################################
 
-    def setupSearch(self):
+    def setupSearch(self, search=None, focusedCard=None, selectedCards=None):
         self.form.searchButton.clicked.connect(self.onSearchActivated)
         self.form.searchEdit.lineEdit().returnPressed.connect(self.onSearchActivated)
         self.form.searchEdit.setCompleter(None)
         self._searchPrompt = _("<type here to search; hit enter to show current deck>")
-        self.form.searchEdit.addItems([self._searchPrompt] + self.mw.pm.profile['searchHistory'])
-        self._lastSearchTxt = "is:current"
+        self.form.searchEdit.addItems([search or self._searchPrompt] + self.mw.pm.profile['searchHistory'])
+        self._lastSearchTxt = search or "is:current"
+        self.card = focusedCard
+        self.model.selectedCards = selectedCards
         self.search()
         # then replace text for easily showing the deck
         self.form.searchEdit.lineEdit().setText(self._searchPrompt)
