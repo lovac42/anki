@@ -63,10 +63,10 @@ class Finder:
             preds = "1"
         sql = sqlBase(preds, order)
         sql += preds
-        if order:
-            sql += " " + order
         if groupBy:
             sql += " group by "+groupBy
+        if order:
+            sql += " " + order
         try:
             if tuples:
                 l = self.col.db.all(sql, *args)
@@ -75,8 +75,9 @@ class Finder:
             if rev:
                 l.reverse()
             return l
-        except:
+        except Exception as e:
             # invalid grouping
+            print(f"On query «{query}», sql «{sql}» return empty because of {e}")
             return []
 
     def findCards(self, *args, withNids=False, **kwargs):
@@ -95,7 +96,7 @@ class Finder:
             else:
                 return f"select c.id{selectNote} from cards c, notes n where c.nid=n.id and "
         # order
-        return self.find(query, ifInvalid, sqlBase, tuples=withNids, **kwargs)
+        return self.find(*args, ifInvalid=ifInvalid, sqlBase=sqlBase, tuples=withNids, **kwargs)
 
     def findNotes(self, *args, **kwargs):
         """Return a list of notes ids for QUERY."""
@@ -104,7 +105,7 @@ class Finder:
 select distinct(n.id) from cards c, notes n where c.nid=n.id and """
         def ifInvalid():
             return []
-        return self.find(ifInvalid, sqlBase, *args, **kwargs)
+        return self.find(*args, ifInvalid=ifInvalid, sqlBase=sqlBase, **kwargs)
 
     def findNotesWithOneCard(self, *args, **kwargs):
         """Return a list of notes ids and card id for `query`. It returns a
@@ -117,7 +118,7 @@ select distinct(n.id) from cards c, notes n where c.nid=n.id and """
 select min(c.id), c.nid from cards c, notes n where c.nid=n.id and """
         def ifInvalid():
             return []
-        return self.find(ifInvalid, sqlBase, groupBy="c.nid", tuples=True, *args, **kwargs)
+        return self.find(*args, ifInvalid=ifInvalid, sqlBase=sqlBase, groupBy="c.nid", tuples=True, **kwargs)
 
 
     # Tokenizing

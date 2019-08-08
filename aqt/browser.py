@@ -220,7 +220,7 @@ class DataModel(QAbstractTableModel):
             else:
                 nids = set()
                 self.cards = []
-                for cid, nid in self.col.findCards(txt, order=sortColumn.sort, withNids=True, rev=self.browser.sortBackwards):
+                for cid, nid in self.col.findNotesWithOneCard(txt, order=sortColumn.sort, rev=self.browser.sortBackwards):
                     if nid not in nids:
                         self.cards.append(cid)
                         nids.add(nid)
@@ -459,6 +459,7 @@ class Browser(QMainWindow):
         self.mw.col.conf["advbrowse_uniqueNote"] = showNotes
         self.showNotes = showNotes
         self.form.menu_Cards.setEnabled(not showNotes)
+        self.search()
 
     def warnOnShowNotes(self, what):
         """Return self.showNotes. If we show note, then warn that action what
