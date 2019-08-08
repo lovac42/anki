@@ -785,7 +785,7 @@ class Browser(QMainWindow):
     def _onSortChanged(self, idx, ord):
         column = self.model.activeCols[idx]
         type = column.type
-        if column.noSort:
+        if column.sort is None:
             if type == "template":
                 showInfo(_("""\
 This column can't be sorted on, but you can search for individual card types, \
