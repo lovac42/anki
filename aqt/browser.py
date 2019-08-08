@@ -844,7 +844,7 @@ by clicking on one on the left."""))
             a.toggled.connect(lambda b, t=type: self.toggleField(t))
 
         # toggle note/card
-        a = m.addAction(_("Use Note mode"))
+        a = topMenu.addAction(_("Use Note mode"))
         a.setCheckable(True)
         a.setChecked(self.showNotes)
         a.toggled.connect(lambda:self.dealWithShowNotes(not self.showNotes))
