@@ -972,24 +972,24 @@ where c.nid == f.id
 
     """List of method to call to fix things. It can be edited by add-on, in order to add more method, or delete/change some. """
     listFix =  ["noteWithMissingModel",
-        "fixOverride",
-        "fixReq",
-        "fixInvalidCardOrdinal",
-        "fixWrongNumberOfField",
-        "fixNoteWithoutCard",
-        "fixCardWithoutNote",
-        "fixOdueType1",
-        "fixOdueQueue2",
-        "fixOdidOdue",
-        "intermediate",
-        "reasonableRevueDue",
-        "fixFloatIvlInCard",
-        "fixFloatIvlInRevLog",
-        "fixFloatDue",
-        "doubleCard",
-        "ensureSomeNoteType",
-        "checkAutoPlay",
-        ]
+                "fixOverride",
+                "fixReq",
+                "fixInvalidCardOrdinal",
+                "fixWrongNumberOfField",
+                "fixNoteWithoutCard",
+                "fixCardWithoutNote",
+                "fixOdueType1",
+                "fixOdueQueue2",
+                "fixOdidOdue",
+                "intermediate",
+                "reasonableRevueDue",
+                "fixFloatIvlInCard",
+                "fixFloatIvlInRevLog",
+                "fixFloatDue",
+                "doubleCard",
+                "ensureSomeNoteType",
+                "checkAutoPlay",
+    ]
 
 
     def fixIntegrity(self):
