@@ -111,6 +111,9 @@ def answerContent(card, browser):
         return a[len(q):].strip()
     return a
 
+def format(browser):
+    return "%Y-%m-%d"+( " %H:%M" if browser.model.minutes else "")
+
 basicColumns = [
 BrowserColumn(
     type="noteFld",
@@ -135,9 +138,6 @@ BrowserColumn(
     sort="c.type, c.due",
     menu=["Card"],
 ),
-
-def format(browser):
-    return "%Y-%m-%d"+( " %H:%M" if browser.model.minutes else "")
 
 BrowserColumn(
     type="noteCrt",
