@@ -115,7 +115,7 @@ select distinct(n.id) from cards c, notes n where c.nid=n.id and """
         "
         def sqlBase(*args, **kwargs):
             return """
-select c.nid, min(c.id) from cards c, notes n where c.nid=n.id and """
+select min(c.id), c.nid from cards c, notes n where c.nid=n.id and """
         def ifInvalid():
             return []
         return self.find(ifInvalid, sqlBase, groupBy="c.nid", tuples=True, *args, **kwargs)
