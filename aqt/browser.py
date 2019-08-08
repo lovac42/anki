@@ -48,7 +48,10 @@ class ActiveCols:
             )
             if self.lastVersion == currentVersion:
                 return self.lastResult
-            currentResult = [column for column in dataModel._activeCols if column.show(dataModel.browser)]
+            currentResult = list()
+            for column in dataModel._activeCols:
+                if column.show(dataModel.browser):
+                    currentResult.append(column)
             self.lastVersion = copy.deepcopy(currentVersion)
             self.lastResult = currentResult
             return currentResult
@@ -509,8 +512,14 @@ class DataModel(QAbstractTableModel):
         return unknownColumn(type)
 
     def potentialColumnsList(self):
-        l = basicColumns.copy()
-        return l
+        """List of column header. Potentially with repetition if they appear
+        in multiple place in the menu"""
+        basicList = basicColumns.copy()
+        lists = [
+            basicList,
+        ]
+        columns = [column for list in lists for column in list]
+        return columns
 
 # Line painter
 ######################################################################
@@ -967,9 +976,7 @@ by clicking on one on the left."""))
 
     def menuFromTree(self, tree, menu):
         for key in sorted(tree.keys()):
-            print(f"considering key {key} of tree {tree}")
             if isinstance(tree[key], BrowserColumn):
-                print(f"it's a browsercolumn")
                 column = tree[key]
                 a = menu.addAction(column.name)
                 a.setCheckable(True)
@@ -979,7 +986,6 @@ by clicking on one on the left."""))
                     a.setEnabled(False)
                 a.toggled.connect(lambda b, t=column.type: self.toggleField(t))
             else:
-                print(f"it's a subtree")
                 subtree = tree[key]
                 newMenu = menu.addMenu(key)
                 self.menuFromTree(subtree, newMenu)
@@ -1004,9 +1010,7 @@ by clicking on one on the left."""))
                     currentDict = currentDict[submenuName]
                 else:
                     newDict = dict()
-                    #newMenu = currentMenu.addMenu(submenuName)
-                    currentDict[submenuName] = newDict#, newMenu
-                    #currentMenu = newMenu
+                    currentDict[submenuName] = newDict
                     currentDict = newDict
             currentDict[column.name] = column
         self.menuFromTree(menuDict, topMenu)
