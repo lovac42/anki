@@ -229,7 +229,7 @@ class DataModel(QAbstractTableModel):
         invalid = False
         try:
             sortColumn = self.getColumnByType(self.browser.sortKey)
-            self.cards = self.col.findCards(txt, order=sortColumn.sort, rev=self.browser.sortBackwards)
+            self.cards = self.col.findCards(txt, order=sortColumn.sort, rev=self.browser.sortBackwards, oneByNote=self.browser.showNotes)
         except Exception as e:
             if str(e) == "invalidSearch":
                 self.cards = []
@@ -489,6 +489,7 @@ class Browser(QMainWindow):
         self.mw.col.conf["advbrowse_uniqueNote"] = showNotes
         self.showNotes = showNotes
         self.form.menu_Cards.setEnabled(not showNotes)
+        self.search()
 
     def warnOnShowNotes(self, what):
         """Return self.showNotes. If we show note, then warn that action what
@@ -887,7 +888,7 @@ by clicking on one on the left."""))
             a.toggled.connect(lambda b, t=column.type: self.toggleField(t))
 
         # toggle note/card
-        a = m.addAction(_("Use Note mode"))
+        a = topMenu.addAction(_("Use Note mode"))
         a.setCheckable(True)
         a.setChecked(self.showNotes)
         a.toggled.connect(lambda:self.dealWithShowNotes(not self.showNotes))
