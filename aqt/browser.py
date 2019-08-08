@@ -716,8 +716,8 @@ class Browser(QMainWindow):
         self.form.searchButton.clicked.connect(self.onSearchActivated)
         self.form.searchEdit.lineEdit().returnPressed.connect(self.onSearchActivated)
         self.form.searchEdit.setCompleter(None)
-        self._searchPrompt = search or _("<type here to search; hit enter to show current deck>")
-        self.form.searchEdit.addItems([self._searchPrompt] + self.mw.pm.profile['searchHistory'])
+        self._searchPrompt = _("<type here to search; hit enter to show current deck>")
+        self.form.searchEdit.addItems([search or self._searchPrompt] + self.mw.pm.profile['searchHistory'])
         self._lastSearchTxt = search or "is:current"
         self.card = focusedCard
         self.model.selectedCards = selectedCards
