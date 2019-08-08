@@ -353,7 +353,7 @@ class DataModel(QAbstractTableModel):
         col = index.column()
         column = self.activeCols[col]
         card = self.getCard(index)
-        return column.content(card, self)
+        return column.content(card, self.browser)
 
     def isRTL(self, index):
         col = index.column()
