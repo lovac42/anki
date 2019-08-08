@@ -266,3 +266,11 @@ class ColumnList(list):
             if column.type == type:
                 return True
             return False
+
+def fieldColumn(fieldName, model, browser):
+    return BrowserColumn(
+        type=f"field:{fieldName}",
+        name=fieldName,
+        content=lambda card, browser: htmlToTextLine(card.note()[fieldName]) if fieldName in card.note().keys() else "",
+        menu= ["Fields"] if browser.col.conf.get("fieldsTogether", False) else ["Fields", model['name']]
+    )
