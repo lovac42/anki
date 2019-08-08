@@ -95,7 +95,7 @@ class Finder:
 
 
     def findNotes(self, *args, **kwargs):
-        "Return a list of notes ids for QUERY."
+        """Return a list of notes ids for QUERY."""
         def sqlBase(*args, **kwargs):
             return """
 select distinct(n.id) from cards c, notes n where c.nid=n.id and """
@@ -104,14 +104,14 @@ select distinct(n.id) from cards c, notes n where c.nid=n.id and """
         return self.find(ifInvalid, sqlBase, *args, **kwargs)
 
     def findNotesWithOneCard(self, *args, **kwargs):
-        "Return a list of notes ids and card id for `query`. It returns a
+        """Return a list of notes ids and card id for `query`. It returns a
         single card by note.  Currently, it returns the first created
         card, but it may change.
 
-        "
+        """
         def sqlBase(*args, **kwargs):
             return """
-select c.nid, min(c.id) from cards c, notes n where c.nid=n.id and """
+select min(c.id), c.nid from cards c, notes n where c.nid=n.id and """
         def ifInvalid():
             return []
         return self.find(ifInvalid, sqlBase, groupBy="c.nid", tuples=True, *args, **kwargs)
