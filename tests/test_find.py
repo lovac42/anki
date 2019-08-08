@@ -125,7 +125,7 @@ def test_findCards():
     assert deck.findCards("", order=True)[-1] in latestCardIds
     assert deck.findCards("", order=True)[0] == firstCardId
     deck.conf['sortBackwards'] = True
-    assert deck.findCards("", order=True)[0] in latestCardIds
+    assert deck.findCards("", order=True, rev=True)[0] in latestCardIds
     # model
     assert len(deck.findCards("note:basic")) == 5
     assert len(deck.findCards("-note:basic")) == 0
