@@ -374,6 +374,7 @@ class DataModel(QAbstractTableModel):
             r = self.potentialColumns[type]
             return r
         self.absentColumns.add(type)
+        return unknownColumn(type)
 
     def potentialColumnsList(self):
         l = basicColumns.copy()
@@ -831,6 +832,26 @@ by clicking on one on the left."""))
         hh.blockSignals(False)
         hh.setSortIndicatorShown(True)
 
+
+    def menuFromTree(self, tree, menu):
+        for key in sorted(tree.keys()):
+            print(f"considering key {key} of tree {tree}")
+            if isinstance(tree[key], BrowserColumn):
+                print(f"it's a browsercolumn")
+                column = tree[key]
+                a = menu.addAction(column.name)
+                a.setCheckable(True)
+                if column.type in self.model.activeCols:
+                    a.setChecked(True)
+                if column.showAsPotential(self) and not column.show(self):
+                    a.setEnabled(False)
+                a.toggled.connect(lambda b, t=column.type: self.toggleField(t))
+            else:
+                print(f"it's a subtree")
+                subtree = tree[key]
+                newMenu = menu.addMenu(key)
+                self.menuFromTree(subtree, newMenu)
+
     def onHeaderContext(self, pos):
         """Open the context menu related to the list of column.
 
@@ -846,24 +867,17 @@ by clicking on one on the left."""))
         l.sort(key=lambda column:column.name)
         for column in l:
             currentDict = menuDict
-            currentMenu = topMenu
             for submenuName in column.menu:
                 if submenuName in currentDict:
-                    currentDict, currentMenu = currentDict[submenuName]
+                    currentDict = currentDict[submenuName]
                 else:
                     newDict = dict()
-                    newMenu = currentMenu.addMenu(submenuName)
-                    currentDict[submenuName] = newDict, newMenu
-                    currentMenu = newMenu
+                    #newMenu = currentMenu.addMenu(submenuName)
+                    currentDict[submenuName] = newDict#, newMenu
+                    #currentMenu = newMenu
                     currentDict = newDict
-
-            a = currentMenu.addAction(column.name)
-            a.setCheckable(True)
-            if column.type in self.model.activeCols:
-                a.setChecked(True)
-            if column.showAsPotential(self) and not column.show(self):
-                a.setEnabled(False)
-            a.toggled.connect(lambda b, t=column.type: self.toggleField(t))
+            currentDict[column.name] = column
+        self.menuFromTree(menuDict, topMenu)
         topMenu.exec_(gpos)
 
     def toggleField(self, type):
