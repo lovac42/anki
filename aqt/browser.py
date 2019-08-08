@@ -104,8 +104,9 @@ class DataModel(QAbstractTableModel):
             activeStandardColsNames = defaultColsNames
         activeColsNames = self.col.conf.get("advbrowse_activeCols", activeStandardColsNames)
         if not activeColsNames:
-            self.col.conf["activeCols"] = activeColsNames
-            activeStandardColsNames = activeColsNames
+            self.col.conf["advbrowse_activeCols"] = defaultColsNames
+            activeColsNames = defaultColsNames
+        self.fieldsTogether = self.col.conf.get("fieldsTogether", False)
         self.activeCols = [self.getColumnByType(type) for type in activeColsNames]
         self.advancedColumns = self.col.conf.get("advancedColumnsInBrowser", False)
         self.cards = []
@@ -392,8 +393,8 @@ class DataModel(QAbstractTableModel):
         lists = [basicColumns, internal, extra]
         names = set()
         for model in self.col.models.models.values():
-            modelSNames = {field['name'] for field in model['flds'] if not(self.col.conf.get("fieldsTogether", False)) or field['name'] not in names}
-            lists.append([fieldColumn(name, model, self.browser) for name in modelSNames])
+            modelSNames = {field['name'] for field in model['flds'] if (not self.fieldsTogether) or field['name'] not in names}
+            lists.append([fieldColumn(name, model, self) for name in modelSNames])
             names |= modelSNames
         columns = [column for list in lists for column in list]
         return columns
@@ -585,6 +586,14 @@ class Browser(QMainWindow):
         # context menu
         self.form.tableView.setContextMenuPolicy(Qt.CustomContextMenu)
         self.form.tableView.customContextMenuRequested.connect(self.onContextMenu)
+
+    def dealWithFieldsTogether(self, fieldsTogether):
+        self.editor.saveNow(lambda:self._dealWithFieldsTogether(fieldsTogether))
+
+    def _dealWithFieldsTogether(self, fieldsTogether):
+        self.mw.col.conf["advbrowse_uniqueNote"] = fieldsTogether
+        self.model.fieldsTogether = fieldsTogether
+        self.search()
 
     def onContextMenu(self, _point):
         """Open, where mouse is, the context menu, with the content of menu
@@ -922,12 +931,17 @@ by clicking on one on the left."""))
         a.setChecked(self.showNotes)
         a.toggled.connect(lambda:self.dealWithShowNotes(not self.showNotes))
 
-        #
         #toggle advanced fields
         a = topMenu.addAction(_("Show advanced fields"))
         a.setCheckable(True)
         a.setChecked(self.col.conf.get("advancedColumnsInBrowser", False))
         a.toggled.connect(self.toggleAdvancedColumns)
+
+        # Fieds together
+        a = topMenu.addAction(_("All Fields Together"))
+        a.setCheckable(True)
+        a.setChecked(self.model.fieldsTogether)
+        a.toggled.connect(lambda:self.dealWithFieldsTogether(not self.model.fieldsTogether))
 
         topMenu.exec_(gpos)
 
