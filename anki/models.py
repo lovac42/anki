@@ -171,7 +171,7 @@ class ModelManager:
         if self.changed:
             self.ensureNotEmpty()
             models = copy.deepcopy(self.models)
-            for mid, model in self.models.items():
+            for model in self.models.values():
                 if "tmp" in model: del model["tmp"]#if should be useless. But test fails and I don't see why
                 for template in model['tmpls']:
                     if "tmp" in template: del template["tmp"]
