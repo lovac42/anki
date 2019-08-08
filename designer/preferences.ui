@@ -593,6 +593,16 @@
           <string>Show hours and minutes in the Browser</string>
          </property>
         </widget>
+	   </item>
+       <item>
+        <widget class="QCheckBox" name="advancedColumnsInBrowser">
+         <property name="toolTip">
+          <string>For example, you can see the id of every objects, the 'queue' and 'type' values of cards...</string>
+         </property>
+         <property name="text">
+          <string>Show advanced columns in browser</string>
+         </property>
+        </widget>
        </item>
        <item>
         <widget class="Line" name="line">

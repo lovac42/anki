@@ -389,7 +389,6 @@ class DataModel(QAbstractTableModel):
     def potentialColumnsList(self):
         """List of column header. Potentially with repetition if they appear
         in multiple place in the menu"""
-        basicList = basicColumns.copy()
         lists = [basicColumns, internal, extra]
         names = set()
         for model in self.col.models.models.values():
