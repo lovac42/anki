@@ -97,7 +97,6 @@ class Finder:
         # order
         return self.find(query, ifInvalid, sqlBase, tuples=withNids, **kwargs)
 
-
     def findNotes(self, *args, **kwargs):
         """Return a list of notes ids for QUERY."""
         def sqlBase(*args, **kwargs):
