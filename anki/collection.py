@@ -1094,7 +1094,7 @@ where c.nid == f.id
 
     def fixNoteWithoutCard(self):
         from aqt import mw
-        noteWithoutCard = self.config.get("noteWithoutCard", True)
+        noteWithoutCard = self.conf.get("noteWithoutCard", True)
         if noteWithoutCard:
             l = self.db.all("""select id, flds, tags, mid from notes where id not in (select distinct nid from cards)""")
             for nid, flds, tags, mid in l:
