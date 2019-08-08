@@ -201,10 +201,10 @@ class DeckManager:
         dconf -- json dic associating to each id (as string) its configuration(option)
         """
         self.decks = json.loads(decks)
-        for did, deck in self.decks.items():
+        for deck in self.decks.values():
             deck["tmp"] = dict()
         self.dconf = json.loads(dconf)
-        for dcid, dconf in self.decks.items():
+        for dconf in self.decks.values():
             dconf["tmp"] = dict()
         # set limits to within bounds
         found = False
