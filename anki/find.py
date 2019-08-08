@@ -51,6 +51,9 @@ class Finder:
         rev -- whether values should be returned in reversed order
 
         """
+        if order is True:
+            #used only for test
+            order = self._order()
         if order:
             order = f" order by {order}"
         tokens = self._tokenize(query)
@@ -93,7 +96,7 @@ class Finder:
         groupBy = "c.nid" if oneByNote else ""
         selectCard = "min(c.id)" if oneByNote else "c.id"
         def sqlBase(preds, order):
-            if "n." not in preds and "n." not in order:
+            if "n." not in preds and ((not order) or "n." not in order):
                 return f"select {selectCard}{selectNote} from cards c where "
             else:
                 return f"select {selectCard}{selectNote} from cards c, notes n where c.nid=n.id and "
@@ -223,6 +226,38 @@ select distinct(n.id) from cards c, notes n where c.nid=n.id and """
         if s['bad']:
             return None, None
         return s['q'], args
+
+    # Ordering
+    ######################################################################
+
+    def _order(self):
+        # required only for tests
+        type = self.col.conf['sortType']
+        sort = None
+        if type.startswith("note"):
+            if type == "noteCrt":
+                sort = "n.id, c.ord"
+            elif type == "noteMod":
+                sort = "n.mod, c.ord"
+            elif type == "noteFld":
+                sort = "n.sfld collate nocase, c.ord"
+        elif type.startswith("card"):
+            if type == "cardMod":
+                sort = "c.mod"
+            elif type == "cardReps":
+                sort = "c.reps"
+            elif type == "cardDue":
+                sort = "c.type, c.due"
+            elif type == "cardEase":
+                sort = "c.factor"
+            elif type == "cardLapses":
+                sort = "c.lapses"
+            elif type == "cardIvl":
+                sort = "c.ivl"
+        if not sort:
+            # deck has invalid sort order; revert to noteCrt
+            sort = "n.id, c.ord"
+        return sort
 
     # Commands
     ######################################################################
