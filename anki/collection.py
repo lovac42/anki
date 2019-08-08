@@ -988,6 +988,7 @@ where c.nid == f.id
         "fixFloatDue",
         "doubleCard",
         "ensureSomeNoteType",
+        "checkAutoPlay",
         ]
 
 
@@ -1222,6 +1223,19 @@ where c.nid == f.id
     def ensureSomeNoteType(self):
         if self.models.ensureNotEmpty():
             self.problems.append("Added missing note type.")
+
+    def checkAutoPlay(self):
+        """check that autoplay is set in all deck object"""
+        for dconf in self.decks.dconf:
+            if 'autoplay' not in dconf:
+                dconf['autoplay'] = True
+                self.decks.save(dconf)
+                self.problems.append(f"Adding some «autoplay» which was missing in deck's option {dconf['name']}")
+        for deck in self.decks.decks:
+            if deck['dyn'] and 'autoplay' not in deck:
+                deck['autoplay'] = True
+                self.decks.save(deck)
+                self.problems.append(f"Adding some «autoplay» which was missing in deck {deck['name']}")
 
     def optimize(self):
         """Tell sqlite to optimize the db"""
