@@ -59,6 +59,7 @@ class DataModel(QAbstractTableModel):
         self.sortKey = None
         self.activeCols = self.col.conf.get(
             "activeCols", ["noteFld", "template", "cardDue", "deck"])
+        self.fieldsTogether = self.col.conf.get("fieldsTogether", False)
         self.setupColumns()
         self.cards = []
         self.cardObjs = {}
@@ -342,8 +343,11 @@ class DataModel(QAbstractTableModel):
             modelName = model.getName()
             for field in model['flds']:
                 fieldName = field.getName()
-                menu = ['Fields', modelName]
                 type = f'_field_{fieldName}'
+                if self.fieldsTogether:
+                    menu = ['Fields']
+                else:
+                    menu = ['Fields', modelName]
                 column = ColumnByMethod(type, fieldName, "valueForField(note.mid, note.flds, '{fieldName}')", "get", menu, True, fieldName)
                 add(column)
         for type in self.activeCols:
@@ -545,6 +549,14 @@ class Browser(QMainWindow):
         # context menu
         self.form.tableView.setContextMenuPolicy(Qt.CustomContextMenu)
         self.form.tableView.customContextMenuRequested.connect(self.onContextMenu)
+
+    def dealWithFieldsTogether(self, fieldsTogether):
+        self.editor.saveNow(lambda:self._dealWithFieldsTogether(fieldsTogether))
+
+    def _dealWithFieldsTogether(self, fieldsTogether):
+        self.mw.col.conf["advbrowse_uniqueNote"] = fieldsTogether
+        self.model.fieldsTogether = fieldsTogether
+        self.search()
 
     def onContextMenu(self, _point):
         """Open, where mouse is, the context menu, with the content of menu
@@ -861,6 +873,10 @@ by clicking on one on the left."""))
                 action.setCheckable(True)
                 action.setChecked(column.type in self.model.activeCols)
                 action.toggled.connect(lambda button, type=column.type: self.toggleField(type))
+        a = topMenu.addAction(_("All Fields Together"))
+        a.setCheckable(True)
+        a.setChecked(self.model.fieldsTogether)
+        a.toggled.connect(lambda:self.dealWithFieldsTogether(not self.model.fieldsTogether))
         topMenu.exec_(gpos)
 
     def addMenu(self, menu):
