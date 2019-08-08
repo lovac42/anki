@@ -39,7 +39,20 @@ class Finder:
         self.search['is'] = self._findCardState
         runHook("search", self.search)
 
-    def find(self, query, ifInvalid, sqlBase, order=""):
+    def find(self, query, ifInvalid, sqlBase, order="", groupBy="", tuples=False, rev=False):
+        """
+        Return the result of the query
+
+        query -- a query as in browser
+        ifInvalid -- method returning some value to return if the query is invalid
+        sqlBase -- methods which, given preds and order, states in which table/joined table to select
+        order -- if it's not empty, the string containing "order by"
+        tupdes -- whether the query should return tuple. By default it returns only a list of id.
+        rev -- whether values should be returned in reversed order
+
+        """
+        if order:
+            order = f" order by {order}"
         tokens = self._tokenize(query)
         preds, args = self._where(tokens)
         if preds is None:
@@ -52,45 +65,60 @@ class Finder:
         sql += preds
         if order:
             sql += " " + order
+        if groupBy:
+            sql += " group by "+groupBy
         try:
-            return self.col.db.list(sql, *args)
+            if tuples:
+                l = self.col.db.all(sql, *args)
+            else:
+                l = self.col.db.list(sql, *args)
+            if rev:
+                l.reverse()
+            return l
         except:
             # invalid grouping
             return []
 
-    def findCards(self, query, order=False, rev=None):
+    def findCards(self, *args, withNids=False, **kwargs):
         """Return the set of card ids, of card satisfying predicate preds,
         where c is a card and n its note, ordered according to the sql
         `order`
-        query -- a query from the browser
-        order -- either a Boolean, stating that we should use the
-        browser's default order. Or a string to put in the sql query
-        after "order by". This string may also contains a limit
-        """
-        if order:
-            order = f" order by {order}"
+
+        withNids -- whether the query should also returns note ids"""
         # can we skip the note table?
         def ifInvalid():
             raise Exception("invalidSearch")
+        selectNote = ", c.nid" if withNids else ""
         def sqlBase(preds, order):
-            if "n." not in preds and ((not order) or "n." not in order):
-                return "select c.id from cards c where "
+            if "n." not in preds and "n." not in order:
+                return f"select c.id{selectNote} from cards c where "
             else:
-                return "select c.id from cards c, notes n where c.nid=n.id and "
+                return f"select c.id{selectNote} from cards c, notes n where c.nid=n.id and "
         # order
-        res = self.find(query, ifInvalid, sqlBase, order)
-        if rev:
-            res.reverse()
-        return res
+        return self.find(query, ifInvalid, sqlBase, tuples=withNids, **kwargs)
 
-    def findNotes(self, query):
+
+    def findNotes(self, *args, **kwargs):
         "Return a list of notes ids for QUERY."
         def sqlBase(*args, **kwargs):
             return """
 select distinct(n.id) from cards c, notes n where c.nid=n.id and """
         def ifInvalid():
             return []
-        return self.find(query, ifInvalid, sqlBase)
+        return self.find(ifInvalid, sqlBase, *args, **kwargs)
+
+    def findNotesWithOneCard(self, *args, **kwargs):
+        "Return a list of notes ids and card id for `query`. It returns a
+        single card by note.  Currently, it returns the first created
+        card, but it may change.
+
+        "
+        def sqlBase(*args, **kwargs):
+            return """
+select c.nid, min(c.id) from cards c, notes n where c.nid=n.id and """
+        def ifInvalid():
+            return []
+        return self.find(ifInvalid, sqlBase, groupBy="c.nid", tuples=True, *args, **kwargs)
 
 
     # Tokenizing
