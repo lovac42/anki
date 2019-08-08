@@ -98,7 +98,7 @@ class Finder:
             else:
                 return f"select {selectCard}{selectNote} from cards c, notes n where c.nid=n.id and "
         # order
-        return self.find(*args, ifInvalid=ifInvalid, sqlBase=sqlBase, tuples=withNids, groupBy=groupBy **kwargs)
+        return self.find(*args, ifInvalid=ifInvalid, sqlBase=sqlBase, tuples=withNids, groupBy=groupBy, **kwargs)
 
     def findNotes(self, *args, **kwargs):
         """Return a list of notes ids for QUERY."""
