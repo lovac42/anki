@@ -27,7 +27,7 @@ from anki.hooks import runHook, addHook, remHook, runFilter
 from aqt.webview import AnkiWebView
 from anki.consts import *
 from anki.sound import clearAudioQueue, allSounds, play
-from aqt.browserColumn import BrowserColumn, ColumnList
+from aqt.browserColumn import BrowserColumn, ColumnList, unknownColumn, basicColumns
 
 
 """The set of column names related to cards. Hence which should not be
@@ -72,7 +72,8 @@ class DataModel(QAbstractTableModel):
 
     Implemented as a separate class because that is how QT show those tables.
 
-    activeCols -- the list of BrowserColumn to show
+    sortKey -- never used
+    activeCols -- the list of name of columns to display in the browser
     cards -- the set of cards corresponding to current browser's search
     cardObjs -- dictionnady from card's id to the card object. It
     allows to avoid reloading cards already seen since browser was
@@ -83,18 +84,27 @@ class DataModel(QAbstractTableModel):
     the cards columns if it's note type and without the columns we don't know how to use (they may have been added to the list of selected columns by a version of anki/add-on with more columns)
     selectedCards -- a dictionnary containing the set of selected card's id, associating them to True. Seems that the associated value is never used. Used to restore a selection after some edition
     minutes -- whether to show minutes in the columns
+    potentialColumns -- dictionnary from column type to columns, for each columns which we might potentially show
+    absentColumns -- set of columns type already searched and missing
     """
     activeCols = ActiveCols()
-    def __init__(self, browser):
+    def __init__(self, browser, focusedCard=None, selectedCards=None):
         QAbstractTableModel.__init__(self)
         self.browser = browser
         self.col = browser.col
+        self.potentialColumns = dict()
+        self.absentColumns = set()
         defaultColsNames = ["noteFld", "template", "cardDue", "deck"]
-        activeColsNames = self.col.conf.get("activeCols", defaultColsNames)
-        self.activeCols = [BrowserColumn.getBrowserColumn(type) for type in activeColsNames]
+        activeColsNames = self.col.conf.get("advbrowse_activeCols", defaultColsNames)
+        if not activeColsNames:
+            self.col.conf["advbrowse_activeCols"] = defaultColsNames
+            activeColsNames = defaultColsNames
+        self.activeCols = [self.getColumnByType(type) for type in activeColsNames]
         self.cards = []
         self.cardObjs = {}
         self.minutes = self.col.conf.get("minutesInBrowser", False)
+        self.focusedCard = focusedCard
+        self.selectedCards = selectedCards
 
     def getCard(self, index):
         """The card object at position index in the list"""
@@ -216,7 +226,7 @@ class DataModel(QAbstractTableModel):
         self.cards = []
         invalid = False
         try:
-            sortColumn = BrowserColumn.getBrowserColumn(self.browser.sortKey)
+            sortColumn = self.getColumnByType(self.browser.sortKey)
             self.cards = self.col.findCards(txt, order=sortColumn.sort, rev=self.browser.sortBackwards)
         except Exception as e:
             if str(e) == "invalidSearch":
@@ -260,7 +270,7 @@ class DataModel(QAbstractTableModel):
         self.endReset()
 
     def saveSelection(self):
-        """Set selectedCards and focusedCards according to what their represent"""
+        """Set selectedCards and focusedCard according to what their represent"""
         cards = self.browser.selectedCards()
         self.selectedCards = dict([(id, True) for id in cards])
         if getattr(self.browser, 'card', None):
@@ -351,6 +361,31 @@ class DataModel(QAbstractTableModel):
         nt = card.note().model()
         return nt['flds'][self.col.models.sortIdx(nt)]['rtl']
 
+    def getColumnByType(self, type):
+        print(f"Looking for type {type}")
+        if type in self.absentColumns:
+            print("it is absent")
+            return unknownColumn(type)
+        if type in self.potentialColumns:
+            r = self.potentialColumns[type]
+            print(f"it is already here, returning {r}")
+            return r
+        found = False
+        print("We need to process")
+        for column in self.potentialColumnsList():
+            if column.type not in self.potentialColumns:
+                self.potentialColumns[column.type] = column
+                found = True
+        if found:
+            r = self.potentialColumns[type]
+            print(f"it's new here, returning {r}")
+            return r
+        self.absentColumns.add(type)
+
+    def potentialColumnsList(self):
+        l = basicColumns.copy()
+        return l
+
 # Line painter
 ######################################################################
 
@@ -420,7 +455,12 @@ class Browser(QMainWindow):
     _lastPreviewRender -- when was the last call to _renderScheduledPreview
     """
 
-    def __init__(self, mw):
+    def __init__(self, mw, search=None, focusedCard=None, selectedCards=None):
+        """
+
+        search -- the search query to use when opening the browser
+        focusedCard, selectedCards -- as in DataModel
+        """
         QMainWindow.__init__(self, None, Qt.Window)
         self.mw = mw
         self.col = self.mw.col
@@ -445,7 +485,7 @@ class Browser(QMainWindow):
         self.setupEditor()
         self.updateFont()
         self.onUndoState(self.mw.form.actionUndo.isEnabled())
-        self.setupSearch()
+        self.setupSearch(search=search, focusedCard=focusedCard, selectedCards=selectedCards)
         self.show()
 
     def setupMenus(self):
@@ -587,13 +627,15 @@ class Browser(QMainWindow):
     # Searching
     ######################################################################
 
-    def setupSearch(self):
+    def setupSearch(self, search=None, focusedCard=None, selectedCards=None):
         self.form.searchButton.clicked.connect(self.onSearchActivated)
         self.form.searchEdit.lineEdit().returnPressed.connect(self.onSearchActivated)
         self.form.searchEdit.setCompleter(None)
         self._searchPrompt = _("<type here to search; hit enter to show current deck>")
-        self.form.searchEdit.addItems([self._searchPrompt] + self.mw.pm.profile['searchHistory'])
-        self._lastSearchTxt = "is:current"
+        self.form.searchEdit.addItems([search or self._searchPrompt] + self.mw.pm.profile['searchHistory'])
+        self._lastSearchTxt = search or "is:current"
+        self.card = focusedCard
+        self.model.selectedCards = selectedCards
         self.search()
         # then replace text for easily showing the deck
         self.form.searchEdit.lineEdit().setText(self._searchPrompt)
@@ -807,11 +849,11 @@ by clicking on one on the left."""))
         # usable from the browser
         topMenu = QMenu()
         menuDict = dict()
-        l = [(type, column)
-             for type, column in BrowserColumn.typeToObject.items()
-             if column.showAsPotential()]
-        l.sort(key=lambda type_column:type_column[1].name)
-        for type, column in l:
+        l = [column
+             for column in self.model.potentialColumnsList()
+             if column.showAsPotential(self)]
+        l.sort(key=lambda column:column.name)
+        for column in l:
             currentDict = menuDict
             currentMenu = topMenu
             for submenuName in column.menu:
@@ -826,11 +868,11 @@ by clicking on one on the left."""))
 
             a = currentMenu.addAction(column.name)
             a.setCheckable(True)
-            if type in self.model.activeCols:
+            if column.type in self.model.activeCols:
                 a.setChecked(True)
             if column.showAsPotential(self) and not column.show(self):
                 a.setEnabled(False)
-            a.toggled.connect(lambda b, t=type: self.toggleField(t))
+            a.toggled.connect(lambda b, t=column.type: self.toggleField(t))
         topMenu.exec_(gpos)
 
     def toggleHoursAndMinutes(self):
@@ -868,7 +910,7 @@ by clicking on one on the left."""))
             self.model._activeCols.remove(type)
             adding=False
         else:
-            self.model._activeCols.append(BrowserColumn.getBrowserColumn(type))
+            self.model._activeCols.append(self.model.getColumnByType(type))
             adding=True
         # sorted field may have been hidden
         self.setSortIndicator()
@@ -953,6 +995,8 @@ by clicking on one on the left."""))
     def maybeRefreshSidebar(self):
         if self.sidebarDockWidget.isVisible():
             self.buildTree()
+        self.model.absentColumns = dict()
+        self.model.potentialColumnsList = dict()
 
     def buildTree(self):
         self.sidebarTree.clear()
