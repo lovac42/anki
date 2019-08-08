@@ -805,7 +805,7 @@ by clicking on one on the left."""))
         menuDict = dict()
         l = [(type, column)
              for type, column in BrowserColumn.typeToObject.items()
-             if column.showAsPotential()]
+             if column.showAsPotential(self)]
         l.sort(key=lambda type_column:type_column[1].name)
         for type, column in l:
             currentDict = menuDict
