@@ -856,13 +856,9 @@ select id from notes where mid = ?)""" % " ".join(map),
         for index, fieldType in enumerate(splitFields(flds)):
             fields[index] = fieldType.strip()
         avail = []#List of ord cards which would be generated
-        for tup in model['req']:
-            # print(f"""tup is {tup}.
-            # model['req'] is {model['req']}
-            # model is {model}""")
-            ord, type, req = tup
-            if changedOrNewReq is not None and ord not in changedOrNewReq:
-                continue
+        ords = changedOrNewReq if changedOrNewReq is not None else range(len(model['req']))
+        for ord in ords:
+            ord, type, req = model['req'][ord]
             # unsatisfiable template
             if type == "none":
                 continue
