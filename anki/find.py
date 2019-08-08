@@ -47,6 +47,9 @@ class Finder:
         rev -- whether values should be returned in reversed order
 
         """
+        if order is True:
+            #used only for test
+            order = self._order()
         if order:
             order = f" order by {order}"
         tokens = self._tokenize(query)
@@ -223,13 +226,8 @@ select distinct(n.id) from cards c, notes n where c.nid=n.id and """
     # Ordering
     ######################################################################
 
-    def _order(self, order):
-        if not order:
-            return "", False
-        elif order is not True:
-            # custom order string provided
-            return " order by " + order, False
-        # use deck default
+    def _order(self):
+        # required only for tests
         type = self.col.conf['sortType']
         sort = None
         if type.startswith("note"):
@@ -255,7 +253,7 @@ select distinct(n.id) from cards c, notes n where c.nid=n.id and """
         if not sort:
             # deck has invalid sort order; revert to noteCrt
             sort = "n.id, c.ord"
-        return " order by " + sort, self.col.conf['sortBackwards']
+        return sort
 
     # Commands
     ######################################################################
