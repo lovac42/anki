@@ -977,23 +977,24 @@ where c.nid == f.id
 
     """List of method to call to fix things. It can be edited by add-on, in order to add more method, or delete/change some. """
     listFix =  ["noteWithMissingModel",
-        "fixOverride",
-        "fixReq",
-        "fixInvalidCardOrdinal",
-        "fixWrongNumberOfField",
-        "fixNoteWithoutCard",
-        "fixCardWithoutNote",
-        "fixOdueType1",
-        "fixOdueQueue2",
-        "fixOdidOdue",
-        "intermediate",
-        "reasonableRevueDue",
-        "fixFloatIvlInCard",
-        "fixFloatIvlInRevLog",
-        "fixFloatDue",
-        "doubleCard",
-        "ensureSomeNoteType",
-        ]
+                "fixOverride",
+                "fixReq",
+                "fixInvalidCardOrdinal",
+                "fixWrongNumberOfField",
+                "fixNoteWithoutCard",
+                "fixCardWithoutNote",
+                "fixOdueType1",
+                "fixOdueQueue2",
+                "fixOdidOdue",
+                "intermediate",
+                "reasonableRevueDue",
+                "fixFloatIvlInCard",
+                "fixFloatIvlInRevLog",
+                "fixFloatDue",
+                "doubleCard",
+                "ensureSomeNoteType",
+                "checkAutoPlay",
+    ]
 
 
     def fixIntegrity(self):
@@ -1098,7 +1099,7 @@ where c.nid == f.id
 
     def fixNoteWithoutCard(self):
         from aqt import mw
-        noteWithoutCard = self.config.get("noteWithoutCard", True)
+        noteWithoutCard = self.conf.get("noteWithoutCard", True)
         if noteWithoutCard:
             l = self.db.all("""select id, flds, tags, mid from notes where id not in (select distinct nid from cards)""")
             for nid, flds, tags, mid in l:
@@ -1228,6 +1229,19 @@ where c.nid == f.id
     def ensureSomeNoteType(self):
         if self.models.ensureNotEmpty():
             self.problems.append("Added missing note type.")
+
+    def checkAutoPlay(self):
+        """check that autoplay is set in all deck object"""
+        for dconf in self.decks.dconf.values():
+            if 'autoplay' not in dconf:
+                dconf['autoplay'] = True
+                self.decks.save(dconf)
+                self.problems.append(f"Adding some «autoplay» which was missing in deck's option {dconf['name']}")
+        for deck in self.decks.decks.values():
+            if deck['dyn'] and 'autoplay' not in deck:
+                deck['autoplay'] = True
+                self.decks.save(deck)
+                self.problems.append(f"Adding some «autoplay» which was missing in deck {deck['name']}")
 
     def optimize(self):
         """Tell sqlite to optimize the db"""
