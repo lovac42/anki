@@ -216,6 +216,7 @@ Not currently enabled; click the sync button in the main window to enable."""))
         {"name":"pastePNG", "sync":False},
         ("advancedColumnsInBrowser",),
         "minutesInBrowser",
+        "fieldsTogether",
     ]
 
     def setupOneSetting(self, name, default=False, kind="check", sync=True, fromCol=identity, toCol=identity):
