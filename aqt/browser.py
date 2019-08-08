@@ -191,7 +191,7 @@ class DataModel(QAbstractTableModel):
             type = self.col.conf['sortType']
             sortColumn = self.columns[type]
             sort = sortColumn.getSort()
-            self.cards = self.col.findCards(txt, order=sort)
+            self.cards = self.col.findCards(txt, order=sort, oneByNote=self.browser.showNotes)
             if self.browser.sortBackwards:
                 self.cards.reverse()
         except Exception as e:
@@ -486,6 +486,8 @@ class Browser(QMainWindow):
         self.mw.col.conf["advbrowse_uniqueNote"] = showNotes
         self.showNotes = showNotes
         self.form.menu_Cards.setEnabled(not showNotes)
+        self.model.reset()
+        self.search()
 
     def warnOnShowNotes(self, what):
         """Return self.showNotes. If we show note, then warn that action what
