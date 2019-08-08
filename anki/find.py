@@ -51,6 +51,9 @@ class Finder:
         rev -- whether values should be returned in reversed order
 
         """
+        if order is True:
+            #used only for test
+            order = self._order()
         if order:
             order = f" order by {order}"
         tokens = self._tokenize(query)
@@ -63,10 +66,10 @@ class Finder:
             preds = "1"
         sql = sqlBase(preds, order)
         sql += preds
-        if order:
-            sql += " " + order
         if groupBy:
             sql += " group by "+groupBy
+        if order:
+            sql += " " + order
         try:
             if tuples:
                 l = self.col.db.all(sql, *args)
@@ -75,11 +78,12 @@ class Finder:
             if rev:
                 l.reverse()
             return l
-        except:
+        except Exception as e:
             # invalid grouping
+            print(f"On query «{query}», sql «{sql}» return empty because of {e}")
             return []
 
-    def findCards(self, *args, withNids=False, **kwargs):
+    def findCards(self, *args, withNids=False, oneByNote=False, **kwargs):
         """Return the set of card ids, of card satisfying predicate preds,
         where c is a card and n its note, ordered according to the sql
         `order`
@@ -89,37 +93,24 @@ class Finder:
         def ifInvalid():
             raise Exception("invalidSearch")
         selectNote = ", c.nid" if withNids else ""
+        groupBy = "c.nid" if oneByNote else ""
+        selectCard = "min(c.id)" if oneByNote else "c.id"
         def sqlBase(preds, order):
             if "n." not in preds and "n." not in order:
-                return f"select c.id{selectNote} from cards c where "
+                return f"select {selectCard}{selectNote} from cards c where "
             else:
-                return f"select c.id{selectNote} from cards c, notes n where c.nid=n.id and "
+                return f"select {selectCard}{selectNote} from cards c, notes n where c.nid=n.id and "
         # order
-        return self.find(query, ifInvalid, sqlBase, tuples=withNids, **kwargs)
-
+        return self.find(*args, ifInvalid=ifInvalid, sqlBase=sqlBase, tuples=withNids, groupBy=groupBy, **kwargs)
 
     def findNotes(self, *args, **kwargs):
-        "Return a list of notes ids for QUERY."
+        """Return a list of notes ids for QUERY."""
         def sqlBase(*args, **kwargs):
             return """
 select distinct(n.id) from cards c, notes n where c.nid=n.id and """
         def ifInvalid():
             return []
-        return self.find(ifInvalid, sqlBase, *args, **kwargs)
-
-    def findNotesWithOneCard(self, *args, **kwargs):
-        "Return a list of notes ids and card id for `query`. It returns a
-        single card by note.  Currently, it returns the first created
-        card, but it may change.
-
-        "
-        def sqlBase(*args, **kwargs):
-            return """
-select c.nid, min(c.id) from cards c, notes n where c.nid=n.id and """
-        def ifInvalid():
-            return []
-        return self.find(ifInvalid, sqlBase, groupBy="c.nid", tuples=True, *args, **kwargs)
-
+        return self.find(*args, ifInvalid=ifInvalid, sqlBase=sqlBase, **kwargs)
 
     # Tokenizing
     ######################################################################
@@ -239,13 +230,8 @@ select c.nid, min(c.id) from cards c, notes n where c.nid=n.id and """
     # Ordering
     ######################################################################
 
-    def _order(self, order):
-        if not order:
-            return "", False
-        elif order is not True:
-            # custom order string provided
-            return " order by " + order, False
-        # use deck default
+    def _order(self):
+        # required only for tests
         type = self.col.conf['sortType']
         sort = None
         if type.startswith("note"):
@@ -271,7 +257,7 @@ select c.nid, min(c.id) from cards c, notes n where c.nid=n.id and """
         if not sort:
             # deck has invalid sort order; revert to noteCrt
             sort = "n.id, c.ord"
-        return " order by " + sort, self.col.conf['sortBackwards']
+        return sort
 
     # Commands
     ######################################################################
