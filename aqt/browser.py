@@ -488,6 +488,9 @@ class Browser(QMainWindow):
         self.show()
 
     def dealWithShowNotes(self, showNotes):
+        self.editor.saveNow(lambda:self._dealWithShowNotes(showNotes))
+
+    def _dealWithShowNotes(self, showNotes):
         self.mw.col.conf["advbrowse_uniqueNote"] = showNotes
         self.showNotes = showNotes
         self.form.menu_Cards.setEnabled(not showNotes)
