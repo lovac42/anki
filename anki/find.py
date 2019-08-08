@@ -91,7 +91,7 @@ class Finder:
             raise Exception("invalidSearch")
         selectNote = ", c.nid" if withNids else ""
         groupBy = "c.nid" if oneByNote else ""
-        selectCard = "c.id" if oneByNote else "min(c.id)"
+        selectCard = "min(c.id)" if oneByNote else "c.id"
         def sqlBase(preds, order):
             if "n." not in preds and "n." not in order:
                 return f"select {selectCard}{selectNote} from cards c where "
