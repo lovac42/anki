@@ -18,19 +18,15 @@ class BrowserColumn:
 
     Return None if it can't be sorted"""
 
-    """Whether the field content show advanced content, not used by normal users."""
-    advanced=False
-
-    typeToObject = dict()
-    def __init__(self, type, name, content, hide=False, sort=None, menu=[], advanced=False):
+    def __init__(self, type, name, content, hide=False, sort=None, menu=[], advanced=False, description=None):
         self.type = type
         self.name = _(name)
-        self.typeToObject[self.type] = self
         self.hide = hide
         self._sort = sort
         self.content = content
         self.menu = menu
         self.advanced = advanced
+        self.description = description
 
     def getSort(self):
         if isinstance(self._sort, str):
@@ -86,27 +82,6 @@ class BrowserColumn:
             return False
         return True
 
-    @classmethod
-    def getBrowserColumn(cls, type):
-        if type in cls.typeToObject:
-            return cls.typeToObject[type]
-        return unknownColumn(type)
-
-BrowserColumn(
-    type="noteFld",
-    name="Sort Field",
-    content=(lambda card, browser: htmlToTextLine(card.note().fields[browser.col.models.sortIdx(card.note().model())])),
-    sort="n.sfld collate nocase, c.ord",
-    menu=["Note"],
-)
-
-BrowserColumn(
-    type="template",
-    name="Card",
-    content=lambda card, browser: card.template()['name'] + (f" {card.ord+1}" if card.model()['type'] == MODEL_CLOZE else ""),
-    menu=["Card"],
-)
-
 def cardDueContent(card, browser):
     """
     The content of the 'due' column in the browser.
@@ -135,114 +110,6 @@ def cardDueContent(card, browser):
         t = "(" + t + ")"
     return t
 
-BrowserColumn(
-    type="cardDue",
-    name="Due",
-    content=cardDueContent,
-    sort="c.type, c.due",
-    menu=["Card"],
-)
-
-def format(browser):
-    return "%Y-%m-%d"+( " %H:%M" if browser.model.minutes else "")
-
-"""Date at wich the card's note was created"""
-BrowserColumn(
-    type="noteCrt",
-    name="Created",
-    content=lambda card, browser: time.strftime(format(browser), time.localtime(card.note().id/1000)),
-    sort="n.id, c.ord",
-    menu=["Card"],
-)
-
-"""Date at wich the card's note was last modified"""
-BrowserColumn(
-    type="noteMod",
-    name="Edited",
-    content=lambda card, browser: time.strftime(format(browser), time.localtime(card.note().mod)),
-    sort="n.mod, c.ord",
-    menu=["Note"],
-)
-
-"""Date at wich the card note was last modified"""
-BrowserColumn(
-    type="cardMod",
-    name="Changed",
-    content=lambda card, browser: time.strftime(format(browser), time.localtime(card.mod)),
-    sort="c.mod",
-    menu=["Card"],
-)
-
-
-"""Number of reviews to do"""
-BrowserColumn(
-    type="cardReps",
-    name="Reviews",
-    content=lambda card, browser: str(card.reps),
-    sort="c.reps",
-    menu=["Card"],
-)
-
-"""Number of times the card lapsed"""
-BrowserColumn(
-    type="cardLapses",
-    name="Lapses",
-    content=lambda card, browser: str(card.lapses),
-    sort="c.lapses",
-    menu=["Card"],
-)
-
-"""The list of tags for this card's note."""
-BrowserColumn(
-    type="noteTags",
-    name="Tags",
-    content=lambda card, browser: " ".join(card.note().tags),
-    menu=["Note"],
-)
-
-"""The name of the card's note's type"""
-BrowserColumn(
-    type="note",
-    name="Note",
-    content=lambda card, browser: card.model()['name'],
-    menu=["Note"],
-)
-
-"""Whether card is new, in learning, or some representation of the
-interval as a number of days."""
-BrowserColumn(
-    type="cardIvl",
-    name="Interval",
-    content=lambda card, browser: {0: _("(new)"), 1:_("(learning)")}.get(card.type, fmtTimeSpan(card.ivl*86400)),
-    sort="c.ivl",
-    menu=["Card"],
-)
-
-"""Either (new) or the ease fo the card as a percentage."""
-BrowserColumn(
-    type="cardEase",
-    name="Ease",
-    content=lambda card, browser:_("(new)") if card.type == 0 else  f"card.factor/10%",
-    sort="c.factor",
-    menu=["Card"],
-)
-
-"""Name of the card's deck (with original deck in parenthesis if there
-is one)"""
-BrowserColumn(
-    type="deck",
-    name="Deck",
-    content=lambda card, browser: f"{browser.col.decks.name(card.did)} ({browser.col.decks.name(card.odid)})" if card.odid else browser.col.decks.name(card.did),
-    menu=["Card"],
-)
-
-BrowserColumn(
-    type="question",
-    name="Question",
-    content=lambda card, browser: htmlToTextLine(card.q(browser=True)),
-    menu=["Card"],
-)
-
 def answerContent(card, browser):
     """The answer side on a single line.
      Either bafmt if it is defined. Otherwise normal answer,
@@ -260,12 +127,138 @@ def answerContent(card, browser):
         return a[len(q):].strip()
     return a
 
+basicColumns = [
+BrowserColumn(
+    type="noteFld",
+    name="Sort Field",
+    content=(lambda card, browser: htmlToTextLine(card.note().fields[browser.col.models.sortIdx(card.note().model())])),
+    sort="n.sfld collate nocase, c.ord",
+    menu=["Note"],
+),
+
+BrowserColumn(
+    type="template",
+    name="Card",
+    content=lambda card, browser: card.template()['name'] + (f" {card.ord+1}" if card.model()['type'] == MODEL_CLOZE else ""),
+    menu=["Card"],
+),
+
+
+BrowserColumn(
+    type="cardDue",
+    name="Due",
+    content=cardDueContent,
+    sort="c.type, c.due",
+    menu=["Card"],
+),
+
+def format(browser):
+    return "%Y-%m-%d"+( " %H:%M" if browser.model.minutes else "")
+
+BrowserColumn(
+    type="noteCrt",
+    name="Created",
+    content=lambda card, browser: time.strftime(format(browser), time.localtime(card.note().id/1000)),
+    sort="n.id, c.ord",
+    menu=["Card"],
+    description="""Date at wich the card's note was created""",
+
+),
+
+BrowserColumn(
+    type="noteMod",
+    name="Edited",
+    content=lambda card, browser: time.strftime(format(browser), time.localtime(card.note().mod)),
+    sort="n.mod, c.ord",
+    menu=["Note"],
+    description="""Date at wich the card's note was last modified""",
+),
+
+BrowserColumn(
+    type="cardMod",
+    name="Changed",
+    content=lambda card, browser: time.strftime(format(browser), time.localtime(card.mod)),
+    sort="c.mod",
+    menu=["Card"],
+    description="""Date at wich the card note was last modified""",
+),
+
+BrowserColumn(
+    type="cardReps",
+    name="Reviews",
+    content=lambda card, browser: str(card.reps),
+    sort="c.reps",
+    menu=["Card"],
+    description="""Number of reviews to do"""
+),
+
+BrowserColumn(
+    type="cardLapses",
+    name="Lapses",
+    content=lambda card, browser: str(card.lapses),
+    sort="c.lapses",
+    menu=["Card"],
+    description="""Number of times the card lapsed""",
+),
+
+BrowserColumn(
+    type="noteTags",
+    name="Tags",
+    content=lambda card, browser: " ".join(card.note().tags),
+    menu=["Note"],
+    description="""The list of tags for this card's note.""",
+),
+
+BrowserColumn(
+    type="note",
+    name="Note",
+    content=lambda card, browser: card.model()['name'],
+    menu=["Note"],
+    description="""The name of the card's note's type""",
+),
+
+BrowserColumn(
+    type="cardIvl",
+    name="Interval",
+    content=lambda card, browser: {0: _("(new)"), 1:_("(learning)")}.get(card.type, fmtTimeSpan(card.ivl*86400)),
+    sort="c.ivl",
+    menu=["Card"],
+    description="""Whether card is new, in learning, or some representation of the
+interval as a number of days.""",
+),
+
+BrowserColumn(
+    type="cardEase",
+    name="Ease",
+    content=lambda card, browser:_("(new)") if card.type == 0 else  f"card.factor/10%",
+    sort="c.factor",
+    menu=["Card"],
+    description="""Either (new) or the ease fo the card as a percentage.""",
+),
+
+BrowserColumn(
+    type="deck",
+    name="Deck",
+    content=lambda card, browser: f"{browser.col.decks.name(card.did)} ({browser.col.decks.name(card.odid)})" if card.odid else browser.col.decks.name(card.did),
+    menu=["Card"],
+    description="""Name of the card's deck (with original deck in parenthesis if there
+is one)""",
+),
+
+BrowserColumn(
+    type="question",
+    name="Question",
+    content=lambda card, browser: htmlToTextLine(card.q(browser=True)),
+    menu=["Card"],
+),
+
 BrowserColumn(
     type="answer",
     name="Answer",
     content=answerContent,
     menu=["Card"],
-)
+),
+]
 
 def unknownContent(card, browser):
     raise Exception("You should inherit from BrowserColumn and not use it directly from unknown")
@@ -295,6 +288,19 @@ class ColumnList(list):
 
 # Columns from Advanced Browser
 ##############################
+def previewContent(card, col):
+    ivl = col.db.scalar(
+        "select ivl from revlog where cid = ? "
+        "order by id desc limit 1 offset 1", card.id)
+    if ivl is None:
+        return
+    elif ivl == 0:
+        return "0 days"
+    elif ivl > 0:
+        return fmtTimeSpan(ivl*86400)
+    else:
+        return timeFmt(-ivl)
+
 def timeFmt(tm):
     # stole this from anki.stats.CardStats#time()
     str = ""
@@ -311,79 +317,6 @@ def strftimeIfArgument(timeString):
         return time.strftime("%Y-%m-%d", time.localtime(timeString / 1000))
     else:
         return ""
-
-BrowserColumn(
-    # First review
-    type='cfirst',
-    name='First Review',
-    content=lambda card,col : strftimeIfArgument(col.db.scalar("select min(id) from revlog where cid = ?", card.id)),
-    sort="(select min(id) from revlog where cid = c.id)"
-)
-
-
-
-BrowserColumn(
-    # Last review
-    type='clast',
-    name='Last Review',
-    content=lambda card,col :strftimeIfArgument(col.db.scalar(
-            "select max(id) from revlog where cid = ?", card.id)),
-    sort="(select max(id) from revlog where cid = c.id)"
-)
-
-
-
-BrowserColumn(
-    # Average time
-    type='cavgtime',
-    name='Time (Average)',
-    content=lambda card,col :strftimeIfArgument(col.db.scalar(
-            "select avg(time)/1000.0 from revlog where cid = ?", card.id)),
-    sort="(select avg(time) from revlog where cid = c.id)"
-)
-
-
-
-BrowserColumn(
-    # Total time
-    type='ctottime',
-    name='Time (Total)',
-    content=lambda card,col :timeFmt(col.db.scalar(
-            "select sum(time)/1000.0 from revlog where cid = ?", card.id)),
-    sort="(select sum(time) from revlog where cid = c.id)"
-)
-
-
-BrowserColumn(
-    # Fastest time
-    type='cfasttime',
-    name='Fastest Review',
-    content=lambda card,col : timeFmt(col.db.scalar(
-            "select time/1000.0 from revlog where cid = ? "
-            "order by time asc limit 1", card.id)),
-    sort="""(select time/1000.0 from revlog where cid = c.id)
-           order by time asc limit 1)"""
-)
-
-BrowserColumn(
-        # Slowest time
-    type='cslowtime',
-    name='Slowest Review',
-    content=lambda card,col :timeFmt(col.db.scalar(
-            "select time/1000.0 from revlog where cid = ? "
-            "order by time desc limit 1", card.id)),
-    sort="""(select time/1000.0 from revlog where cid = c.id)
-           order by time desc limit 1)"""
-)
-
-# Tags
-BrowserColumn(
-    type='noteTags',
-    name='Tags',
-    content=lambda card,col : " ".join(card.note().tags),
-    sort="(select tags from notes where id = c.nid)"
-)
-
 
 
 def overdueSort():
@@ -413,74 +346,150 @@ def overdueContent(card, col):
         else:
             return
 
+extra=[
 BrowserColumn(
-    # Overdue interval
+    description ="First review",
+    type='cfirst',
+    name='First Review',
+    content=lambda card,col : strftimeIfArgument(col.db.scalar("select min(id) from revlog where cid = ?", card.id)),
+    sort="(select min(id) from revlog where cid = c.id)",
+    menu=["Card"],
+),
+
+
+
+BrowserColumn(
+    description="Last review",
+    type='clast',
+    name='Last Review',
+    content=lambda card,col :strftimeIfArgument(col.db.scalar(
+            "select max(id) from revlog where cid = ?", card.id)),
+    sort="(select max(id) from revlog where cid = c.id)",
+    menu=["Card"],
+),
+
+
+
+BrowserColumn(
+    description="Average time",
+    type='cavgtime',
+    name='Time (Average)',
+    content=lambda card,col :strftimeIfArgument(col.db.scalar(
+            "select avg(time)/1000.0 from revlog where cid = ?", card.id)),
+    sort="(select avg(time) from revlog where cid = c.id)",
+    menu=["Card"],
+),
+
+
+
+BrowserColumn(
+    description="Total time",
+    type='ctottime',
+    name='Time (Total)',
+    content=lambda card,col :timeFmt(col.db.scalar(
+            "select sum(time)/1000.0 from revlog where cid = ?", card.id)),
+    sort="(select sum(time) from revlog where cid = c.id)",
+    menu=["Card"],
+),
+
+
+BrowserColumn(
+    description="Fastest time",
+    type='cfasttime',
+    name='Fastest Review',
+    content=lambda card,col : timeFmt(col.db.scalar(
+            "select time/1000.0 from revlog where cid = ? "
+            "order by time asc limit 1", card.id)),
+    sort="""(select time/1000.0 from revlog where cid = c.id)
+           order by time asc limit 1)""",
+    menu=["Card"],
+),
+
+BrowserColumn(
+        description="Slowest time",
+    type='cslowtime',
+    name='Slowest Review',
+    content=lambda card,col :timeFmt(col.db.scalar(
+            "select time/1000.0 from revlog where cid = ? "
+            "order by time desc limit 1", card.id)),
+    sort="""(select time/1000.0 from revlog where cid = c.id)
+           order by time desc limit 1)""",
+    menu=["Card"],
+),
+
+BrowserColumn(
+    description="Tags",
+    type='noteTags',
+    name='Tags',
+    content=lambda card,col : " ".join(card.note().tags),
+    sort="(select tags from notes where id = c.nid)",
+    menu=["Note"],
+),
+
+
+BrowserColumn(
+    description="Overdue interval",
     type='coverdueivl',
     name="Overdue Interval",
     content=overdueContent,
-    sort=overdueSort
-)
+    sort=overdueSort,
+    menu=["Card"],
+),
 
-def previewContent(card, col):
-    ivl = col.db.scalar(
-        "select ivl from revlog where cid = ? "
-        "order by id desc limit 1 offset 1", card.id)
-    if ivl is None:
-        return
-    elif ivl == 0:
-        return "0 days"
-    elif ivl > 0:
-        return fmtTimeSpan(ivl*86400)
-    else:
-        return timeFmt(-ivl)
 
 BrowserColumn(
-    # Previous interval
+    description="Previous interval",
     type='cprevivl',
     name="Previous Interval",
     content=previewContent,
     sort= """(select ivl from revlog where cid = c.id order by id desc limit 1
-           offset 1)"""
-)
+           offset 1)""",
+    menu=["Card"],
+),
 
 BrowserColumn(
-    # Percent correct
+    description="Percent correct",
     type='cpct',
     name='Percent Correct',
     content=lambda card,col : "" if card.reps <= 0 else "{:2.0f}%".format(
         100 - ((card.lapses / float(card.reps)) * 100)),
-    sort="cast(c.lapses as real)/c.reps"
-)
+    sort="cast(c.lapses as real)/c.reps",
+    menu=["Card"],
+),
 
 
 BrowserColumn(
-    # Previous duration
+    description="Previous duration",
     type='cprevdur',
     name="Previous Duration",
     content=lambda card,col : timeFmt(col.db.scalar(
             "select time/1000.0 from revlog where cid = ? "
             "order by id desc limit 1", card.id)),
     sort="""(select time/1000.0 from revlog where cid = c.id)
-           order by id desc limit 1)"""
-)
-
+           order by id desc limit 1)""",
+    menu=["Card"],
+),
+]
 # Internal columns
 ##################
+internal=[
 BrowserColumn(
     type="nid",
     name="Note ID",
     advanced=True,
     content=lambda card,col : card.note().id,
-    sort="n.id"
-)
+    sort="n.id",
+    menu=["Note"],
+),
 
 BrowserColumn(
     type="nguid",
     name="Note Guid",
     advanced=True,
     content=lambda card,col : card.note().guid,
-    sort="n.guid"
-)
+    sort="n.guid",
+    menu=["Note"],
+),
 
 
 BrowserColumn(
@@ -488,8 +497,9 @@ BrowserColumn(
     name="Model ID",
     advanced=True,
     content=lambda card,col : card.note().mid,
-    sort="n.mid"
-)
+    sort="n.mid",
+    menu=["Note"],
+),
 
 
 BrowserColumn(
@@ -497,8 +507,9 @@ BrowserColumn(
     name="Note USN",
     advanced=True,
     content=lambda card,col : card.note().usn,
-    sort="n.usn"
-)
+    sort="n.usn",
+    menu=["Note"],
+),
 
 
 BrowserColumn(
@@ -506,8 +517,9 @@ BrowserColumn(
     name="Note Fields",
     advanced=True,
     content=lambda card,col : u"\u25A0".join(card.note().fields),
-    sort="n.flds"
-)
+    sort="n.flds",
+    menu=["Note"],
+),
 
 
 BrowserColumn(
@@ -515,8 +527,9 @@ BrowserColumn(
     name="Note Flags",
     advanced=True,
     content=lambda card,col : card.note().flags,
-    sort="n.flags"
-)
+    sort="n.flags",
+    menu=["Note"],
+),
 
 
 BrowserColumn(
@@ -524,85 +537,97 @@ BrowserColumn(
     name="Note Data",
     advanced=True,
     content=lambda card,col : card.note().data,
-    sort="n.data"
-)
+    sort="n.data",
+    menu=["Note"],
+),
 
 BrowserColumn(
     type="cid",
     name="Card ID",
     advanced=True,
     content=lambda card,col : card.id,
-    sort="c.id"
-)
+    sort="c.id",
+    menu=["Card"],
+),
 
 BrowserColumn(
     type="cdid",
     name="Deck ID",
     advanced=True,
     content=lambda card,col : card.did,
-    sort="c.did"
-)
+    sort="c.did",
+    menu=["Note"],
+),
 
 BrowserColumn(
     type="codid",
     name="Original Deck ID",
     advanced=True,
     content=lambda card,col : card.odid,
-    sort="c.odid"
-)
+    sort="c.odid",
+    menu=["Card"],
+),
 
 BrowserColumn(
     type="cord",
     name="Card Ordinal",
     advanced=True,
     content=lambda card,col : card.ord,
-    sort="c.ord"
-)
+    sort="c.ord",
+    menu=["Card"],
+),
 
 BrowserColumn(
     type="cusn",
     name="Card USN",
     advanced=True,
     content=lambda card,col : card.usn,
-    sort="c.usn"
-)
+    sort="c.usn",
+    menu=["Card"],
+),
 
 BrowserColumn(
     type="ctype",
     name="Card Type",
     advanced=True,
     content=lambda card,col : card.type,
-    sort="c.type"
-)
+    sort="c.type",
+    menu=["Card"],
+),
 
 BrowserColumn(
     type="cqueue",
     name="Card Queue",
     advanced = True,
     content=lambda card,col : card.queue,
-    sort="c.queue"
-)
+    sort="c.queue",
+    menu=["Card"],
+),
 
 BrowserColumn(
     type="cleft",
     name="Card Left",
     advanced=True,
     content=lambda card,col : card.left,
-    sort="c.left"
-)
+    sort="c.left",
+    menu=["Card"],
+),
 
 BrowserColumn(
     type="codue",
     name="Card Original Due",  # I think,
     advanced=True,
     content=lambda card,col : card.odue,
-    sort="c.odue"
-)
+    sort="c.odue",
+    menu=["Card"],
+),
 
 BrowserColumn(
     type="cflags",
     name="Card Flags",
     advanced=True,
     content=lambda card,col : card.flags,
-    sort="c.flags"
-)
+    sort="c.flags",
+    menu=["Card"],
+),
+]
