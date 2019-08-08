@@ -1226,12 +1226,12 @@ where c.nid == f.id
 
     def checkAutoPlay(self):
         """check that autoplay is set in all deck object"""
-        for dconf in self.decks.dconf:
+        for dconf in self.decks.dconf.values():
             if 'autoplay' not in dconf:
                 dconf['autoplay'] = True
                 self.decks.save(dconf)
                 self.problems.append(f"Adding some «autoplay» which was missing in deck's option {dconf['name']}")
-        for deck in self.decks.decks:
+        for deck in self.decks.decks.values():
             if deck['dyn'] and 'autoplay' not in deck:
                 deck['autoplay'] = True
                 self.decks.save(deck)
