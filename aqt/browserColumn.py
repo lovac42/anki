@@ -311,7 +311,8 @@ BrowserColumn(
     type='cfirst',
     name='First Review',
     content=lambda card,col : strftimeIfArgument(col.db.scalar("select min(id) from revlog where cid = ?", card.id)),
-    sort="(select min(id) from revlog where cid = c.id)"
+    sort="(select min(id) from revlog where cid = c.id)",
+    menu=["Card"],
 )
 
 
@@ -322,7 +323,8 @@ BrowserColumn(
     name='Last Review',
     content=lambda card,col :strftimeIfArgument(col.db.scalar(
             "select max(id) from revlog where cid = ?", card.id)),
-    sort="(select max(id) from revlog where cid = c.id)"
+    sort="(select max(id) from revlog where cid = c.id)",
+    menu=["Card"],
 )
 
 
@@ -333,7 +335,8 @@ BrowserColumn(
     name='Time (Average)',
     content=lambda card,col :strftimeIfArgument(col.db.scalar(
             "select avg(time)/1000.0 from revlog where cid = ?", card.id)),
-    sort="(select avg(time) from revlog where cid = c.id)"
+    sort="(select avg(time) from revlog where cid = c.id)",
+    menu=["Card"],
 )
 
 
@@ -344,7 +347,8 @@ BrowserColumn(
     name='Time (Total)',
     content=lambda card,col :timeFmt(col.db.scalar(
             "select sum(time)/1000.0 from revlog where cid = ?", card.id)),
-    sort="(select sum(time) from revlog where cid = c.id)"
+    sort="(select sum(time) from revlog where cid = c.id)",
+    menu=["Card"],
 )
 
 
@@ -356,7 +360,8 @@ BrowserColumn(
             "select time/1000.0 from revlog where cid = ? "
             "order by time asc limit 1", card.id)),
     sort="""(select time/1000.0 from revlog where cid = c.id)
-           order by time asc limit 1)"""
+           order by time asc limit 1)""",
+    menu=["Card"],
 )
 
 BrowserColumn(
@@ -367,7 +372,8 @@ BrowserColumn(
             "select time/1000.0 from revlog where cid = ? "
             "order by time desc limit 1", card.id)),
     sort="""(select time/1000.0 from revlog where cid = c.id)
-           order by time desc limit 1)"""
+           order by time desc limit 1)""",
+    menu=["Card"],
 )
 
 # Tags
@@ -375,7 +381,8 @@ BrowserColumn(
     type='noteTags',
     name='Tags',
     content=lambda card,col : " ".join(card.note().tags),
-    sort="(select tags from notes where id = c.nid)"
+    sort="(select tags from notes where id = c.nid)",
+    menu=["Note"],
 )
 
 
@@ -412,7 +419,8 @@ BrowserColumn(
     type='coverdueivl',
     name="Overdue Interval",
     content=overdueContent,
-    sort=overdueSort
+    sort=overdueSort,
+    menu=["Card"],
 )
 
 def previewContent(card, col):
@@ -434,7 +442,8 @@ BrowserColumn(
     name="Previous Interval",
     content=previewContent,
     sort= """(select ivl from revlog where cid = c.id order by id desc limit 1
-           offset 1)"""
+           offset 1)""",
+    menu=["Card"],
 )
 
 BrowserColumn(
@@ -443,7 +452,8 @@ BrowserColumn(
     name='Percent Correct',
     content=lambda card,col : "" if card.reps <= 0 else "{:2.0f}%".format(
         100 - ((card.lapses / float(card.reps)) * 100)),
-    sort="cast(c.lapses as real)/c.reps"
+    sort="cast(c.lapses as real)/c.reps",
+    menu=["Card"],
 )
 
 
@@ -455,7 +465,8 @@ BrowserColumn(
             "select time/1000.0 from revlog where cid = ? "
             "order by id desc limit 1", card.id)),
     sort="""(select time/1000.0 from revlog where cid = c.id)
-           order by id desc limit 1)"""
+           order by id desc limit 1)""",
+    menu=["Card"],
 )
 
 # Internal columns
@@ -465,7 +476,8 @@ BrowserColumn(
     name="Note ID",
     advanced=True,
     content=lambda card,col : card.note().id,
-    sort="n.id"
+    sort="n.id",
+    menu=["Note"],
 )
 
 BrowserColumn(
@@ -473,7 +485,8 @@ BrowserColumn(
     name="Note Guid",
     advanced=True,
     content=lambda card,col : card.note().guid,
-    sort="n.guid"
+    sort="n.guid",
+    menu=["Note"],
 )
 
 
@@ -482,7 +495,8 @@ BrowserColumn(
     name="Model ID",
     advanced=True,
     content=lambda card,col : card.note().mid,
-    sort="n.mid"
+    sort="n.mid",
+    menu=["Note"],
 )
 
 
@@ -491,7 +505,8 @@ BrowserColumn(
     name="Note USN",
     advanced=True,
     content=lambda card,col : card.note().usn,
-    sort="n.usn"
+    sort="n.usn",
+    menu=["Note"],
 )
 
 
@@ -500,7 +515,8 @@ BrowserColumn(
     name="Note Fields",
     advanced=True,
     content=lambda card,col : u"\u25A0".join(card.note().fields),
-    sort="n.flds"
+    sort="n.flds",
+    menu=["Note"],
 )
 
 
@@ -509,7 +525,8 @@ BrowserColumn(
     name="Note Flags",
     advanced=True,
     content=lambda card,col : card.note().flags,
-    sort="n.flags"
+    sort="n.flags",
+    menu=["Note"],
 )
 
 
@@ -518,7 +535,8 @@ BrowserColumn(
     name="Note Data",
     advanced=True,
     content=lambda card,col : card.note().data,
-    sort="n.data"
+    sort="n.data",
+    menu=["Note"],
 )
 
 BrowserColumn(
@@ -526,7 +544,8 @@ BrowserColumn(
     name="Card ID",
     advanced=True,
     content=lambda card,col : card.id,
-    sort="c.id"
+    sort="c.id",
+    menu=["Card"],
 )
 
 BrowserColumn(
@@ -534,7 +553,8 @@ BrowserColumn(
     name="Deck ID",
     advanced=True,
     content=lambda card,col : card.did,
-    sort="c.did"
+    sort="c.did",
+    menu=["Note"],
 )
 
 BrowserColumn(
@@ -542,7 +562,8 @@ BrowserColumn(
     name="Original Deck ID",
     advanced=True,
     content=lambda card,col : card.odid,
-    sort="c.odid"
+    sort="c.odid",
+    menu=["Card"],
 )
 
 BrowserColumn(
@@ -550,7 +571,8 @@ BrowserColumn(
     name="Card Ordinal",
     advanced=True,
     content=lambda card,col : card.ord,
-    sort="c.ord"
+    sort="c.ord",
+    menu=["Card"],
 )
 
 BrowserColumn(
@@ -558,7 +580,8 @@ BrowserColumn(
     name="Card USN",
     advanced=True,
     content=lambda card,col : card.usn,
-    sort="c.usn"
+    sort="c.usn",
+    menu=["Card"],
 )
 
 BrowserColumn(
@@ -566,7 +589,8 @@ BrowserColumn(
     name="Card Type",
     advanced=True,
     content=lambda card,col : card.type,
-    sort="c.type"
+    sort="c.type",
+    menu=["Card"],
 )
 
 BrowserColumn(
@@ -574,7 +598,8 @@ BrowserColumn(
     name="Card Queue",
     advanced = True,
     content=lambda card,col : card.queue,
-    sort="c.queue"
+    sort="c.queue",
+    menu=["Card"],
 )
 
 BrowserColumn(
@@ -582,7 +607,8 @@ BrowserColumn(
     name="Card Left",
     advanced=True,
     content=lambda card,col : card.left,
-    sort="c.left"
+    sort="c.left",
+    menu=["Card"],
 )
 
 BrowserColumn(
@@ -590,7 +616,8 @@ BrowserColumn(
     name="Card Original Due",  # I think,
     advanced=True,
     content=lambda card,col : card.odue,
-    sort="c.odue"
+    sort="c.odue",
+    menu=["Card"],
 )
 
 BrowserColumn(
@@ -598,5 +625,6 @@ BrowserColumn(
     name="Card Flags",
     advanced=True,
     content=lambda card,col : card.flags,
-    sort="c.flags"
+    sort="c.flags",
+    menu=["Card"],
 )
