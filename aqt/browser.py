@@ -833,7 +833,7 @@ by clicking on one on the left."""))
                 a.setEnabled(False)
             a.toggled.connect(lambda b, t=type: self.toggleField(t))
         #toggle advanced fields
-        a = m.addAction(_("Show advanced fields"))
+        a = topMenu.addAction(_("Show advanced fields"))
         a.setCheckable(True)
         a.setChecked(self.col.conf.get("advancedColumnsInBrowser", False))
         a.toggled.connect(self.toggleAdvancedColumns)
