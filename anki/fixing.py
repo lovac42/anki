@@ -1,6 +1,8 @@
 import stat
 import os
 from anki.consts import *
+from anki.decks import defaultConf as defaultDeckConf
+from anki.decks import defaultDeck, defaultDynamicDeck
 from anki.lang import _
 from anki.utils import ids2str, intTime
 
@@ -31,6 +33,7 @@ class FixingManager:
         "ensureSomeNoteType",
         "atMost1000000Due",
         "setNextPos",
+        "checkDeck",
     ]
 
     def fixIntegrity(self):
@@ -275,3 +278,17 @@ class FixingManager:
         # new card position
         self.col.conf['nextPos'] = self.db.scalar(
             "select max(due)+1 from cards where type = 0") or 0
+
+    def checkDeck(self):
+        """check that all default confs/decks option are set in all deck's related object"""
+        for paramsSet, defaultParam, what, kind in [(self.col.decks.dconf.values(), defaultDeckConf, "'s option", "deck configuration"),
+                                                    (self.col.decks.all(sort=False, standard=True, dyn=False), defaultDeck, "", "standard deck"),
+                                                    (self.col.decks.all(sort=False, standard=False, dyn=True), defaultDynamicDeck, " (dynamic)", "dynamic deck"),
+                                                    (self.col.decks.all(sort=False, standard=False, dyn=True), defaultDeckConf, " (dynamic)", "dynamic deck as conf"),
+        ]:
+            for key in defaultParam:
+                for params in paramsSet:
+                    if key not in params:
+                        params[key] = defaultParam[key]
+                        self.col.decks.save(params)
+                        self.problems.append(f"Adding some «{key}» which was missing in deck{what} {params['name']}")
