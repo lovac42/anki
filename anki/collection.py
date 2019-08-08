@@ -618,6 +618,9 @@ where c.nid == f.id
     def findCards(self, *args, **kwargs):
         return anki.find.Finder(self).findCards(*args, **kwargs)
 
+    def findNotesWithOneCard(self, *args, **kwargs):
+        return anki.find.Finder(self).findNotesWithOneCard(*args, **kwargs)
+
     def findNotes(self, *args, **kwargs):
         return anki.find.Finder(self).findNotes(*args, **kwargs)
 
