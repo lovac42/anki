@@ -76,7 +76,7 @@ class Finder:
             print(f"On query «{query}», sql «{sql}» return empty because of {e}")
             return []
 
-    def findCards(self, *args, withNids=False, **kwargs):
+    def findCards(self, *args, withNids=False, oneByNote=False, **kwargs):
         """Return the set of card ids, of card satisfying predicate preds,
         where c is a card and n its note, ordered according to the sql
         `order`
@@ -86,13 +86,15 @@ class Finder:
         def ifInvalid():
             raise Exception("invalidSearch")
         selectNote = ", c.nid" if withNids else ""
+        groupBy = "c.nid" if oneByNote else ""
+        selectCard = "c.id" if oneByNote else "min(c.id)"
         def sqlBase(preds, order):
             if "n." not in preds and "n." not in order:
-                return f"select c.id{selectNote} from cards c where "
+                return f"select {selectCard}{selectNote} from cards c where "
             else:
-                return f"select c.id{selectNote} from cards c, notes n where c.nid=n.id and "
+                return f"select {selectCard}{selectNote} from cards c, notes n where c.nid=n.id and "
         # order
-        return self.find(*args, ifInvalid=ifInvalid, sqlBase=sqlBase, tuples=withNids, **kwargs)
+        return self.find(*args, ifInvalid=ifInvalid, sqlBase=sqlBase, tuples=withNids, groupBy=groupBy **kwargs)
 
     def findNotes(self, *args, **kwargs):
         """Return a list of notes ids for QUERY."""
@@ -102,20 +104,6 @@ select distinct(n.id) from cards c, notes n where c.nid=n.id and """
         def ifInvalid():
             return []
         return self.find(*args, ifInvalid=ifInvalid, sqlBase=sqlBase, **kwargs)
-
-    def findNotesWithOneCard(self, *args, **kwargs):
-        """Return a list of notes ids and card id for `query`. It returns a
-        single card by note.  Currently, it returns the first created
-        card, but it may change.
-
-        """
-        def sqlBase(*args, **kwargs):
-            return """
-select min(c.id), c.nid from cards c, notes n where c.nid=n.id and """
-        def ifInvalid():
-            return []
-        return self.find(*args, ifInvalid=ifInvalid, sqlBase=sqlBase, groupBy="c.nid", tuples=True, **kwargs)
-
 
     # Tokenizing
     ######################################################################
