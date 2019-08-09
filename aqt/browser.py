@@ -372,6 +372,7 @@ class DataModel(QAbstractTableModel):
         for column in self.potentialColumnsList():
             if column.type not in self.potentialColumns:
                 self.potentialColumns[column.type] = column
+            if column.type == type:
                 found = True
         if found:
             r = self.potentialColumns[type]
@@ -995,7 +996,7 @@ by clicking on one on the left."""))
         if self.sidebarDockWidget.isVisible():
             self.buildTree()
         self.model.absentColumns = dict()
-        self.model.potentialColumnsList = dict()
+        self.model.potentialColumns = dict()
 
     def buildTree(self):
         self.sidebarTree.clear()
