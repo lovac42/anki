@@ -562,6 +562,7 @@ class Browser(QMainWindow):
         # Columns
         # help
         f.actionGuide.triggered.connect(self.onHelp)
+        f.actionShow_Notes_Cards.triggered.connect(lambda:self.dealWithShowNotes(not self.showNotes))
         # keyboard shortcut for shift+home/end
         self.pgUpCut = QShortcut(QKeySequence("Shift+Home"), self)
         self.pgUpCut.activated.connect(self.onFirstCard)
