@@ -164,7 +164,7 @@ and have been disabled: %(found)s") % dict(name=self.addonName(dir), found=addon
 
         for package in found:
             self.toggleEnabled(package, enable=False)
-        
+
         return found
 
     # Installing and deleting add-ons
@@ -191,7 +191,7 @@ and have been disabled: %(found)s") % dict(name=self.addonName(dir), found=addon
             zfile = ZipFile(file)
         except zipfile.BadZipfile:
             return False, "zip"
-        
+
         with zfile:
             file_manifest = self.readManifestFile(zfile)
             if manifest:
@@ -205,7 +205,7 @@ and have been disabled: %(found)s") % dict(name=self.addonName(dir), found=addon
                                                        conflicts)
             meta = self.addonMeta(package)
             self._install(package, zfile)
-        
+
         schema = self._manifest_schema["properties"]
         manifest_meta = {k: v for k, v in manifest.items()
                          if k in schema and schema[k]["meta"]}
@@ -250,7 +250,7 @@ and have been disabled: %(found)s") % dict(name=self.addonName(dir), found=addon
 
     # Processing local add-on files
     ######################################################################
-    
+
     def processPackages(self, paths):
         log = []
         errs = []
@@ -375,7 +375,7 @@ and have been disabled: %(found)s") % dict(name=self.addonName(dir), found=addon
             return ""
 
     def addonFromModule(self, module):
-        return module.split(".")[0]
+        return module.split(".",1)[0]
 
     def configAction(self, addon):
         return self._configButtonActions.get(addon)
@@ -433,7 +433,7 @@ and have been disabled: %(found)s") % dict(name=self.addonName(dir), found=addon
         if not os.path.exists(bp):
             return
         os.rename(bp, p)
-    
+
     # Web Exports
     ######################################################################
 
@@ -442,7 +442,7 @@ and have been disabled: %(found)s") % dict(name=self.addonName(dir), found=addon
     def setWebExports(self, module, pattern):
         addon = self.addonFromModule(module)
         self._webExports[addon] = pattern
-    
+
     def getWebExports(self, addon):
         return self._webExports.get(addon)
 
@@ -500,7 +500,7 @@ class AddonsDialog(QDialog):
     def redrawAddons(self):
         addonList = self.form.addonList
         mgr = self.mgr
-        
+
         self.addons = [(mgr.annotatedName(d), d) for d in mgr.allAddons()]
         self.addons.sort()
 
@@ -588,7 +588,7 @@ class AddonsDialog(QDialog):
                             key="addons", multi=True)
             if not paths:
                 return False
-        
+
         log, errs = self.mgr.processPackages(paths)
 
         if log:
@@ -761,6 +761,6 @@ class ConfigEditor(QDialog):
             act = self.mgr.configUpdatedAction(self.addon)
             if act:
                 act(new_conf)
-        
+
         self.onClose()
         super().accept()
