@@ -1233,20 +1233,16 @@ where c.nid == f.id
             'autoplay': True,
             'maxTaken': 60,
         }
-        for dconf in self.decks.dconf.values():
-            for key in defaultConf:
-                if key not in dconf:
-                    dconf[key] = defaultConf[key]
-                    self.decks.save(dconf)
-                    self.problems.append(f"Adding some «{key}» which was missing in deck's option {dconf['name']}")
         defaultDeck = {
         }
-        for deck in self.decks.decks.values():
-            for key in defaultDeck:
-                if deck['dyn'] and key not in deck:
-                    deck[key] = defaultDeck[key]
-                    self.decks.save(deck)
-                    self.problems.append(f"Adding some «{key}» which was missing in deck {deck['name']}")
+        for paramsSet, defaultParam, what in [(self.decks.dconf.values(), defaultConf, "'s option"),
+                                 (self.decks.decks.values(), defaultDeck, "")]:
+            for key in defaultParam:
+                for params in paramsSet:
+                    if key not in params:
+                        params[key] = defaultParam[key]
+                        self.decks.save(params)
+                        self.problems.append(f"Adding some «{key}» which was missing in deck{what} {dconf['name']}")
 
     def optimize(self):
         """Tell sqlite to optimize the db"""
