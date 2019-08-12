@@ -362,8 +362,6 @@ and notes.mid = ? and cards.ord = ?""", m['id'], ord)
         """
         return dict((f['name'], (f['ord'], f)) for f in m['flds'])
 
-
-
     def fieldNames(self, m):
         """The list of names of fields of this model."""
         return [f['name'] for f in m['flds']]
