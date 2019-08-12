@@ -991,7 +991,7 @@ where c.nid == f.id
                 "fixFloatDue",
                 "doubleCard",
                 "ensureSomeNoteType",
-                "checkAutoPlay",
+                "checkMandatoryConf",
     ]
 
 
@@ -1227,18 +1227,26 @@ where c.nid == f.id
         if self.models.ensureNotEmpty():
             self.problems.append("Added missing note type.")
 
-    def checkAutoPlay(self):
+    def checkMandatoryConf(self):
         """check that autoplay is set in all deck object"""
+        defaultConf = {
+            'autoplay': True,
+            'maxTaken': 60,
+        }
         for dconf in self.decks.dconf.values():
-            if 'autoplay' not in dconf:
-                dconf['autoplay'] = True
-                self.decks.save(dconf)
-                self.problems.append(f"Adding some «autoplay» which was missing in deck's option {dconf['name']}")
+            for key in defaultConf:
+                if key not in dconf:
+                    dconf[key] = defaultConf[key]
+                    self.decks.save(dconf)
+                    self.problems.append(f"Adding some «{key}» which was missing in deck's option {dconf['name']}")
+        defaultDeck = {
+        }
         for deck in self.decks.decks.values():
-            if deck['dyn'] and 'autoplay' not in deck:
-                deck['autoplay'] = True
-                self.decks.save(deck)
-                self.problems.append(f"Adding some «autoplay» which was missing in deck {deck['name']}")
+            for key in defaultDeck:
+                if deck['dyn'] and key not in deck:
+                    deck[key] = defaultDeck[key]
+                    self.decks.save(deck)
+                    self.problems.append(f"Adding some «{key}» which was missing in deck {deck['name']}")
 
     def optimize(self):
         """Tell sqlite to optimize the db"""
