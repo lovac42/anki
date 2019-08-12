@@ -786,6 +786,8 @@ select id from notes where mid = ?)""" % " ".join(map),
         ../documentation/templates_generation_rules.md for the detail
 
         """
+        if m['type'] == MODEL_CLOZE:
+            return self._availClozeOrds(m, flds)
         if self.col.conf.get("complexTemplates", False):
             return self.availOrdsReal(m, flds)
         else:
@@ -816,8 +818,6 @@ select id from notes where mid = ?)""" % " ".join(map),
         ../documentation/templates_generation_rules.md for the detail
 
         """
-        if m['type'] == MODEL_CLOZE:
-            return self._availClozeOrds(m, flds)
         fields = {}
         for c, f in enumerate(splitFields(flds)):
             fields[c] = f.strip()
