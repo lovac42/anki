@@ -19,7 +19,7 @@ from anki.utils import ids2str, fieldChecksum, \
 from anki.hooks import  runFilter, runHook
 from anki.models import ModelManager
 from anki.media import MediaManager
-from anki.decks import DeckManager, defaultConf, defaultDynamicDeck, defaultDeck
+from anki.decks import DeckManager, defaultConf as defaultDeckConf, defaultDynamicDeck, defaultDeck
 from anki.tags import TagManager
 from anki.consts import *
 from anki.errors import AnkiError
@@ -991,7 +991,7 @@ where c.nid == f.id
                 "fixFloatDue",
                 "doubleCard",
                 "ensureSomeNoteType",
-                "checkMandatoryConf",
+                "checkDeck",
     ]
 
 
@@ -1227,16 +1227,19 @@ where c.nid == f.id
         if self.models.ensureNotEmpty():
             self.problems.append("Added missing note type.")
 
-    def checkMandatoryConf(self):
-        """check that autoplay is set in all deck object"""
-        for paramsSet, defaultParam, what in [(self.decks.dconf.values(), defaultConf, "'s option"),
-                                 (self.decks.decks.values(), defaultDeck, "")]:
+    def checkDeck(self):
+        """check that all default confs/decks option are set in all deck's related object"""
+        for paramsSet, defaultParam, what, kind in [(self.decks.dconf.values(), defaultDeckConf, "'s option", "deck configuration"),
+                                                    (self.decks.all(sort=False, standard=True, dyn=False), defaultDeck, "", "standard deck"),
+                                                    (self.decks.all(sort=False, standard=False, dyn=True), defaultDynamicDeck, " (dynamic)", "dynamic deck"),
+                                                    (self.decks.all(sort=False, standard=False, dyn=True), defaultDeckConf, " (dynamic)", "dynamic deck as conf"),
+        ]:
             for key in defaultParam:
                 for params in paramsSet:
                     if key not in params:
                         params[key] = defaultParam[key]
                         self.decks.save(params)
-                        self.problems.append(f"Adding some «{key}» which was missing in deck{what} {dconf['name']}")
+                        self.problems.append(f"Adding some «{key}» which was missing in deck{what} {params['name']}")
 
     def optimize(self):
         """Tell sqlite to optimize the db"""
