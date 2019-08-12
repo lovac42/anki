@@ -334,24 +334,22 @@ class DeckManager:
             self.select(int(list(self.decks.keys())[0]))
         self.save()
 
-    def allNames(self, dyn=True, sort=False):
+    def allNames(self, dyn=True, sort=False, standard=True):
         """A list of all deck names.
 
         Keyword arguments:
         dyn -- if set to false, do not list the dynamic decks.
         sort -- whether to sort
         """
-        if dyn:
-            l = [x['name'] for x in list(self.decks.values())]
-        else:
-            l = [x['name'] for x in list(self.decks.values()) if not x['dyn']]
-        if sort:
-            l.sort()
-        return l
+        return [deck['name'] for deck in self.all(sort=sort, dyn=dyn, standard=standard)]
 
-    def all(self, sort=False):
-        """A list of all deck objects."""
-        l = list(self.decks.values())
+    def all(self, sort=False, dyn=True, standard=True):
+        """A list of all deck objects.
+
+        dyn -- whether to incorporate dyn
+        standard -- whether to incorporate non dynamic deck
+        """
+        l = [deck for deck in self.decks.values() if (deck['dyn'] and dyn) or (not deck['dyn'] and standard)]
         if sort:
             l.sort(key = lambda deck: deck["name"])
         return l
