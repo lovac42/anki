@@ -19,7 +19,7 @@ from anki.utils import ids2str, fieldChecksum, \
 from anki.hooks import  runFilter, runHook
 from anki.models import ModelManager
 from anki.media import MediaManager
-from anki.decks import DeckManager
+from anki.decks import DeckManager, defaultConf, defaultDynamicDeck, defaultDeck
 from anki.tags import TagManager
 from anki.consts import *
 from anki.errors import AnkiError
@@ -1229,12 +1229,6 @@ where c.nid == f.id
 
     def checkMandatoryConf(self):
         """check that autoplay is set in all deck object"""
-        defaultConf = {
-            'autoplay': True,
-            'maxTaken': 60,
-        }
-        defaultDeck = {
-        }
         for paramsSet, defaultParam, what in [(self.decks.dconf.values(), defaultConf, "'s option"),
                                  (self.decks.decks.values(), defaultDeck, "")]:
             for key in defaultParam:
