@@ -556,47 +556,64 @@ where c.nid = n.id and c.id in %s group by nid""" % ids2str(cids)):
         "Returns hash of id, question, answer."
         # data is [cid, nid, mid, did, ord, tags, flds, cardFlags]
         # unpack fields and create dict
-        flist = splitFields(data[6])
-        fields = {}
+
         model = self.models.get(data[2])
+        if model['type'] == MODEL_STD:
+            template = model['tmpls'][data[4]]
+        else:
+            template = model['tmpls'][0]
+        fields = self._extendedFields(data, model, template)
+        # render q & a
+        d = dict()
+        d['id'] = data[0]
+        d['q'] = self._renderQuestion(data, fields, template, qfmt)
+        d['a'] = self._renderQuestion(data, fields, template, afmt)
+        return d
+
+    def _renderQuestion(self, data, fields, template, qfmt=None):
+        format = qfmt or template['qfmt']
+        format = re.sub("{{(?!type:)(.*?)cloze:", r"{{\1cq-%d:" % (data[4]+1), format)
+        format = format.replace("<%cloze:", "<%%cq:%d:" % (
+            data[4]+1))
+        question = self.__renderQA(fields, model, data, format, "q")
+        fields['FrontSide'] = stripSounds(question)
+        # empty cloze?
+        if model['type'] == MODEL_CLOZE and not self.models._availClozeOrds(model, data[6], False):
+             question += ("<p>" + _(
+                "Please edit this note and add some cloze deletions. (%s)") % (
+                    "<a href=%s#cloze>%s</a>" % (HELP_SITE, _("help"))))
+        return question
+
+    def _renderAnswer(self, data, fields, template, afmt=None):
+        format = afmt or template['afmt']
+        format = re.sub("{{(.*?)cloze:", r"{{\1ca-%d:" % (data[4]+1), format)
+        format = format.replace("<%cloze:", "<%%ca:%d:" % (
+            data[4]+1))
+        return self.__renderQA(fields, model, data, format, "a")
+
+    def __renderQA(self, fields, model, data, format, type):
+        fields = runFilter("mungeFields", fields, model, data, self)
+        html = anki.template.render(format, fields)
+        return runFilter(
+            "mungeQA", html, type, fields, model, data, self)
+
+    def _basicFields(self, data, model):
+        fields = {}
+        flist = splitFields(data[6])
         for (name, (idx, conf)) in list(self.models.fieldMap(model).items()):
             fields[name] = flist[idx]
+        return fields
+
+    def _extendedFields(self, data, model, template):
+        fields = self._basicFields(data)
         fields['Tags'] = data[5].strip()
         fields['Type'] = model['name']
         fields['Deck'] = self.decks.name(data[3])
         fields['Subdeck'] = self.decks._basename(fields['Deck'])
         fields['CardFlag'] = self._flagNameFromCardFlags(data[7])
-        if model['type'] == MODEL_STD:
-            template = model['tmpls'][data[4]]
-        else:
-            template = model['tmpls'][0]
         fields['Card'] = template['name']
         fields['c%d' % (data[4]+1)] = "1"
-        # render q & a
-        d = dict(id=data[0])
-        qfmt = qfmt or template['qfmt']
-        afmt = afmt or template['afmt']
-        for (type, format) in (("q", qfmt), ("a", afmt)):
-            if type == "q":
-                format = re.sub("{{(?!type:)(.*?)cloze:", r"{{\1cq-%d:" % (data[4]+1), format)
-                format = format.replace("<%cloze:", "<%%cq:%d:" % (
-                    data[4]+1))
-            else:
-                format = re.sub("{{(.*?)cloze:", r"{{\1ca-%d:" % (data[4]+1), format)
-                format = format.replace("<%cloze:", "<%%ca:%d:" % (
-                    data[4]+1))
-                fields['FrontSide'] = stripSounds(d['q'])
-            fields = runFilter("mungeFields", fields, model, data, self)
-            html = anki.template.render(format, fields)
-            d[type] = runFilter(
-                "mungeQA", html, type, fields, model, data, self)
-            # empty cloze?
-            if type == 'q' and model['type'] == MODEL_CLOZE:
-                if not self.models._availClozeOrds(model, data[6], False):
-                    d['q'] += ("<p>" + _(
-                "Please edit this note and add some cloze deletions. (%s)") % (
-                "<a href=%s#cloze>%s</a>" % (HELP_SITE, _("help"))))
-        return d
+        return fields
 
     def _qaData(self, where=""):
         "Return [cid, nid, mid, did, ord, tags, flds, cardFlags] db query"
