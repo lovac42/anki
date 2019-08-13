@@ -99,7 +99,7 @@ class Template:
             inverted = section[2] == "^"
             if val:
                 val = stripHTMLMedia(val).strip()
-            if (val and not inverted) or (not val and inverted):
+            if bool(val) != inverted:
                 replacer = inner
 
             template = template.replace(section, replacer)
@@ -159,7 +159,7 @@ class Template:
             mods, tag = parts[:-1], parts[-1] #py3k has *mods, tag = parts
 
         txt = get_or_attr(context, tag)
-        
+
         #Since 'text:' and other mods can affect html on which Anki relies to
         #process clozes, we need to make sure clozes are always
         #treated after all the other mods, regardless of how they're specified
