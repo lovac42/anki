@@ -880,6 +880,39 @@ select id from notes where mid = ?)""" % " ".join(map),
         ../documentation/templates_generation_rules.md for the detail
 
         """
+        if self.col.conf.get("complexTemplates", False):
+            return self._availOrdsReal(m, flds, changedOrNewReq=None)
+        else:
+            return self._availOrdsOriginal(m, flds, changedOrNewReq=None)
+
+    def _availOrdsReal(self, m, flds, changedOrNewReq=None):
+        """
+        self -- model manager
+        m -- a model object
+        """
+        available = []
+        flist = splitFields(flds)
+        fields = {} #
+        for (name, (idx, conf)) in list(self.fieldMap(m).items()):#conf is not used
+            fields[name] = flist[idx]
+        if m['type'] == MODEL_CLOZE:
+            potentialOrds = self._availClozeOrds(m, flds)
+        else:
+            potentialOrds = changedOrNewReq if changedOrNewReq is not None else range(len(m["tmpls"]))
+        for ord in potentialOrds:
+            template = m["tmpls"][ord]
+            format = template['qfmt']
+            html, showAField = anki.template.renderAndIsFieldPresent(format, context=fields, ord=ord) #replace everything of the form {{ by its value TODO check
+            if showAField:
+                available.append(ord)
+        return available
+
+    def _availOrdsOriginal(self, m, flds, changedOrNewReq=None):
+        """Given a joined field string, return ordinal of card type which
+        should be generated. See
+        ../documentation/templates_generation_rules.md for the detail
+
+        """
         if m['type'] == MODEL_CLOZE:
             return self._availClozeOrds(m, flds)
         fields = {}

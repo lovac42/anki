@@ -742,25 +742,30 @@ where c.nid = n.id and c.id in %s group by nid""" % ids2str(cids)):
         # render q & a
         d = dict()
         d['id'] = cid
-        d['q'] = self._renderQuestion(data, fields, flds, ord, template, model, qfmt)
+        question, showAField = self._renderQuestion(data, fields, flds, ord, template, model, qfmt)
+        d['q'] = question
+        d['showAField'] = showAField
         d['a'] = self._renderAnswer(data, fields, ord, template, model, afmt)
         return d
 
     def _renderQuestion(self, data, fields, flds, ord, template, model, qfmt=None):
-        """The question for this template, given those fields."""
+        """A pair with:
+        * The question for this template, given those fields.
+        * whether a field is shown
+        """
         format = qfmt or template['qfmt']
         #Replace {{'foo'cloze: by {{'foo'cq-(ord+1), where 'foo' does not begins with "type:"
         format = re.sub("{{(?!type:)(.*?)cloze:", r"{{\1cq-%d:" % (ord+1), format)
         #Replace <%cloze: by <%%cq:(ord+1)
         format = format.replace("<%cloze:", "<%%cq:%d:" % (ord+1))
-        question = self.__renderQA(fields, model, data, format, "q")
+        question, showAField = self.__renderQA(fields, model, data, format, "q")
         fields['FrontSide'] = stripSounds(question)
         # empty cloze?
         if model['type'] == MODEL_CLOZE and not self.models._availClozeOrds(model, flds, False):
              question += ("<p>" + _(
                 "Please edit this note and add some cloze deletions. (%s)") % (
                     "<a href=%s#cloze>%s</a>" % (HELP_SITE, _("help"))))
-        return question
+        return question, showAField
 
     def _renderAnswer(self, data, fields, ord, template, model, afmt=None):
         """The answer for this template, given those fields."""
@@ -769,14 +774,16 @@ where c.nid = n.id and c.id in %s group by nid""" % ids2str(cids)):
         format = re.sub("{{(.*?)cloze:", r"{{\1ca-%d:" % (ord+1), format)
         #Replace <%cloze: by <%%ca:(ord+1)
         format = format.replace("<%cloze:", "<%%ca:%d:" % (ord+1))
-        return self.__renderQA(fields, model, data, format, "a")
+        answer, showAField = self.__renderQA(fields, model, data, format, "a")
+        return answer
 
     def __renderQA(self, fields, model, data, format, type):
         """apply fields to format. Use munge hooks before and after"""
         fields = runFilter("mungeFields", fields, model, data, self)
-        html = anki.template.render(format, fields)
-        return runFilter(
+        html, showAField = anki.template.renderAndIsFieldPresent(format, fields)
+        html = runFilter(
             "mungeQA", html, type, fields, model, data, self)
+        return html, showAField
 
     def _basicFields(self, flds, model):
         """A dict associating:

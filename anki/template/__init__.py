@@ -1,7 +1,7 @@
 from anki.template.template import Template
 from anki.template.view import View
 
-def renderAndIsFieldPresent(template, context=None, **kwargs):
+def renderAndIsFieldPresent(template, context=None, ord=None, **kwargs):
     """
     Given the template and its fields, create the html of the card.
 
@@ -13,7 +13,7 @@ def renderAndIsFieldPresent(template, context=None, **kwargs):
     """
     context = context and context.copy() or {}
     context.update(kwargs)
-    return Template(template, context).renderAndIsFieldPresent()
+    return Template(template, context, ord=ord).renderAndIsFieldPresent()
 
-def render(template, context=None, **kwargs):
-    return renderAndIsFieldPresent(template, context=context, **kwargs)[0]
+def render(template, context=None, ord=None, **kwargs):
+    return renderAndIsFieldPresent(template, context=context, ord=ord, **kwargs)[0]
