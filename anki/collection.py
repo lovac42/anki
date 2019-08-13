@@ -737,11 +737,12 @@ where c.nid = n.id and c.id in %s group by nid""" % ids2str(cids)):
         # render q & a
         d = dict()
         d['id'] = cid
-        d['q'] = self._renderQuestion(data, fields, flds, ord template, qfmt)
-        d['a'] = self._renderAnswer(data, ord, fields, template, afmt)
+        d['q'] = self._renderQuestion(data, fields, flds, ord, template, qfmt)
+        d['a'] = self._renderAnswer(data, fields, ord, template, afmt)
         return d
 
-    def _renderQuestion(self, data, fields, flds, template, qfmt=None):
+    def _renderQuestion(self, data, fields, flds, ord, template, qfmt=None):
+        """The question for this template, given those fields."""
         format = qfmt or template['qfmt']
         #Replace {{'foo'cloze: by {{'foo'cq-(ord+1), where 'foo' does not begins with "type:"
         format = re.sub("{{(?!type:)(.*?)cloze:", r"{{\1cq-%d:" % (ord+1), format)
@@ -756,7 +757,8 @@ where c.nid = n.id and c.id in %s group by nid""" % ids2str(cids)):
                     "<a href=%s#cloze>%s</a>" % (HELP_SITE, _("help"))))
         return question
 
-    def _renderAnswer(self, data, ord, fields, template, afmt=None):
+    def _renderAnswer(self, data, fields, ord, template, afmt=None):
+        """The answer for this template, given those fields."""
         format = afmt or template['afmt']
         #Replace {{'foo'cloze: by {{'foo'ca-(ord+1)
         format = re.sub("{{(.*?)cloze:", r"{{\1ca-%d:" % (ord+1), format)
@@ -765,7 +767,7 @@ where c.nid = n.id and c.id in %s group by nid""" % ids2str(cids)):
         return self.__renderQA(fields, model, data, format, "a")
 
     def __renderQA(self, fields, model, data, format, type):
-        """Render the question side of a card"""
+        """apply fields to format. Use munge hooks before and after"""
         fields = runFilter("mungeFields", fields, model, data, self)
         html = anki.template.render(format, fields)
         return runFilter(
