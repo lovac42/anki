@@ -393,10 +393,6 @@ class DataModel(QAbstractTableModel):
         in multiple place in the menu"""
         lists = [basicColumns, internal, extra]
         names = set()
-        for model in self.col.models.models.values():
-            modelSNames = {field['name'] for field in model['flds'] if (not self.fieldsTogether) or field['name'] not in names}
-            lists.append([fieldColumn(name, model, self) for name in modelSNames])
-            names |= modelSNames
         columns = [column for list in lists for column in list]
         return columns
 

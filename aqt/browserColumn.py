@@ -634,7 +634,7 @@ BrowserColumn(
 
 def fieldColumn(fieldName, model, dataModel):
     return BrowserColumn(
-        type=f"field:{fieldName}",
+        type=f"_field_{fieldName}",
         name=fieldName,
         content=lambda card, browser: htmlToTextLine(card.note()[fieldName]) if fieldName in card.note().keys() else "",
         menu= ["Fields"] if dataModel.fieldsTogether else ["Fields", model['name']]
