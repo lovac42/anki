@@ -566,11 +566,11 @@ where c.nid = n.id and c.id in %s group by nid""" % ids2str(cids)):
         # render q & a
         d = dict()
         d['id'] = data[0]
-        d['q'] = self._renderQuestion(data, fields, template, qfmt)
-        d['a'] = self._renderQuestion(data, fields, template, afmt)
+        d['q'] = self._renderQuestion(data, fields, template, model, qfmt)
+        d['a'] = self._renderAnswer(data, fields, template, model, afmt)
         return d
 
-    def _renderQuestion(self, data, fields, template, qfmt=None):
+    def _renderQuestion(self, data, fields, template, model, qfmt=None):
         format = qfmt or template['qfmt']
         format = re.sub("{{(?!type:)(.*?)cloze:", r"{{\1cq-%d:" % (data[4]+1), format)
         format = format.replace("<%cloze:", "<%%cq:%d:" % (
@@ -584,7 +584,7 @@ where c.nid = n.id and c.id in %s group by nid""" % ids2str(cids)):
                     "<a href=%s#cloze>%s</a>" % (HELP_SITE, _("help"))))
         return question
 
-    def _renderAnswer(self, data, fields, template, afmt=None):
+    def _renderAnswer(self, data, fields, template, model, afmt=None):
         format = afmt or template['afmt']
         format = re.sub("{{(.*?)cloze:", r"{{\1ca-%d:" % (data[4]+1), format)
         format = format.replace("<%cloze:", "<%%ca:%d:" % (
@@ -605,7 +605,7 @@ where c.nid = n.id and c.id in %s group by nid""" % ids2str(cids)):
         return fields
 
     def _extendedFields(self, data, model, template):
-        fields = self._basicFields(data)
+        fields = self._basicFields(data, model)
         fields['Tags'] = data[5].strip()
         fields['Type'] = model['name']
         fields['Deck'] = self.decks.name(data[3])
