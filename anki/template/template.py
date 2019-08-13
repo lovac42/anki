@@ -139,7 +139,7 @@ class Template:
                 replacer = inner
 
             if section_name in self.fieldsForbiddenInSection():
-                replacer = _("<b>Please don't use {{%s%s}} in card type.</b>%s") % (symbol, section_name, inner)
+                replacer = _("<b>Please don't use {{%s%s}} in card type/field.</b>%s") % (symbol, section_name, inner)
 
             template = template.replace(section, replacer)
 
