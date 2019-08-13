@@ -116,6 +116,7 @@ class Template:
 
             section, section_name, inner = match.group(0, 1, 2)
             section_name = section_name.strip()
+            symbol = section[2]
 
             # val will contain the content of the field considered
             # right now
@@ -132,12 +133,15 @@ class Template:
 
             replacer = ''
             # Whether it's {{^
-            inverted = section[2] == "^"
-            # Ensuring we don't consider whitespace in wval
+            inverted = symbol == "^"
+            # Ensuring we don't consider whitespace in val
             if val:
                 val = stripHTMLMedia(val).strip()
             if bool(val) != inverted:
                 replacer = inner
+
+            if section_name in self.fieldsForbiddenInSection():
+                replacer = _("<b>Please don't use {{%s%s}} in card type/field.</b>%s") % (symbol, section_name, inner)
 
             template = template.replace(section, replacer)
 
@@ -182,13 +186,18 @@ class Template:
         """Rendering a comment always returns nothing."""
         return ''
 
-    def specialFields(self):
+    def fieldsNotJustifyingCreation(self):
         """Set of fields which have a special value, and should not be enough
         to justify to show a card"""
-        s = {'Tags', 'Type', 'Deck', 'Subdeck', 'CardFlag', 'Card', 'FrontSide'}
+        s = self.fieldsForbiddenInSection()
         if self.ord is not None:
             s.add(f'c{self.ord+1}')
         return s
+
+    def fieldsForbiddenInSection(self):
+        """Set of fields which have a special value, and can't be used to
+        decide whether a card is created or not."""
+        return {'Tags', 'Type', 'Deck', 'Subdeck', 'CardFlag', 'Card', 'FrontSide'}
 
     @modifier(None)
     def render_unescaped(self, tag_name=None, context=None):
@@ -198,7 +207,7 @@ class Template:
             # some field names could have colons in them
             # avoid interpreting these as field modifiers
             # better would probably be to put some restrictions on field names
-            if bool(txt.strip()) and tag_name not in self.specialFields():### MODIFIED
+            if bool(txt.strip()) and tag_name not in self.fieldsNotJustifyingCreation():### MODIFIED
                 self.showAField = True
             return txt### MODIFIED
 
@@ -213,7 +222,7 @@ class Template:
         txt = get_or_attr(context, tag)
         if txt is None:
             return '{unknown field %s}' % tag_name
-        elif bool(txt.strip()):### MODIFIED
+        elif bool(txt.strip()) and tag_name not in self.fieldsNotJustifyingCreation():### MODIFIED
             self.showAField = True
 
         #Since 'text:' and other mods can affect html on which Anki relies to
