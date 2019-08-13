@@ -785,12 +785,11 @@ select id from notes where mid = ?)""" % " ".join(map),
 
         """
         if self.col.conf.get("complexTemplates", False):
-            return self.availOrdsReal(m, flds)
+            return self._availOrdsReal(m, flds)
         else:
-            return self.availOrdsOriginal(m, flds)
+            return self._availOrdsOriginal(m, flds)
 
-
-    def availOrdsReal(self, m, flds):
+    def _availOrdsReal(self, m, flds):
         """
         self -- model manager
         m -- a model object
@@ -812,7 +811,7 @@ select id from notes where mid = ?)""" % " ".join(map),
                 available.append(ord)
         return available
 
-    def availOrdsOriginal(self, m, flds):
+    def _availOrdsOriginal(self, m, flds):
         """Given a joined field string, return ordinal of card type which
         should be generated. See
         ../documentation/templates_generation_rules.md for the detail
