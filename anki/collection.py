@@ -447,7 +447,7 @@ crt=?, mod=?, scm=?, dty=?, usn=?, ls=?, conf=?""",
     ##########################################################################
 
     def findTemplates(self, note):
-        "Return non-empty templates."
+        "Return templates generating contents from this note."
         model = note.model()
         avail = self.models.availOrds(model, joinFields(note.fields))
         return self._tmplsFromOrds(model, avail)
