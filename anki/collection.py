@@ -19,7 +19,7 @@ from anki.utils import ids2str, fieldChecksum, \
 from anki.hooks import  runFilter, runHook
 from anki.models import ModelManager
 from anki.media import MediaManager
-from anki.decks import DeckManager
+from anki.decks import DeckManager, defaultConf as defaultDeckConf, defaultDynamicDeck, defaultDeck
 from anki.tags import TagManager
 from anki.consts import *
 from anki.errors import AnkiError
@@ -447,7 +447,7 @@ crt=?, mod=?, scm=?, dty=?, usn=?, ls=?, conf=?""",
     ##########################################################################
 
     def findTemplates(self, note):
-        "Return non-empty templates."
+        "Return templates generating contents from this note."
         model = note.model()
         avail = self.models.availOrds(model, joinFields(note.fields))
         return self._tmplsFromOrds(model, avail)
@@ -727,69 +727,85 @@ where c.nid = n.id and c.id in %s group by nid""" % ids2str(cids)):
         qfmt -- question format string (as in template)
         afmt -- answer format string (as in template)
 
-        unpack fields and create dict
-        TODO comment better
-
+        Return a dictionnary associating the question, the answer and the card id
         """
         cid, nid, mid, did, ord, tags, flds, cardFlags = data
-        flist = splitFields(flds)#the list of fields
-        fields = {} #
-        #name -> ord for each field, tags
-        # Type: the name of the model,
-        # Deck, Subdeck: their name
-        # Card: the template name
-        # cn: 1 for n being the ord+1
-        # FrontSide :
+        # data is [cid, nid, mid, did, ord, tags, flds, cardFlags]
+        # unpack fields and create dict
+
         model = self.models.get(mid)
+        if model['type'] == MODEL_STD:
+            template = model['tmpls'][ord]
+        else:
+            template = model['tmpls'][0]
+        fields = self._extendedFields(flds, tags, ord, cardFlags, model, template, did)
+        # render q & a
+        d = dict()
+        d['id'] = cid
+        d['q'] = self._renderQuestion(data, fields, flds, ord, template, model, qfmt)
+        d['a'] = self._renderAnswer(data, fields, ord, template, model, afmt)
+        return d
+
+    def _renderQuestion(self, data, fields, flds, ord, template, model, qfmt=None):
+        """The question for this template, given those fields."""
+        format = qfmt or template['qfmt']
+        #Replace {{'foo'cloze: by {{'foo'cq-(ord+1), where 'foo' does not begins with "type:"
+        format = re.sub("{{(?!type:)(.*?)cloze:", r"{{\1cq-%d:" % (ord+1), format)
+        #Replace <%cloze: by <%%cq:(ord+1)
+        format = format.replace("<%cloze:", "<%%cq:%d:" % (ord+1))
+        question = self.__renderQA(fields, model, data, format, "q")
+        fields['FrontSide'] = stripSounds(question)
+        # empty cloze?
+        if model['type'] == MODEL_CLOZE and not self.models._availClozeOrds(model, flds, False):
+             question += ("<p>" + _(
+                "Please edit this note and add some cloze deletions. (%s)") % (
+                    "<a href=%s#cloze>%s</a>" % (HELP_SITE, _("help"))))
+        return question
+
+    def _renderAnswer(self, data, fields, ord, template, model, afmt=None):
+        """The answer for this template, given those fields."""
+        format = afmt or template['afmt']
+        #Replace {{'foo'cloze: by {{'foo'ca-(ord+1)
+        format = re.sub("{{(.*?)cloze:", r"{{\1ca-%d:" % (ord+1), format)
+        #Replace <%cloze: by <%%ca:(ord+1)
+        format = format.replace("<%cloze:", "<%%ca:%d:" % (ord+1))
+        return self.__renderQA(fields, model, data, format, "a")
+
+    def __renderQA(self, fields, model, data, format, type):
+        """apply fields to format. Use munge hooks before and after"""
+        fields = runFilter("mungeFields", fields, model, data, self)
+        html = anki.template.render(format, fields)
+        return runFilter(
+            "mungeQA", html, type, fields, model, data, self)
+
+    def _basicFields(self, flds, model):
+        """A dict associating:
+        for each field name it's content
+        """
+        fields = {}
+        flist = splitFields(flds)#the list of fields
         for (name, (idx, conf)) in list(self.models.fieldMap(model).items()):#conf is not used
             fields[name] = flist[idx]
+        return fields
+
+    def _extendedFields(self, flds, tags, ord, cardFlags, model, template, did):
+        """A dict associating:
+        for each field name it's content
+        Type: the name of the model,
+        Deck, Subdeck: their name
+        Card: the template name
+        cn: 1 for n being the ord+1
+
+        it'll be extended by renderQuestion to add FrontSide to it"""
+        fields = self._basicFields(flds, model)
         fields['Tags'] = tags.strip()
         fields['Type'] = model['name']
         fields['Deck'] = self.decks.name(did)
         fields['Subdeck'] = self.decks._basename(fields['Deck'])
         fields['CardFlag'] = self._flagNameFromCardFlags(cardFlags)
-        if model['type'] == MODEL_STD:#model['type'] is distinct from fields['Type']
-            template = model['tmpls'][ord]
-        else:#for cloze deletions
-            template = model['tmpls'][0]
         fields['Card'] = template['name']
         fields['c%d' % (ord+1)] = "1"
-        # render q & a
-        d = dict(id=cid)
-        # id: card id
-        qfmt = qfmt or template['qfmt']
-        afmt = afmt or template['afmt']
-        for (type, format) in (("q", qfmt), ("a", afmt)):
-            if type == "q":#if/else is in the loop in order for d['q'] to be defined below
-                format = re.sub("{{(?!type:)(.*?)cloze:", r"{{\1cq-%d:" % (ord+1), format)
-                #Replace {{'foo'cloze: by {{'foo'cq-(ord+1), where 'foo' does not begins with "type:"
-                format = format.replace("<%cloze:", "<%%cq:%d:" % (
-                    ord+1))
-                #Replace <%cloze: by <%%cq:(ord+1)
-            else:
-                format = re.sub("{{(.*?)cloze:", r"{{\1ca-%d:" % (ord+1), format)
-                #Replace {{'foo'cloze: by {{'foo'ca-(ord+1)
-                format = format.replace("<%cloze:", "<%%ca:%d:" % (
-                    ord+1))
-                #Replace <%cloze: by <%%ca:(ord+1)
-                fields['FrontSide'] = stripSounds(d['q'])
-                #d['q'] is defined during loop's first iteration
-            fields = runFilter("mungeFields", fields, model, data, self) # TODO check
-            html, showAField = anki.template.renderAndIsFieldPresent(format, fields) #replace everything of the form {{ by its value TODO check
-            d["showAField"] = showAField#MODIFIED
-            d[type] = runFilter(
-                "mungeQA", html, type, fields, model, data, self) # TODO check
-            # empty cloze?
-            if type == 'q' and model['type'] == MODEL_CLOZE:
-                if not self.models._availClozeOrds(model, flds, False):
-                    d['q'] += ("<p>" + _(
-                "Please edit this note and add some cloze deletions. (%s)") % (
-                "<a href=%s#cloze>%s</a>" % (HELP_SITE, _("help"))))
-                    #in the case where there is a cloze note type
-                    #without {{cn in fields indicated by
-                    #{{cloze:fieldName; an error message should be
-                    #shown
-        return d
+        return fields
 
     def _qaData(self, where=""):
         """The list of [cid, nid, mid, did, ord, tags, flds, cardFlags] for each pair cards satisfying where.
@@ -997,7 +1013,7 @@ where c.nid == f.id
                 "fixFloatDue",
                 "doubleCard",
                 "ensureSomeNoteType",
-                "checkAutoPlay",
+                "checkDeck",
     ]
 
 
@@ -1234,18 +1250,19 @@ where c.nid == f.id
         if self.models.ensureNotEmpty():
             self.problems.append("Added missing note type.")
 
-    def checkAutoPlay(self):
-        """check that autoplay is set in all deck object"""
-        for dconf in self.decks.dconf.values():
-            if 'autoplay' not in dconf:
-                dconf['autoplay'] = True
-                self.decks.save(dconf)
-                self.problems.append(f"Adding some «autoplay» which was missing in deck's option {dconf['name']}")
-        for deck in self.decks.decks.values():
-            if deck['dyn'] and 'autoplay' not in deck:
-                deck['autoplay'] = True
-                self.decks.save(deck)
-                self.problems.append(f"Adding some «autoplay» which was missing in deck {deck['name']}")
+    def checkDeck(self):
+        """check that all default confs/decks option are set in all deck's related object"""
+        for paramsSet, defaultParam, what, kind in [(self.decks.dconf.values(), defaultDeckConf, "'s option", "deck configuration"),
+                                                    (self.decks.all(sort=False, standard=True, dyn=False), defaultDeck, "", "standard deck"),
+                                                    (self.decks.all(sort=False, standard=False, dyn=True), defaultDynamicDeck, " (dynamic)", "dynamic deck"),
+                                                    (self.decks.all(sort=False, standard=False, dyn=True), defaultDeckConf, " (dynamic)", "dynamic deck as conf"),
+        ]:
+            for key in defaultParam:
+                for params in paramsSet:
+                    if key not in params:
+                        params[key] = defaultParam[key]
+                        self.decks.save(params)
+                        self.problems.append(f"Adding some «{key}» which was missing in deck{what} {params['name']}")
 
     def optimize(self):
         """Tell sqlite to optimize the db"""
