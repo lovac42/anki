@@ -733,15 +733,15 @@ where c.nid = n.id and c.id in %s group by nid""" % ids2str(cids)):
             template = model['tmpls'][ord]
         else:
             template = model['tmpls'][0]
-        fields = self._extendedFields(data, model, template)
+        fields = self._extendedFields(flds, tags, ord, cardFlags, model, template, did)
         # render q & a
         d = dict()
         d['id'] = cid
-        d['q'] = self._renderQuestion(data, fields, flds, ord, template, qfmt)
-        d['a'] = self._renderAnswer(data, fields, ord, template, afmt)
+        d['q'] = self._renderQuestion(data, fields, flds, ord, template, model, qfmt)
+        d['a'] = self._renderAnswer(data, fields, ord, template, model, afmt)
         return d
 
-    def _renderQuestion(self, data, fields, flds, ord, template, qfmt=None):
+    def _renderQuestion(self, data, fields, flds, ord, template, model, qfmt=None):
         """The question for this template, given those fields."""
         format = qfmt or template['qfmt']
         #Replace {{'foo'cloze: by {{'foo'cq-(ord+1), where 'foo' does not begins with "type:"
@@ -757,7 +757,7 @@ where c.nid = n.id and c.id in %s group by nid""" % ids2str(cids)):
                     "<a href=%s#cloze>%s</a>" % (HELP_SITE, _("help"))))
         return question
 
-    def _renderAnswer(self, data, fields, ord, template, afmt=None):
+    def _renderAnswer(self, data, fields, ord, template, model, afmt=None):
         """The answer for this template, given those fields."""
         format = afmt or template['afmt']
         #Replace {{'foo'cloze: by {{'foo'ca-(ord+1)
@@ -783,7 +783,7 @@ where c.nid = n.id and c.id in %s group by nid""" % ids2str(cids)):
             fields[name] = flist[idx]
         return fields
 
-    def _extendedFields(self, tags, ord, cardFlags, model, template):
+    def _extendedFields(self, flds, tags, ord, cardFlags, model, template, did):
         """A dict associating:
         for each field name it's content
         Type: the name of the model,
@@ -792,7 +792,7 @@ where c.nid = n.id and c.id in %s group by nid""" % ids2str(cids)):
         cn: 1 for n being the ord+1
 
         it'll be extended by renderQuestion to add FrontSide to it"""
-        fields = self._basicFields(data)
+        fields = self._basicFields(flds, model)
         fields['Tags'] = tags.strip()
         fields['Type'] = model['name']
         fields['Deck'] = self.decks.name(did)
