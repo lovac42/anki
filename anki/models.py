@@ -784,8 +784,6 @@ select id from notes where mid = ?)""" % " ".join(map),
         ../documentation/templates_generation_rules.md for the detail
 
         """
-        if m['type'] == MODEL_CLOZE:
-            return self._availClozeOrds(m, flds)
         if self.col.conf.get("complexTemplates", False):
             return self.availOrdsReal(m, flds)
         else:
@@ -802,7 +800,11 @@ select id from notes where mid = ?)""" % " ".join(map),
         fields = {} #
         for (name, (idx, conf)) in list(self.fieldMap(m).items()):#conf is not used
             fields[name] = flist[idx]
-        for ord in range(len(m["tmpls"])):
+        if m['type'] == MODEL_CLOZE:
+            potentialOrds = self._availClozeOrds(m, flds)
+        else:
+            potentialOrds = range(len(m["tmpls"]))
+        for ord in potentialOrds:
             template = m["tmpls"][ord]
             format = template['qfmt']
             html, showAField = anki.template.renderAndIsFieldPresent(format, fields) #replace everything of the form {{ by its value TODO check
@@ -816,6 +818,8 @@ select id from notes where mid = ?)""" % " ".join(map),
         ../documentation/templates_generation_rules.md for the detail
 
         """
+        if m['type'] == MODEL_CLOZE:
+            return self._availClozeOrds(m, flds)
         fields = {}
         for c, f in enumerate(splitFields(flds)):
             fields[c] = f.strip()
