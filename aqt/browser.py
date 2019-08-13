@@ -27,7 +27,7 @@ from anki.hooks import runHook, addHook, remHook, runFilter
 from aqt.webview import AnkiWebView
 from anki.consts import *
 from anki.sound import clearAudioQueue, allSounds, play
-from aqt.browserColumn import BrowserColumn, ColumnList, unknownColumn, basicColumns, internal, extra, fieldColumn
+from aqt.browserColumn import BrowserColumn, ColumnList, unknownColumn, basicColumns, internal, extra
 
 
 """The set of column names related to cards. Hence which should not be
