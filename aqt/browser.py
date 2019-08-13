@@ -27,7 +27,7 @@ from anki.hooks import runHook, addHook, remHook, runFilter
 from aqt.webview import AnkiWebView
 from anki.consts import *
 from anki.sound import clearAudioQueue, allSounds, play
-from aqt.browserColumn import BrowserColumn, ColumnList, unknownColumn, basicColumns, fieldColumn
+from aqt.browserColumn import BrowserColumn, ColumnList, unknownColumn, basicColumns
 
 
 """The set of column names related to cards. Hence which should not be
@@ -386,10 +386,6 @@ class DataModel(QAbstractTableModel):
         basicList = basicColumns.copy()
         lists = [basicList]
         names = set()
-        for model in self.col.models.models.values():
-            modelSNames = {field['name'] for field in model['flds'] if not(self.col.conf.get("fieldsTogether", False)) or field['name'] not in names}
-            lists.append([fieldColumn(name, model, self.browser) for name in modelSNames])
-            names |= modelSNames
         columns = [column for list in lists for column in list]
         return columns
 
