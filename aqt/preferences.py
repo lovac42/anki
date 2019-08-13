@@ -193,7 +193,7 @@ Not currently enabled; click the sync button in the main window to enable."""))
     # Basic & Advanced Options
     ######################################################################
 
-   def setupBackup(self):
+    def setupBackup(self):
         self.form.openBackupFolder.linkActivated.connect(self.onOpenBackup)
 
     def onOpenBackup(self):
