@@ -5,11 +5,13 @@
 The window obtained, from main window "Tools>Study deck"
 """
 
-from aqt.qt import *
 import aqt
-from aqt.utils import showInfo, openHelp, getOnlyText, shortcut, restoreGeom, saveGeom
 from anki.hooks import addHook, remHook
 from anki.lang import _
+from aqt.qt import *
+from aqt.utils import (getOnlyText, openHelp, restoreGeom, saveGeom, shortcut,
+                       showInfo)
+
 
 class StudyDeck(QDialog):
     """

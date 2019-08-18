@@ -5,6 +5,7 @@
 
 """Some templates for Japan language"""
 import re
+
 from anki.hooks import addHook
 
 r = r' ?([^ >]+?)\[(.+?)\]'

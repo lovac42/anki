@@ -5,6 +5,7 @@
 from anki.hooks import addHook
 from anki.lang import _
 
+
 def hint(txt, extra, context, tag, fullname):
     """Some HTML which show «show tag» (with show localized). When it is clicked, this text is replaced by txt.
 

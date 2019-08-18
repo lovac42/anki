@@ -1,12 +1,13 @@
 # coding: utf-8
 
-import time
 import copy
+import time
 
 from anki.consts import STARTING_FACTOR
-from tests.shared import getEmptyCol as _getEmptyCol
-from anki.utils import  intTime
 from anki.hooks import addHook
+from anki.utils import intTime
+from tests.shared import getEmptyCol as _getEmptyCol
+
 
 def getEmptyCol():
     return _getEmptyCol(schedVer=2)

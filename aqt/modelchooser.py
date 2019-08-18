@@ -7,10 +7,11 @@ import notes, or to change the model of a card.
 
 """
 
-from aqt.qt import *
 from anki.hooks import addHook, remHook, runHook
-from aqt.utils import  shortcut
 from anki.lang import _
+from aqt.qt import *
+from aqt.utils import shortcut
+
 
 class ModelChooser(QHBoxLayout):
     """
