@@ -8,22 +8,22 @@
 #                  its id,
 #                  its number of due cards,
 #                  number of reviews of cards in learning which will occur today,
-#                  its number of new cards to see today,
-#                  its list of children)
-from aqt.qt import *
-from aqt.utils import askUser, getOnlyText, openLink, showWarning, shortcut, \
-    openHelp
-from anki.utils import ids2str, fmtTimeSpan
+#                  )
+from copy import deepcopy
+
+import aqt
 from anki.consts import *
 from anki.errors import DeckRenameError
-import aqt
-from anki.sound import clearAudioQueue
 from anki.hooks import runHook
-from copy import deepcopy
 from anki.lang import _, ngettext
+from anki.sound import clearAudioQueue
+from anki.utils import fmtTimeSpan, ids2str
+from aqt.qt import *
+from aqt.utils import (askUser, getOnlyText, openHelp, openLink, shortcut,
+                       showWarning)
+
 
 class DeckBrowser:
-
     def __init__(self, mw):
         self.mw = mw
         self.web = mw.web

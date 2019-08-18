@@ -4,12 +4,16 @@
 
 """Everything required to download an add-on, when we already have the number."""
 
-import time, re, traceback
-from aqt.qt import *
-from anki.sync import AnkiRequestsClient
-from anki.hooks import addHook, remHook
+import re
+import time
+import traceback
+
 import aqt
+from anki.hooks import addHook, remHook
 from anki.lang import _
+from anki.sync import AnkiRequestsClient
+from aqt.qt import *
+
 
 def download(mw, code):
     """add-on file and add-on name whose number is code. Downloaded
