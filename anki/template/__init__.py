@@ -1,6 +1,7 @@
 from anki.template.template import Template
 from anki.template.view import View
 
+
 def render(template, context=None, **kwargs):
     """
     Given the template and its fields, create the html of the card.

@@ -5,20 +5,21 @@
 # r means server
 # l means collection
 
-import io
 import gzip
-import random
-import requests
+import io
 import json
 import os
+import random
 
-from anki.db import DB, DBError
-from anki.utils import ids2str, intTime, platDesc, checksum, devMode
-from anki.consts import *
-from anki.utils import versionWithBuild
-from .hooks import runHook
+import requests
+
 import anki
-from .lang import ngettext
+from anki.consts import *
+from anki.db import DB, DBError
+from anki.hooks import runHook
+from anki.lang import ngettext
+from anki.utils import (checksum, devMode, ids2str, intTime, platDesc,
+                        versionWithBuild)
 
 # syncing vars
 HTTP_TIMEOUT = 90

@@ -60,13 +60,15 @@ ord -- "template number, see flds",
 qfmt -- "question format string"
 """
 
-import copy, re, json
-from anki.utils import intTime, joinFields, splitFields, ids2str,\
-    checksum
-from anki.lang import _
+import copy
+import json
+import re
+import time
+
 from anki.consts import *
 from anki.hooks import runHook
-import time
+from anki.lang import _
+from anki.utils import checksum, ids2str, intTime, joinFields, splitFields
 
 # Models
 ##########################################################################

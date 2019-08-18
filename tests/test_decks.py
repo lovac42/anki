@@ -2,6 +2,7 @@
 
 from tests.shared import assertException, getEmptyCol
 
+
 def test_basic():
     deck = getEmptyCol()
     # we start with a standard deck

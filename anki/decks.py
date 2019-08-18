@@ -90,13 +90,15 @@ bury -- If True, when a review card is answered, the related cards of
 its notes are buried
 """
 
-import copy, operator
+import copy
+import operator
 import unicodedata
-from anki.utils import intTime, ids2str, json
-from anki.hooks import runHook
+
 from anki.consts import *
-from anki.lang import _
 from anki.errors import DeckRenameError
+from anki.hooks import runHook
+from anki.lang import _
+from anki.utils import ids2str, intTime, json
 
 # fixmes:
 # - make sure users can't set grad interval < 1
