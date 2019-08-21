@@ -307,4 +307,3 @@ lapses=?, left=?, odue=?, odid=?, did=? where id = ?""",
     def originalDeck(self):
         """Independantly of whether the card is filtered or not."""
         return self.odid or self.did
-

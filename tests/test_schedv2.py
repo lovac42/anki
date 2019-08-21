@@ -1208,4 +1208,3 @@ def test_negativeDueFilter():
 
     c.load()
     assert c.due == -5
-
