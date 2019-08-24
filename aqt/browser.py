@@ -344,7 +344,7 @@ class DataModel(QAbstractTableModel):
                 fieldName = field.getName()
                 menu = ['Fields', modelName]
                 type = f'_field_{fieldName}'
-                column = ColumnByMethod(type, fieldName, methodName="get", menu=menu, note=True, key=fieldName)
+                column = ColumnByMethod(type, fieldName, "valueForField(note.mid, note.flds, '{fieldName}')", "get", menu, True, fieldName)
                 add(column)
         for type in self.activeCols:
             if type not in columns:

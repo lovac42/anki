@@ -242,6 +242,8 @@ conf, models, decks, dconf, tags from col""")
     def loadSqlFns(self):
         """Add some function to the database. E.g. it can be used to sort
         elements."""
+        self.db._db.create_function("valueForField", 3, self.models.valueForField)
+
 
     def setMod(self):
         """Mark DB modified.
