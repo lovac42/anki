@@ -72,7 +72,8 @@ import time
 from anki.consts import *
 from anki.hooks import runHook
 from anki.lang import _
-from anki.utils import checksum, ids2str, intTime, joinFields, splitFields
+from anki.utils import (checksum, ids2str, intTime, joinFields, splitFields,
+                        stripHTMLMedia)
 
 # Models
 ##########################################################################
@@ -149,6 +150,17 @@ class ModelManager:
         "Load registry from JSON."
         self.changed = False
         self.models = json.loads(json_)
+        for model in self.models.values():
+            self._addTmp(model)
+
+    def _addTmp(self, model):
+        if 'tmp' not in model:
+            model['tmp'] = {}
+        model['tmp']['fieldNameToOrd'] = {}
+        for field in model['flds']:
+            name = field['name']
+            ord = field['ord']
+            model['tmp']['fieldNameToOrd'][name] = ord
 
     def save(self, model=None, templates=False):
         """
@@ -163,6 +175,7 @@ class ModelManager:
         if model and model['id']:
             model['mod'] = intTime()
             model['usn'] = self.col.usn()
+            self._addTmp(model)
             self._updateRequired(model)
             if templates:
                 self._syncTemplates(model)
@@ -357,6 +370,30 @@ and notes.mid = ? and cards.ord = ?""", model['id'], ord)
         else:
             template = templates[ord]
             return template['name']
+
+    def valueForField(self, mid, flds, fieldName):
+        """Function called from SQLite to get the value of a field,
+        given a field name and the model id for the note.
+
+        mid is the model id. The model contains the definition of a note,
+        including the names of all fields.
+
+        flds contains the text of all fields, delimited by the character
+        "x1f". We split this and index into it according to a precomputed
+        index for the model (mid) and field name (fieldName).
+
+        fieldName is the name of the field we are after."""
+
+        try:
+            model = self.get(mid)
+            index = model['tmp']['fieldNameToOrd'].get(fieldName)
+            if index is None:
+                return
+            fieldsList = flds.split("\x1f", index+1)
+            field = stripHTMLMedia(fieldsList[index])
+            return field
+        except:
+            pass
 
     # Copying
     ##################################################
