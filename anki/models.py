@@ -339,6 +339,25 @@ select id from cards where nid in (select id from notes where mid = ?)""",
 select count() from cards, notes where cards.nid = notes.id
 and notes.mid = ? and cards.ord = ?""", model['id'], ord)
 
+    def nameByMid(self, mid):
+        """A model name, given from the model id.
+
+        Used to sort models in browse"""
+        return self.get(mid)['name']
+
+    def nameByMidOrd(self, mid, ord):
+        """A template name, given from the model id and the template's ord.
+
+        Used to sort models in browse"""
+        model = self.get(mid)
+        templates = model['tmpls']
+        if model['type'] == MODEL_CLOZE:
+            template = templates[0]
+            return templates[0]['name']+ f" {ord+1}"
+        else:
+            template = templates[ord]
+            return template['name']
+
     # Copying
     ##################################################
 
