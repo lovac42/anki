@@ -338,6 +338,14 @@ class DataModel(QAbstractTableModel):
             ColumnByMethod('note', _("Note"), methodName="noteTypeBrowserColumn"),
         ]:
             add(column)
+        for model in self.col.models.all():
+            modelName = model.getName()
+            for field in model['flds']:
+                fieldName = field.getName()
+                menu = ['Fields', modelName]
+                type = f'_field_{fieldName}'
+                column = ColumnByMethod(type, fieldName, methodName="get", menu=menu, note=True, key=fieldName)
+                add(column)
         for type in self.activeCols:
             if type not in columns:
                 column = UselessColumn(type)
