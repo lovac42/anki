@@ -14,6 +14,7 @@ class Addon:
 
 """ Set of characteristic of Add-ons incorporated here"""
 incorporatedAddonsSet = {
+    Addon("Update add-ons when Anki starts", 1847544206, 1568266364, "4ca633266986da6ba6886d4706909ddbd18c10d4", "https://github.com/Arthur-Milchior/anki-auto-update-addons"),
 }
 
 incorporatedAddonsDict = {**{addon.name: addon for addon in incorporatedAddonsSet if addon.name},

@@ -262,6 +262,13 @@
             </widget>
            </item>
            <item>
+            <widget class="QCheckBox" name="syncAddons">
+             <property name="text">
+              <string>Synchronize add-ons too</string>
+             </property>
+            </widget>
+           </item>
+           <item>
             <widget class="QCheckBox" name="autoSync">
              <property name="text">
               <string>Automatically sync on profile open/close</string>
@@ -469,7 +476,7 @@
            <width>20</width>
            <height>20</height>
           </size>
-		 </property>
+         </property>
         </spacer>
        </item>
       </layout>
@@ -502,7 +509,7 @@
            <width>20</width>
            <height>20</height>
           </size>
-		 </property>
+         </property>
         </spacer>
        </item>
       </layout>
@@ -535,7 +542,7 @@
            <width>20</width>
            <height>20</height>
           </size>
-		 </property>
+         </property>
         </spacer>
        </item>
       </layout>
