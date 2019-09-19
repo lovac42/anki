@@ -172,7 +172,6 @@ class Models(QDialog):
     # need to flush model on change or reject
 
     def reject(self):
-        self.saveModel()
         self.mw.reset()
         saveGeom(self, "models")
         QDialog.reject(self)
