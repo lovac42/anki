@@ -77,11 +77,13 @@ class CardLayout(QDialog):
         # take the focus away from the first input area when starting up,
         # as users tend to accidentally type into the template
         self.setFocus()
-        self.newTemplatesData = [
-            {"is new":False,
-             "old idx":idx}
-            for idx in (range(len(self.model['tmpls'])))]
-        self.originalModel = copy.deepcopy(self.model)
+        self.mm._addTmp(self.model)
+        for idx, template in enumerate(self.model['tmpls']):
+            if self.model['type'] == MODEL_STD:
+                template['tmp']['old type'] = self.model['req'][idx][1]
+                template['tmp']['old req'] = self.model['req'][idx][2]
+            template['tmp']['old qfmt'] = template['qfmt']
+            template['tmp']['is new'] = False
 
     def redraw(self):
         """TODO
@@ -255,7 +257,6 @@ class CardLayout(QDialog):
             return showWarning(_("""\
 Removing this card type would cause one or more notes to be deleted. \
 Please create a new card type first."""))
-        del self.newTemplatesData[idx]
         self.redraw()
 
     # Buttons
@@ -418,7 +419,6 @@ Please create a new card type first."""))
             _("Enter new card position (1...%s):") % numberOfCard,
             default=str(cur))
         idx = self.ord
-        originalMeta = self.newTemplatesData[idx]
         if not pos:
             return
         try:
@@ -431,7 +431,6 @@ Please create a new card type first."""))
             return
         pos -= 1
         self.mm.moveTemplate(self.model, self.card.template(), pos)
-        self.newTemplatesData.insert(pos,originalMeta)
         self.ord = pos
         self.redraw()
 
@@ -456,9 +455,12 @@ Please create a new card type first."""))
         old = self.card.template()
         template['qfmt'] = old['qfmt']
         template['afmt'] = old['afmt']
+        if self.model['type'] == MODEL_STD:
+            template['tmp']['old type'] = old['tmp']['old type']
+            template['tmp']['old req'] = old['tmp']['old req']
+        template['tmp']['old qfmt'] = old['tmp']['old qfmt']
+        template['tmp']['is new'] = True
         self.mm.addTemplate(self.model, template)
-        self.newTemplatesData.append({"old idx":self.newTemplatesData[self.ord]["old idx"],
-                                      "is new": True})
         self.ord = len(self.cards)
         self.redraw()
 
@@ -615,9 +617,7 @@ Enter deck to place new %s cards in, or leave blank:""") %
                 self.note[name] = ""
             self.mw.col.db.execute("delete from notes where id = ?",
                                    self.note.id)
-        oldModel = self.originalModel
-        print(f"newTemplatesData is {self.newTemplatesData}")
-        self.mm.save(self.model, templates=True, oldModel = oldModel, newTemplatesData = self.newTemplatesData)
+        self.mm.save(self.model, templates=True)
         self.mw.reset()
         saveGeom(self, "CardLayout")
         self.pform.frontWeb = None
