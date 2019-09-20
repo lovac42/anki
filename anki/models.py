@@ -128,6 +128,7 @@ defaultTemplate = {
     'did': None,
     'bqfmt': "",
     'bafmt': "",
+    'tmp': {}
     # we don't define these so that we pick up system font size until set
     #'bfont': "Arial",
     #'bsize': 12,
@@ -149,32 +150,28 @@ class ModelManager:
         "Load registry from JSON."
         self.changed = False
         self.models = json.loads(json_)
+        for model in self.models.values():
+            self._addTmp(model)
 
-    def getChangedTemplates(self, model, oldModel=None, newTemplatesData=None):
-        """A set of index of templates potentially modified.
+    def _addTmp(self, model):
+        if 'tmp' not in model:
+            model['tmp'] = {}
+        model['tmp']['fieldNameToOrd'] = {}
+        model['tmp']['templateNameToOrd'] = {}
+        for field in model['flds']:
+            if 'tmp' not in field:
+                field['tmp'] = {}
+            name = field['name']
+            ord = field['ord']
+            model['tmp']['fieldNameToOrd'][name] = ord
+        for template in model['tmpls']:
+            if 'tmp' not in template:
+                template['tmp'] = {}
+            name = template['name']
+            ord = template['ord']
+            model['tmp']['templateNameToOrd'][name] = ord
 
-        keyword arguments:
-        oldModel -- the previous version of the model. If it is not
-        present, everything is potentially changed.
-        newTemplatesData
-        model -- the new model.
-        newTemplatesData -- a dictionnarry associating to each new template a dictionnary, with "old idx" representing the old positiof of the card.
-        """
-        if newTemplatesData is None or oldModel is None:
-            changedTemplates = set(range(len(model['tmpls'])))
-            return changedTemplates
-        changedTemplates = set()
-        for idx, tmpl in enumerate(model['tmpls']):
-            oldIdx = newTemplatesData[idx]["old idx"]
-            if oldIdx is None:
-                changedTemplates.add(idx)
-            else:
-                oldTmpl =oldModel['tmpls'][oldIdx]
-                if tmpl['qfmt']!=oldTmpl['qfmt']:
-                        changedTemplates.add(idx)
-        return changedTemplates
-
-    def save(self, model=None, templates=False, oldModel=None, newTemplatesData = None, recomputeReq=True):
+    def save(self, model=None, templates=False, recomputeReq=True):
         """
         * Mark model modified if provided.
         * Schedule registry flush.
@@ -183,19 +180,12 @@ class ModelManager:
         Keyword arguments:
         model -- A Model
         templates -- whether to check for cards not generated in this model
-        oldModel -- a previous version of the model, to which to compare
-        newTemplatesData -- a list whose i-th element state which is the
-        new position of the i-th template of the old model and whether the
-        template is new. It is set only if oldModel is set.
         """
         if model and model['id']:
-            if newTemplatesData is None:
-                newTemplatesData = [{"is new": True,
-                                     "old idx":None}]*len(model['tmpls'])
             model['mod'] = intTime()
             model['usn'] = self.col.usn()
             if recomputeReq:
-                changedOrNewReq = self._updateRequired(model, oldModel, newTemplatesData)
+                changedOrNewReq = self._updateRequired(model)
             else:
                 changedOrNewReq = set()
             if templates:
@@ -614,7 +604,7 @@ update cards set ord = ord - 1, usn = ?, mod = ?
         for index, template in enumerate(model['tmpls']):
             template['ord'] = index
 
-    def moveTemplate(self, model, template, idx):
+    def moveTemplate(self, model, template, newidx):
         """Move input template to position idx in model.
 
         Move also every other template to make this consistent.
@@ -622,22 +612,37 @@ update cards set ord = ord - 1, usn = ?, mod = ?
         Comment again after that TODODODO
         """
         oldidx = model['tmpls'].index(template)
-        if oldidx == idx:
+        oldidx = model['tmpls'].index(template)
+        if oldidx == newidx:
             return
-        oldidxs = dict((id(template), template['ord']) for template in model['tmpls'])
         model['tmpls'].remove(template)
-        model['tmpls'].insert(idx, template)
+        model['tmpls'].insert(newidx, template)
         self._updateTemplOrds(model)
-        # generate change map
-        map = []
-        for template in model['tmpls']:
-            map.append("when ord = %d then %d" % (oldidxs[id(template)], template['ord']))
+
         # apply
-        self.save(model)
+        self.save(model, recomputeReq=False)
         self.col.db.execute("""
-update cards set ord = (case %s end),usn=?,mod=? where nid in (
-select id from notes where mid = ?)""" % " ".join(map),
-                             self.col.usn(), intTime(), model['id'])
+update cards
+  set
+    `ord` = (case
+      when `ord` == :oldidx then :newidx
+      when :mini<= `ord` and `ord` <= :maxi then (`ord` + (:diff))
+      else `ord` end
+    ),
+    usn = :usn,
+    mod = :mod
+  where
+    :mini <= `ord` and
+     `ord` <= :maxi and
+     nid in (select id from notes where mid = :mid)""",
+                            oldidx=oldidx,
+                            newidx=newidx,
+                            mini=min(oldidx, newidx),
+                            maxi=max(oldidx, newidx),
+                            diff= -1 if oldidx < newidx else 1,
+                            usn=self.col.usn(),
+                            mod=intTime(),
+                            mid=model['id'])
 
     def _syncTemplates(self, model, changedOrNewReq=None):
         """Generate all cards not yet generated, whose note's model is model.
@@ -762,40 +767,26 @@ select id from notes where mid = ?)""" % " ".join(map),
     # Required field/text cache
     ##########################################################################
 
-    def _updateRequired(self, model, oldModel = None, newTemplatesData = None):
+    def _updateRequired(self, model, oldModel=None, newTemplatesData=None):
         """Entirely recompute the model's req value.
 
-        Return positions idx such that the req for idx in model is not the
-        req for oldIdx in oldModel. Or such that this card is new.
+        Return positions idx such that the card type is new or has its question changed
         """
         if model['type'] == MODEL_CLOZE:
             # nothing to do
             return
-        changedTemplates = self.getChangedTemplates(model, oldModel, newTemplatesData)
         req = []
         changedOrNewReq = set()
         flds = [fieldType['name'] for fieldType in model['flds']]
-        for idx,template in enumerate(model['tmpls']):
-            oldIdx = newTemplatesData[idx]["old idx"]# Assumed not None,
-            oldTup = oldModel['req'][oldIdx] if oldIdx is not None and oldModel else None
-            if oldModel is not None and idx not in changedTemplates :
-                if oldTup is None:
-                    print(f"newTemplatesData is «{newTemplatesData}»")
-                    print(f"oldIdx is «{oldIdx}»")
-                    print(f"oldReq is «oldModel['req']»")
-                    assert False
-                oldIdx, oldType, oldReq_ = oldTup
-                tup = (idx, oldType, oldReq_)
-                req.append(tup)
-                if newTemplatesData[idx]["is new"]:
+        for idx, template in enumerate(model['tmpls']):
+            if 'tmp' in template and 'old req' in template['tmp'] and 'old type' in template['tmp'] and 'old qfmt' in template['tmp'] and template['tmp']['old qfmt'] == template['qfmt']:
+                req.append((idx, template['tmp']['old type'], template['tmp']['old req']))
+                if template['tmp'].get("is new", True):
                     changedOrNewReq.add(idx)
                 continue
-            else:
-                ret = self._reqForTemplate(model, flds, template)
-                tup = (idx, ret[0], ret[1])
-                if oldTup is None or oldTup[1]!=tup[1] or oldTup[2]!=tup[2]:
-                    changedOrNewReq.add(idx)
-                req.append(tup)
+            ret = self._reqForTemplate(model, flds, template)
+            changedOrNewReq.add(idx)
+            req.append((idx, ret[0], ret[1]))
         model['req'] = req
         return changedOrNewReq
 
