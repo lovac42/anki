@@ -14,6 +14,7 @@ class Addon:
 
 """ Set of characteristic of Add-ons incorporated here"""
 incorporatedAddonsSet = {
+    Addon("Preview any cloze", 915063177, gitHash="53becee3577c308dc169304d9ff30bf54ce34018", gitRepo="https://github.com/Arthur-Milchior/anki-any-cloze-in-preview"),
 }
 
 incorporatedAddonsDict = {**{addon.name: addon for addon in incorporatedAddonsSet if addon.name},
