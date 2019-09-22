@@ -19,6 +19,9 @@ import queue
 import typing
 import uuid
 
+# included implicitly in the past, and relied upon by some add-ons
+import PyQt5.QtSvg
+
 from anki.utils import isWin
 
 # external module access in Windows
@@ -26,7 +29,3 @@ if isWin:
     import pythoncom
     import win32com
     import pywintypes
-
-# included implicitly in the past, and relied upon by some add-ons
-import PyQt5.QtSvg
-
