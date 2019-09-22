@@ -62,6 +62,7 @@ class Editor:
         self.widget = widget
         self.parentWindow = parentWindow
         self.note = None
+        self.model= None
         self.addMode = addMode
         self.currentField = None
         # current card, for card layout
@@ -365,8 +366,10 @@ class Editor:
         self.note = note
         self.currentField = None
         if self.note:
+            self.model = note.model()
             self.loadNote(focusTo=focusTo)
         else:
+            self.model = None
             self.hideCompleters()
             if hide:
                 self.widget.hide()
@@ -398,14 +401,15 @@ class Editor:
 
         self.web.evalWithCallback("setFields(%s); setFonts(%s); focusField(%s); setNoteId(%s)" % (
             json.dumps(data),
-            json.dumps(self.fonts()), json.dumps(focusTo),
-                                  json.dumps(self.note.id)),
+            json.dumps(self.fonts()),
+            json.dumps(focusTo),
+            json.dumps(self.note.id)),
                                   oncallback)
 
     def fonts(self):
         return [(runFilter("mungeEditingFontName", f['font']),
                  f['size'], f['rtl'])
-                for f in self.note.model()['flds']]
+                for f in self.model['flds']]
 
     def saveNow(self, callback, keepFocus=False):
         "Save unsaved edits then call callback()."
@@ -437,9 +441,8 @@ class Editor:
     def fieldsAreBlank(self):
         if not self.note:
             return True
-        m = self.note.model()
         for c, f in enumerate(self.note.fields):
-            if f and not m['flds'][c]['sticky']:
+            if f and not self.model['flds'][c]['sticky']:
                 return False
         return True
 
@@ -514,9 +517,8 @@ class Editor:
         """During creation of new notes, save tags to the note's model"""
         if self.addMode:
             # save tags to model
-            m = self.note.model()
-            m['tags'] = self.note.tags
-            self.mw.col.models.save(m)
+            self.model['tags'] = self.note.tags
+            self.mw.col.models.save(self.model)
 
     def hideCompleters(self):
         "Remove tags's line"
@@ -551,7 +553,7 @@ class Editor:
 
     def _onCloze(self):
         # check that the model is set up for cloze deletion
-        if not re.search('{{(.*:)*cloze:',self.note.model()['tmpls'][0]['qfmt']):
+        if not re.search('{{(.*:)*cloze:',self.model['tmpls'][0]['qfmt']):
             if self.addMode:
                 tooltip(_("Warning, cloze deletions will not work until "
                 "you switch the type at the top to Cloze."))
