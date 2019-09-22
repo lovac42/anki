@@ -14,6 +14,7 @@ class Addon:
 
 """ Set of characteristic of Add-ons incorporated here"""
 incorporatedAddonsSet = {
+    Addon("\"Close and lose current input ?\" for sticky fields", 1284221829, gitHash="8eb22c84dea7dfdf5e3f501db1c0d9b273de9f3e", gitRepo="https://github.com/Arthur-Milchior/anki-Close-and-lose-current-input-for-sticky-fields"),
 }
 
 incorporatedAddonsDict = {**{addon.name: addon for addon in incorporatedAddonsSet if addon.name},
