@@ -1,10 +1,12 @@
-import stat
 import os
+import stat
+
 from anki.consts import *
 from anki.decks import defaultConf as defaultDeckConf
 from anki.decks import defaultDeck, defaultDynamicDeck
 from anki.lang import _
 from anki.utils import ids2str, intTime
+
 
 class FixingManager:
 
@@ -34,6 +36,7 @@ class FixingManager:
         "atMost1000000Due",
         "setNextPos",
         "checkDeck",
+        "uniqueGuid",
     ]
 
     def fixIntegrity(self):
@@ -292,3 +295,15 @@ class FixingManager:
                         params[key] = defaultParam[key]
                         self.col.decks.save(params)
                         self.problems.append(f"Adding some «{key}» which was missing in deck{what} {params['name']}")
+
+    def uniqueGuid(self):
+        lastGuid = None
+        nids = []
+        lastNid = None
+        for guid, nid in self.db.all("select guid, id from notes order by guid"):
+            if lastGuid == guid:
+                self.db.execute("update notes set guid = ? where id = ? ", guid64(), nid)
+                nids.append((nid,lastNid))
+                problems.append(f"The guid of note %d has been changed because it used to be the guid of note %d.", nid, lastNid)
+            lastGuid = guid
+            lastNid = nid
