@@ -226,6 +226,7 @@ space, with an initial and a final white space."""
         cards= note.cards()
         note_date = note.id if copy_creation else None
         note.id = timestampID(note.col.db, "notes", t=note_date)
+        note.guid = guid64()
         for card in cards:
             card.copy(note.id, copy_creation, copy_review)
         note.flush()
