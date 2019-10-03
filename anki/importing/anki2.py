@@ -11,6 +11,7 @@ from anki.importing.base import Importer
 from anki.lang import _
 from anki.utils import intTime, joinFields, splitFields
 
+
 class Anki2Importer(Importer):
 
     """
