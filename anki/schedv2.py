@@ -122,7 +122,7 @@ order by due""" % (self._deckLimit()),
     def answerButtons(self, card):
         """Number of buttons to show for this card"""
         conf = self._cardConf(card)
-        if card.odid and not conf['resched']:
+        if card.isFiltered() and not conf['resched']:
             return 2
         return 4
 
@@ -327,7 +327,7 @@ select count() from cards where did in %s and queue = {QUEUE_PREVIEW}
             self._rescheduleNew(card, conf, early)
 
         # if we were dynamic, graduating means moving back to the old deck
-        if card.odid:
+        if card.isFiltered():
             self._removeFromFiltered(card)
 
     def _rescheduleGraduatingLapse(self, card, early=False):
@@ -429,7 +429,7 @@ limit ?""" % ids2str(self.col.decks.active()),
 
     def _answerRevCard(self, card, ease):
         delay = 0
-        early = card.odid and (card.odue > self.today)
+        early = card.isFiltered() and (card.odue > self.today)
         type = early and REVLOG_CRAM or REVLOG_REV
 
         if ease == BUTTON_ONE:
@@ -535,7 +535,7 @@ limit ?""" % ids2str(self.col.decks.active()),
 
     # next interval for card when answered early+correctly
     def _earlyReviewIvl(self, card, ease):
-        assert card.odid and card.type == CARD_DUE
+        assert card.isFiltered() and card.type == CARD_DUE
         assert card.factor
         assert ease > 1
 
@@ -628,13 +628,13 @@ where id = ?
         self.col.db.executemany(query, data)
 
     def _removeFromFiltered(self, card):
-        if card.odid:
+        if card.isFiltered():
             card.did = card.odid
             card.odue = 0
             card.odid = 0
 
     def _restorePreviewCard(self, card):
-        assert card.odid
+        assert card.isFiltered()
 
         card.due = card.odue
 
@@ -769,7 +769,7 @@ where id = ?
             return self._lapseIvl(card, conf)*86400
         else:
             # review
-            early = card.odid and (card.odue > self.today)
+            early = card.isFiltered() and (card.odue > self.today)
             if early:
                 return self._earlyReviewIvl(card, ease)*86400
             else:
