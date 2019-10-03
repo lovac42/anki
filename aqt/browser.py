@@ -338,8 +338,8 @@ class DataModel(QAbstractTableModel):
         """
         # catch invalid dates
         try:
-            if card.odid:
-                dueText = _("(filtered)")
+            if card.isFiltered():
+                dueText= _("(filtered)")
             elif card.queue == QUEUE_NEW_CRAM or card.type == CARD_NEW:
                 dueText = str(card.due)
             elif card.queue == QUEUE_LRN:
@@ -415,7 +415,7 @@ class DataModel(QAbstractTableModel):
         is one)
 
         """
-        if card.odid:
+        if card.isFiltered():
             # in a cram deck
             return "%s (%s)" % (
                 card.col.decks.name(card.did),
