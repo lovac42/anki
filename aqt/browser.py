@@ -1660,10 +1660,11 @@ where id in %s""" % ids2str(sf))
         self.mw.checkpoint("Copy Notes")
         copy_review = self.col.conf.get("preserveReviewInfo", True)
         copy_creation = self.col.conf.get("preserveCreation", True)
+        copy_log = self.col.conf.get("copyLog", True)
         #self.mw.progress.start()
         for nid in nids:
             note = Note(self.col, id = nid)
-            note.copy(copy_review=copy_review, copy_creation=copy_creation)
+            note.copy(copy_review, copy_creation, copy_log)
         # Reset collection and main window
         self.mw.progress.finish()
         self.mw.col.reset()

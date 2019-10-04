@@ -215,12 +215,13 @@ space, with an initial and a final white space."""
 
     # Copy note
     ##################################################
-    def copy(self, copy_review, copy_creation):
-        """A copy of the note, with new cards and a new id/guid.
+    def copy(self, copy_review, copy_creation, copy_log):
+        """A copy of the note.
 
         Save it in the db.
         copy_review -- if False, it's similar to a new card. Otherwise, keep every current properties
         copy_creation -- whether to keep original creation date.
+        copy_log -- whether to copy the logs of the cards of this note
         """
         note = copy(self)
         cards= note.cards()
@@ -228,7 +229,7 @@ space, with an initial and a final white space."""
         note.id = timestampID(note.col.db, "notes", t=note_date)
         note.guid = guid64()
         for card in cards:
-            card.copy(note.id, copy_creation, copy_review)
+            card.copy(note.id, copy_creation, copy_review, copy_log)
         note.flush()
         return note
 

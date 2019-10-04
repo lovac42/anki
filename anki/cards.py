@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 # Copyright: Ankitects Pty Ltd and contributors
 # License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
-from copy import copy
 import pprint
 import time
+from copy import copy
 
 from anki.consts import *
 from anki.hooks import runHook
@@ -193,7 +193,7 @@ lapses=?, left=?, odue=?, odid=?, did=? where id = ?""",
             self.id)
         self.col.log(self)
 
-    def copy(self, nid, copy_creation, copy_review):
+    def copy(self, nid, copy_creation, copy_review, copy_log):
         """Create a copy of current card, for note nid.
 
         copy_review -- if False, it's similar to a new card. Otherwise, keep every current properties
@@ -211,8 +211,13 @@ lapses=?, left=?, odue=?, odid=?, did=? where id = ?""",
             card.lapses = 0
             card.left = 0
             card.odue = 0
-        card.nid = note.id
+        card.nid = nid
         card.flush()
+        if copy_log:
+            for id, cid, usn, ease, ivl, lastIvl, factor, time, type in self.col.db.all("select * from revlog where id = ?", self.id):
+                id = timestampID(mw.col.db, "revlog", t=id)
+                cid = card.id
+                self.col.db.execute("insert into revlog values (?, ?, ?, ?, ?, ?, ?, ?, ?)", id, cid, usn, ease, ivl, lastIvl, factor, time, type)
         return card
 
     def q(self, reload=False, browser=False):

@@ -336,7 +336,7 @@
        <property name="spacing">
         <number>12</number>
        </property>
-       <property name="margin">
+	   <property name="margin">
         <number>12</number>
        </property>
        <item>
@@ -491,6 +491,13 @@
         </widget>
        </item>
        <item>
+        <widget class="QCheckBox" name="copyLog">
+         <property name="text">
+          <string>Note copy: Copy log</string>
+         </property>
+        </widget>
+       </item>
+       <item>
         <spacer name="verticalSpacer">
          <property name="orientation">
           <enum>Qt::Vertical</enum>
@@ -500,7 +507,7 @@
            <width>20</width>
            <height>20</height>
           </size>
-		 </property>
+         </property>
         </spacer>
        </item>
       </layout>
@@ -513,7 +520,7 @@
        <property name="spacing">
         <number>12</number>
        </property>
-       <property name="margin">
+	   <property name="margin">
         <number>12</number>
        </property>
        <item>
@@ -533,7 +540,7 @@
            <width>20</width>
            <height>20</height>
           </size>
-		 </property>
+         </property>
         </spacer>
        </item>
       </layout>
@@ -566,7 +573,7 @@
            <width>20</width>
            <height>20</height>
           </size>
-		 </property>
+         </property>
         </spacer>
        </item>
       </layout>
