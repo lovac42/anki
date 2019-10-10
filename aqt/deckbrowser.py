@@ -239,6 +239,8 @@ where id > ?""", (self.mw.col.sched.dayCutoff-86400)*1000)
         a.triggered.connect(lambda b, did=did: self._export(did))
         a = menu.addAction(_("Delete"))
         a.triggered.connect(lambda b, did=did: self._delete(did))
+        a = menu.addAction(_("Adding delay"))
+        a.triggered.connect(lambda b, did=did: self._onAddDelay(did))
         runHook("showDeckOptions", menu, did)
         menu.exec_(QCursor.pos())
 
@@ -298,6 +300,13 @@ where id > ?""", (self.mw.col.sched.dayCutoff-86400)*1000)
             self.mw.col.decks.rem(did, True)
             self.mw.progress.finish()
             self.show()
+
+    def _onAddDelay(self, did):
+        deck = self.mw.col.decks.get(did)
+        deckName = deck['name']
+        cids = self.mw.col.findCards(f"\"deck:{deckName}\"")
+        self.mw.addDelay(cids)
+
 
     # Top buttons
     ######################################################################
