@@ -17,27 +17,26 @@ class FixingManager:
     """List of method to call to fix things. It can be edited by add-on, in order to add more method, or delete/change some. """
     listFix = [
         "noteWithMissingModel",
-        "fixOverride",
-        "fixReq",
-        "fixInvalidCardOrdinal",
-        "fixWrongNumberOfField",
-        "fixNoteWithoutCard",
-        "fixCardWithoutNote",
-        "fixOdueType1",
-        "fixOdueQueue2",
-        "fixOdidOdue",
+        "override",
+        "req",
+        "invalidCardOrdinal",
+        "wrongNumberOfField",
+        "noteWithoutCard",
+        "cardWithoutNote",
+        "odueType1",
+        "odueQueue2",
+        "odidOdue",
         "reasonableRevueDue",
-        "fixFloatIvlInCard",
-        "fixFloatIvlInRevLog",
-        "fixFloatDue",
+        "floatIvlInCard",
+        "floatIvlInRevLog",
+        "floatDue",
         "doubleCard",
         "ensureSomeNoteType",
-        "registerNotes",
-        "updateAllFieldcache",
         "atMost1000000Due",
+        "setNextPos",
     ]
 
-    def fixIntegrity(self):
+    def run(self):
         """Find the problems which will be found. Then call last fixing."""
         #differences: not recomputing models' req. Giving reason to deletion
         self.problems = []
@@ -95,7 +94,7 @@ class FixingManager:
                   lambda lines: self.remNotes([line[0]for line in lines])
         )
 
-    def fixOverride(self):
+    def override(self):
         for model in self.col.models.all():
             for template in model['tmpls']:
                 if template['did'] == "None":
@@ -103,7 +102,7 @@ class FixingManager:
                     self.problems.append(_("Fixed AnkiDroid deck override bug. (I.e. some template has did = to 'None', it is now None.)"))
                     self.col.models.save(model)
 
-    def fixReq(self):
+    def req(self):
         for model in self.col.models.all():
             if model['type'] == MODEL_STD:
                 # model with missing req specification
@@ -111,7 +110,7 @@ class FixingManager:
                     self.col.models._updateRequired(model)
                     self.problems.append(_("Fixed note type: %s") % model['name'])
 
-    def fixInvalidCardOrdinal(self):
+    def invalidCardOrdinal(self):
         for model in self.col.models.all():
             if model['type'] == MODEL_STD:
                 self.template(
@@ -122,7 +121,7 @@ class FixingManager:
                     lambda lines: self.remCards([line[0]for line in lines])
                 )
 
-    def fixWrongNumberOfField(self):
+    def wrongNumberOfField(self):
         for model in self.col.models.all():
             # notes with invalid field count
             l = self.db.all(
@@ -138,7 +137,7 @@ class FixingManager:
                 self.remNotes([line[0]for line in lines])
 
 
-    def fixNoteWithoutCard(self):
+    def noteWithoutCard(self):
         noteWithoutCard = self.col.conf.get("noteWithoutCard", True)
         if noteWithoutCard:
             l = self.db.all("""select id, flds, tags, mid from notes where id not in (select distinct nid from cards)""")
@@ -161,7 +160,7 @@ class FixingManager:
                 lambda lines: self.remNotes([line[0]for line in lines])
             )
 
-    def fixCardWithoutNote(self):
+    def cardWithoutNote(self):
         self.template(
             "select id, nid from cards where nid not in (select id from notes)",
             "Deleted card {} of note {} because this note does not exists.",
@@ -170,7 +169,7 @@ class FixingManager:
             lambda lines: self.remCards([line[0]for line in lines])
         )
 
-    def fixOdueType1(self):
+    def odueType1(self):
          # cards with odue set when it shouldn't be
          self.template(
              f"select id,nid from cards where odue > 0 and type={CARD_LRN} and not odid",
@@ -179,7 +178,7 @@ class FixingManager:
              "Fixed %d cards with invalid properties.",
              lambda lines:(self.db.execute("update cards set odue=0 where id in "+ids2str([line[0] for line in lines]))))
 
-    def fixOdueQueue2(self):
+    def odueQueue2(self):
         self.template(
             f"select id, nid from cards where odue > 0 and queue={CARD_DUE} and not odid",
             "set odue of card {} of note {} to 0, because it was positive while queue was 2 (i.e. in the review queue).",
@@ -189,7 +188,7 @@ class FixingManager:
 
 
 
-    def fixOdidOdue(self):
+    def odidOdue(self):
         self.template(
             """select id, odid, did from cards where odid > 0 and did in %s""" % ids2str([did for did in self.col.decks.allIds() if not self.col.decks.isDyn(did)]),# cards with odid set when not in a dyn deck
             "Card {}: Set odid and odue to 0 because odid was {} while its did was {} which is not filtered(a.k.a. not dymanic).",
@@ -233,19 +232,19 @@ class FixingManager:
         )
 
     # v2 sched had a bug that could create decimal intervals
-    def fixFloatIvlInCard(self):
+    def floatIvlInCard(self):
         curs = self.db.cursor()
         curs.execute("update cards set ivl=round(ivl),due=round(due) where ivl!=round(ivl) or due!=round(due)")
         if curs.rowcount:
             self.problems.append("Fixed %d cards with v2 scheduler bug." % curs.rowcount)
 
-    def fixFloatIvlInRevLog(self):
+    def floatIvlInRevLog(self):
         curs = self.db.cursor()
         curs.execute("update revlog set ivl=round(ivl),lastIvl=round(lastIvl) where ivl!=round(ivl) or lastIvl!=round(lastIvl)")
         if curs.rowcount:
             self.problems.append("Fixed %d review history entires with v2 scheduler bug." % curs.rowcount)
 
-    def fixFloatDue(self):
+    def floatDue(self):
         self.template(
             "select id, due from cards where due != round(due)",
             "Round the due of card {} because it was {} (this is a known bug of schedule v2.",
