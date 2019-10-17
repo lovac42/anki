@@ -21,3 +21,4 @@ note, and let you correct the note instead to generate cards.
 ## Multi column note editor (3491767031, 2064123047)
 Allow to have editors with multiple columns. Allow to keep some fields
 on their own line.
+
