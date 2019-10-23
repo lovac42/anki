@@ -320,6 +320,7 @@ from notes where %s""" % d)
 
     def getModels(self):
         mods = [m for m in self.col.models.all() if m['usn'] == -1]
+        self.col.models.removeLS()
         for m in mods:
             m['usn'] = self.maxUsn
         self.col.models.save()
