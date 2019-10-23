@@ -250,11 +250,12 @@ class ModelManager:
         model['tmpls'] = []
         model['tags'] = []
         model['id'] = None
+        model['ls'] = self.col.ls
         return model
 
     def rem(self, model):
         "Delete model, and all its cards/notes."
-        self.col.modSchema(check=True)
+        self._modSchemaIfRequired(model)
         current = self.current()['id'] == model['id']
         # delete notes/cards
         self.col.remCards(self.col.db.list("""
@@ -344,10 +345,11 @@ and notes.mid = ? and cards.ord = ?""", model['id'], ord)
 
     def copy(self, model):
         "A copy of model, already in the collection."
-        m2 = copy.deepcopy(model)
-        m2['name'] = _("%s copy") % m2['name']
-        self.add(m2)
-        return m2
+        model2 = copy.deepcopy(model)
+        model2['name'] = _("%s copy") % model2['name']
+        self.add(model2)
+        model['ls'] = self.col.ls
+        return model2
 
     # Fields
     ##################################################
@@ -383,7 +385,7 @@ and notes.mid = ? and cards.ord = ?""", model['id'], ord)
         idx -- the identifier of a field
         """
         assert 0 <= idx < len(model['flds'])
-        self.col.modSchema(check=True)
+        self._modSchemaIfRequired(model)
         model['sortf'] = idx
         self.col.updateFieldCache(self.nids(model))
         self.save(model)
@@ -398,14 +400,13 @@ and notes.mid = ? and cards.ord = ?""", model['id'], ord)
         field -- a field object
         """
         # only mod schema if model isn't new
-        if model['id']:
-            self.col.modSchema(check=True)
+        self._modSchemaIfRequired(model)
         model['flds'].append(fieldType)
         self._updateFieldOrds(model)
         self.save(model)
-        def add(fieldsContents):
-            fieldsContents.append("")
-            return fieldsContents
+        def add(fields):
+            fields.append("")
+            return fields
         self._transformFields(model, add)
 
     def remField(self, model, fieldTypeToRemove):
@@ -416,8 +417,8 @@ and notes.mid = ? and cards.ord = ?""", model['id'], ord)
         Modify the template
 
         model -- the model
-        field -- the field object"""
-        self.col.modSchema(check=True)
+        fieldTypeToRemove -- the field object"""
+        self._modSchemaIfRequired(model)
         # save old sort field
         sortFldName = model['flds'][model['sortf']]['name']
         idx = model['flds'].index(fieldTypeToRemove)
@@ -445,7 +446,7 @@ and notes.mid = ? and cards.ord = ?""", model['id'], ord)
         idx -- new position, integer
         field -- a field object
         """
-        self.col.modSchema(check=True)
+        self._modSchemaIfRequired(model)
         oldidx = model['flds'].index(fieldType)
         if oldidx == idx:
             return
@@ -474,7 +475,7 @@ and notes.mid = ? and cards.ord = ?""", model['id'], ord)
         newName -- either a name. Or None if the field is deleted.
 
         """
-        self.col.modSchema(check=True)
+        self._modSchemaIfRequired(model)
         #Regexp associating to a mustache the name of its field
         pat = r'{{([^{}]*)([:#^/]|[^:#/^}][^:}]*?:|)%s}}'
         def wrap(txt):
@@ -536,8 +537,8 @@ and notes.mid = ? and cards.ord = ?""", model['id'], ord)
         """Add a new template in model, as last element. This template is a copy
         of the input template
         """
-        if model['id']:
-            self.col.modSchema(check=True)
+        "Note: should call col.genCards() afterwards."
+        self._modSchemaIfRequired(model)
         model['tmpls'].append(template)
         self._updateTemplOrds(model)
         self.save(model)
@@ -564,7 +565,7 @@ having count() < 2
 limit 1""" % ids2str(cids)):
             return False
         # ok to proceed; remove cards
-        self.col.modSchema(check=True)
+        self._modSchemaIfRequired(model)
         self.col.remCards(cids)
         # shift ordinals
         self.col.db.execute("""
@@ -629,7 +630,7 @@ select id from notes where mid = ?)""" % " ".join(map),
         fmap -- the dictionnary sending to each fields'ord of the old model a field'ord of the new model
         cmap -- the dictionnary sending to each card type's ord of the old model a card type's ord of the new model
         """
-        self.col.modSchema(check=True)
+        self._modSchemaIfRequired(model)
         assert newModel['id'] == model['id'] or (fmap and cmap)
         if fmap:
             self._changeNotes(nids, newModel, fmap)
@@ -706,6 +707,10 @@ select id from notes where mid = ?)""" % " ".join(map),
             "update cards set ord=:new,usn=:u,mod=:mod where id=:cid",
             d)
         self.col.remCards(deleted)
+
+    def _modSchemaIfRequired(self, model):
+        if model['id'] and model.get("ls", 0) != self.col.ls:
+            self.col.modSchema(check=True)
 
     # Schema hash
     ##########################################################################
@@ -848,7 +853,13 @@ select id from notes where mid = ?)""" % " ".join(map),
     # Sync handling
     ##########################################################################
 
+    def removeLS(self):
+        for model in self.all():
+            if "ls" in model:
+                del model["ls"]
+
     def beforeUpload(self):
+        self.removeLS()
         for model in self.all():
             model['usn'] = 0
         self.save()
