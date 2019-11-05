@@ -74,7 +74,7 @@ class DeckBrowser:
 
     def _selDeck(self, did):
         self.mw.col.decks.select(did)
-        self.mw.onOverview()
+        self.mw.onReviewOrOverview()
 
     # HTML generation
     ##########################################################################
