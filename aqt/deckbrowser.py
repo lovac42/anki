@@ -274,11 +274,10 @@ where id > ?""", (self.mw.col.sched.dayCutoff-86400)*1000)
         self._renderPage(reuse=True)
 
     def _dragDeckOnto(self, draggedDeckDid, ontoDeckDid):
-        try:
-            self.mw.col.decks.renameForDragAndDrop(draggedDeckDid, ontoDeckDid)
-        except DeckRenameError as e:
-            return showWarning(e.description)
-
+        ontoDeckName = self.mw.col.decks.newNameForDragAndDrop(draggedDeckDid, ontoDeckDid)
+        if ontoDeckName is None:
+            return
+        self._rename(draggedDeckDid, newName=ontoDeckName)
         self.show()
 
     def _delete(self, did):
