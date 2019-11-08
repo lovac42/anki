@@ -422,10 +422,14 @@ class DeckManager:
 
     def rename(self, deck, newName, merge=False):
         """Rename the deck object deck to newName. Updates
-        children. Creates parents of newName if required.
+        descendants. Creates parents of newName if required.
 
-        If newName already exists or if it a descendant of a filtered
-        deck, the operation is aborted."""
+        If newName already exists, the content of deck is merged in
+        it. If newName is a descendant of a filtered deck, the
+        operation is aborted.
+
+        """
+        oldName = deck['name']
         # ensure we have parents
         newName = self._ensureParents(newName)
         # make sure target node doesn't already exist
@@ -435,13 +439,18 @@ class DeckManager:
         for p in self.parentsByName(newName):
             if p['dyn']:
                 raise DeckRenameError(_("A filtered deck cannot have subdecks."))
-        # rename children
-        oldName = deck['name']
         for child in self.childrenDecks(deck['id'], includeSelf=True):
-            child['name'] = child['name'].replace(oldName, newName, 1)
-            self.save(child)
-        # ensure we have parents again, as we may have renamed parent->child
-        newName = self._ensureParents(newName)
+            newChildName = child['name'].replace(oldName, newName, 1)
+            newChild = self.byName(newChildName)
+            childId = child["id"]
+            if newChild: #deck with same name already existed. We move cards.
+                self.col.db.execute("update cards set did=?, mod=?, usn=? where did=?", newChild["id"], intTime(), self.col.usn(), childId)
+                self.rem(childId, childrenToo=False)
+            else: #no deck with same name. Deck renamed.
+                child['name'] = newChildName
+                self.save(child)
+        # ensure we have parents again, as we may have renamed parent->Descendant
+        self._ensureParents(newName)
         # renaming may have altered active did order
         self.maybeAddToActive()
 
