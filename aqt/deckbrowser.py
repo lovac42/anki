@@ -245,12 +245,13 @@ where id > ?""", (self.mw.col.sched.dayCutoff-86400)*1000)
     def _export(self, did):
         self.mw.onExport(did=did)
 
-    def _rename(self, did):
+    def _rename(self, did, newName=None):
         self.mw.checkpoint(_("Rename Deck"))
         deck = self.mw.col.decks.get(did)
         oldName = deck['name']
-        newName = getOnlyText(_("New deck name:"), default=oldName)
-        newName = newName.replace('"', "")
+        if newName is None:
+            newName = getOnlyText(_("New deck name:"), default=oldName)
+            newName = newName.replace('"', "")
         if not newName or newName == oldName:
             return
         try:
