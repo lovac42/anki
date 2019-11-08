@@ -228,7 +228,7 @@ space, with an initial and a final white space."""
 
         Not executed if this note is newlyAdded."""
         if not self.newlyAdded:
-            rem = self.col.genCards([self.id])
+            self.col.genCards([self.id])
             # popping up a dialog while editing is confusing; instead we can
             # document that the user should open the templates window to
             # garbage collect empty cards

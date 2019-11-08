@@ -87,8 +87,7 @@ class CardLayout(QDialog):
             did = self.parent.deckChooser.selectedId()
         self.cards = self.col.previewCards(self.note, 2, did=did)
         #the list of cards of this note, with all templates
-        idx = self.ord
-        if idx >= len(self.cards):
+        if self.ord >= len(self.cards):
             self.ord = len(self.cards) - 1
 
         self.redrawing = True
