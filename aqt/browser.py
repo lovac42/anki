@@ -24,11 +24,12 @@ from aqt.browserColumn import (ColumnByMethod, DateColumnFromQuery,
 from aqt.main import \
     AnkiQt  # used to be `from aqt import AnkiQt` but this lead to import in errors
 from aqt.qt import *
-from aqt.utils import (MenuList, SubMenu, askUser, getOnlyText, getTag,
-                       mungeQA, openHelp, qtMenuShortcutWorkaround,
-                       restoreGeom, restoreHeader, restoreSplitter,
-                       restoreState, saveGeom, saveHeader, saveSplitter,
-                       saveState, shortcut, showInfo, showWarning, tooltip)
+from aqt.utils import (MenuList, SubMenu, askUser, getOnlyText,
+                       getTag, getText, mungeQA, openHelp,
+                       qtMenuShortcutWorkaround, restoreGeom,
+                       restoreHeader, restoreSplitter, restoreState,
+                       saveGeom, saveHeader, saveSplitter, saveState,
+                       shortcut, showInfo, showWarning, tooltip)
 from aqt.webview import AnkiWebView
 
 # Data model
@@ -486,6 +487,7 @@ class Browser(QMainWindow):
         # cards
         self.form.actionChange_Deck.triggered.connect(self.setDeck)
         self.form.action_Info.triggered.connect(self.showCardInfo)
+        self.form.sort_new_card.triggered.connect(self.sort)
         self.form.actionReposition.triggered.connect(self.reposition)
         self.form.actionReschedule.triggered.connect(self.reschedule)
         self.form.actionToggle_Suspend.triggered.connect(self.onSuspend)
@@ -2038,6 +2040,15 @@ update cards set usn=?, mod=?, did=? where id in """ + scids,
         except:
             return
         self.form.tableView.selectRow(row)
+
+    def sort(self):
+        cids = self.selectedCards()
+        params = self.col.conf.get("special sort", "")
+        (params, ret) = getText("How to sort those cards", self, default=params)
+        if not ret:
+            return
+        self.col.conf["special sort"] = params
+        self.col.sched.sortCids(cids, f"[{params}]")
 
 # Change model dialog
 ######################################################################
