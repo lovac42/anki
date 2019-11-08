@@ -348,6 +348,13 @@ class Deck(DictAugmentedDyn):
         return self.manager.col.db.list("select id from cards where did in "+
                                 ids2str(dids))
 
+    def getCards(self, children=False):
+        """Return the list of cards whose deck's id is did.
+
+        If Children is set to true, returns also the list of the cards
+        of the descendant."""
+        return [self.manager.col.getCard(cid) for cid in self.getCids(children)]
+
     # Conf
     #############################################################
 
