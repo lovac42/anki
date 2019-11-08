@@ -14,6 +14,7 @@ class Addon:
 
 """ Set of characteristic of Add-ons incorporated here"""
 incorporatedAddonsSet = {
+    Addon("Merge decks", 443286122, 1573229640, "7ebf04ef81d14a99a8bf11197004338268386a82", "https://github.com/Arthur-Milchior/anki-merge-decks"),
 }
 
 incorporatedAddonsDict = {**{addon.name: addon for addon in incorporatedAddonsSet if addon.name},
