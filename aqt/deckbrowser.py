@@ -19,8 +19,8 @@ from anki.lang import _, ngettext
 from anki.sound import clearAudioQueue
 from anki.utils import fmtTimeSpan, ids2str
 from aqt.qt import *
-from aqt.utils import (askUser, getOnlyText, openHelp, openLink, shortcut,
-                       showWarning)
+from aqt.utils import (askUser, getOnlyText, getText, openHelp, openLink,
+                       shortcut, showWarning)
 
 
 class DeckBrowser:
@@ -239,6 +239,8 @@ where id > ?""", (self.mw.col.sched.dayCutoff-86400)*1000)
         a.triggered.connect(lambda b, did=did: self._export(did))
         a = menu.addAction(_("Delete"))
         a.triggered.connect(lambda b, did=did: self._delete(did))
+        a = m.addAction(_("Sort"))
+        a.triggered.connect(lambda b, did=did: self._sort(did))
         runHook("showDeckOptions", menu, did)
         menu.exec_(QCursor.pos())
 
@@ -276,6 +278,16 @@ where id > ?""", (self.mw.col.sched.dayCutoff-86400)*1000)
             return showWarning(e.description)
 
         self.show()
+
+    def _sort(self, did):
+        deck = self.mw.col.decks.get(did)
+        params = deck.get("special sort", "")
+        (params, ret) = getText("How to sort those cards", default=params)
+        if not ret:
+            return
+        deck["special sort"] = params
+        self.mw.col.decks.save(deck)
+        self.mw.col.sched.sortDid(did, f"[{params}]")
 
     def _delete(self, did):
         if str(did) == '1':
