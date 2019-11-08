@@ -24,12 +24,11 @@ from aqt.browserColumn import (ColumnByMethod, DateColumnFromQuery,
 from aqt.main import \
     AnkiQt  # used to be `from aqt import AnkiQt` but this lead to import in errors
 from aqt.qt import *
-from aqt.utils import (MenuList, SubMenu, askUser, getOnlyText,
-                       getTag, getText, mungeQA, openHelp,
-                       qtMenuShortcutWorkaround, restoreGeom,
-                       restoreHeader, restoreSplitter, restoreState,
-                       saveGeom, saveHeader, saveSplitter, saveState,
-                       shortcut, showInfo, showWarning, tooltip)
+from aqt.utils import (MenuList, SubMenu, askUser, getOnlyText, getTag,
+                       getText, mungeQA, openHelp, qtMenuShortcutWorkaround,
+                       restoreGeom, restoreHeader, restoreSplitter,
+                       restoreState, saveGeom, saveHeader, saveSplitter,
+                       saveState, shortcut, showInfo, showWarning, tooltip)
 from aqt.webview import AnkiWebView
 
 # Data model
