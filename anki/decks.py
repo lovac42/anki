@@ -448,6 +448,13 @@ class DeckManager:
     def renameForDragAndDrop(self, draggedDeckDid, ontoDeckDid):
         """Rename the deck whose id is draggedDeckDid as a children of
         the deck whose id is ontoDeckDid."""
+        newName = self.newNameForDragAndDrop(draggedDeckDid, ontoDeckDid)
+        if newName is not None:
+            draggedDeck = self.get(draggedDeckDid)
+            self.rename(draggedDeck, newName)
+
+    def newNameForDragAndDrop(self, draggedDeckDid, ontoDeckDid):
+        """name that would result from this drag and drop. None if it's impossible"""
         draggedDeck = self.get(draggedDeckDid)
         draggedDeckName = draggedDeck['name']
         ontoDeckName = self.get(ontoDeckDid)['name']
@@ -456,10 +463,10 @@ class DeckManager:
             #if the deck is dragged to toplevel
             if len(self._path(draggedDeckName)) > 1:
                 #And is not already at top level
-                self.rename(draggedDeck, self._basename(draggedDeckName))
+                return self._basename(draggedDeckName)
         elif self._canDragAndDrop(draggedDeckName, ontoDeckName):
             assert ontoDeckName.strip()
-            self.rename(draggedDeck, ontoDeckName + "::" + self._basename(draggedDeckName))
+            return ontoDeckName + "::" + self._basename(draggedDeckName)
 
     def _canDragAndDrop(self, draggedDeckName, ontoDeckName):
         """Whether draggedDeckName can be moved as a children of
