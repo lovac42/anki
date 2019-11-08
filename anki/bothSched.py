@@ -812,5 +812,3 @@ and due >= ? and queue = {QUEUE_NEW_CRAM}""" % (scids), now, self.col.usn(), shi
         # in order due?
         if conf['new']['order'] == NEW_CARDS_RANDOM:
             self.randomizeCards(did)
-
-
