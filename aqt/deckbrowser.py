@@ -257,7 +257,7 @@ where id > ?""", (self.mw.col.sched.dayCutoff-86400)*1000)
         try:
             if (newName not in self.mw.col.decks.allNames() or
                 askUser(_("The deck %s already exists. Do you want to merge %s in it ?")%(newName, oldName))):
-                self.mw.col.decks.rename(deck, newName)
+                self.mw.col.decks.rename(deck, newName, merge=True)
 
         except DeckRenameError as e:
             return showWarning(e.description)

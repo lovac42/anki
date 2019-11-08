@@ -420,8 +420,8 @@ class DeckManager:
         # mark registry changed, but don't bump mod time
         self.save()
 
-    def rename(self, deck, newName):
-        """Rename the deck object g to newName. Updates
+    def rename(self, deck, newName, merge=False):
+        """Rename the deck object deck to newName. Updates
         children. Creates parents of newName if required.
 
         If newName already exists or if it a descendant of a filtered
@@ -429,7 +429,7 @@ class DeckManager:
         # ensure we have parents
         newName = self._ensureParents(newName)
         # make sure target node doesn't already exist
-        if newName in self.allNames():
+        if (not merge) and newName in self.allNames():
             raise DeckRenameError(_("That deck already exists."))
         # make sure we're not nesting under a filtered deck
         for p in self.parentsByName(newName):
