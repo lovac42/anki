@@ -445,11 +445,6 @@ class DeckManager:
                 #And is not already at top level
                 self.rename(draggedDeck, self._basename(draggedDeckName))
         elif self._canDragAndDrop(draggedDeckName, ontoDeckName):
-            #The following three lines seems to be useless, as they
-            #repeat lines above
-            draggedDeck = self.get(draggedDeckDid)
-            draggedDeckName = draggedDeck['name']
-            ontoDeckName = self.get(ontoDeckDid)['name']
             assert ontoDeckName.strip()
             self.rename(draggedDeck, ontoDeckName + "::" + self._basename(draggedDeckName))
 
