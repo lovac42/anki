@@ -514,8 +514,8 @@ def findReplace(col, nids, src, dst, regex=False, field=None, fold=True):
                 # note doesn't have that field
                 continue
         else:
-            for c in range(len(sflds)):
-                sflds[c] = repl(sflds[c])
+            for fieldIndex in range(len(sflds)):
+                sflds[fieldIndex] = repl(sflds[fieldIndex])
         flds = joinFields(sflds)
         if flds != origFlds:
             nids.append(nid)
@@ -563,9 +563,9 @@ def findDupes(col, fieldName, search=""):
     def ordForMid(mid):
         if mid not in fields:
             model = col.models.get(mid)
-            for c, f in enumerate(model['flds']):
+            for fieldIndex, f in enumerate(model['flds']):
                 if f['name'].lower() == fieldName.lower():
-                    fields[mid] = c
+                    fields[mid] = fieldIndex
                     break
         return fields[mid]
     for nid, mid, flds in col.db.all(
