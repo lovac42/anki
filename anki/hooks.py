@@ -72,7 +72,7 @@ def wrap(old, new, pos="after"):
         else:
             return new(_old=old, *args, **kwargs)
 
-    def decorator_wrapper(f, *args, **kwargs):
+    def decorator_wrapper(fun, *args, **kwargs):
         return repl(*args, **kwargs)
 
     return decorator.decorator(decorator_wrapper)(old)
