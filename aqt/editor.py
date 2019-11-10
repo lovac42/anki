@@ -375,8 +375,8 @@ class Editor:
         if not self.note:
             return True
         m = self.note.model()
-        for c, f in enumerate(self.note.fields):
-            if f and not m['flds'][c]['sticky']:
+        for index, f in enumerate(self.note.fields):
+            if f and not m['flds'][index]['sticky']:
                 return False
         return True
 
