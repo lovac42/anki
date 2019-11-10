@@ -100,30 +100,30 @@ class ExportDialog(QDialog):
 
         filename = '{0}{1}'.format(deck_name, self.exporter.ext)
         while 1:
-            file = getSaveFile(self, _("Export"), "export",
+            fileName = getSaveFile(self, _("Export"), "export",
                                self.exporter.key, self.exporter.ext,
                                fname=filename)
-            if not file:
+            if not fileName:
                 return
-            if checkInvalidFilename(os.path.basename(file), dirsep=False):
+            if checkInvalidFilename(os.path.basename(fileName), dirsep=False):
                 continue
             break
         self.hide()
-        if file:
+        if fileName:
             self.mw.progress.start(immediate=True)
             try:
-                f = open(file, "wb")
-                f.close()
+                file = open(fileName, "wb")
+                file.close()
             except (OSError, IOError) as e:
                 showWarning(_("Couldn't save file: %s") % str(e))
             else:
-                os.unlink(file)
+                os.unlink(fileName)
                 exportedMedia = lambda cnt: self.mw.progress.update(
                         label=ngettext("Exported %d media file",
                                        "Exported %d media files", cnt) % cnt
                         )
                 addHook("exportedMediaFiles", exportedMedia)
-                self.exporter.exportInto(file)
+                self.exporter.exportInto(fileName)
                 remHook("exportedMediaFiles", exportedMedia)
                 period = 3000
                 if self.isVerbatim:
