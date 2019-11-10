@@ -304,8 +304,8 @@ class Anki2Importer(Importer):
         self._cards = {}
         existing = {}
         for guid, ord, cid in self.dst.db.execute(
-            "select f.guid, card.ord, card.id from cards card, notes f "
-            "where card.nid = f.id"):
+            "select note.guid, card.ord, card.id from cards card, notes note "
+            "where card.nid = note.id"):
             existing[cid] = True
             self._cards[(guid, ord)] = cid
         # loop through src
@@ -315,8 +315,8 @@ class Anki2Importer(Importer):
         usn = self.dst.usn()
         aheadBy = self.src.sched.today - self.dst.sched.today
         for card in self.src.db.execute(
-            "select f.guid, f.mid, card.* from cards card, notes f "
-            "where card.nid = f.id"):
+            "select note.guid, note.mid, card.* from cards card, notes note "
+            "where card.nid = note.id"):
             guid = card[0]
             if guid in self._changedGuids:
                 guid = self._changedGuids[guid]
@@ -399,8 +399,8 @@ insert or ignore into revlog values (?,?,?,?,?,?,?,?,?)""", revlog)
             dir = self.src.media.dir()
         path = os.path.join(dir, fname)
         try:
-            with open(path, "rb") as f:
-                return f.read()
+            with open(path, "rb") as file:
+                return file.read()
         except (IOError, OSError):
             return
 
@@ -416,8 +416,8 @@ insert or ignore into revlog values (?,?,?,?,?,?,?,?,?)""", revlog)
         path = os.path.join(self.dst.media.dir(),
                             unicodedata.normalize("NFC", fname))
         try:
-            with open(path, "wb") as f:
-                f.write(data)
+            with open(path, "wb") as file:
+                file.write(data)
         except (OSError, IOError):
             # the user likely used subdirectories
             pass
