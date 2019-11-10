@@ -243,9 +243,9 @@ class DeckManager:
 
     def byName(self, name):
         "Get deck with NAME."
-        for m in list(self.decks.values()):
-            if m['name'] == name:
-                return m
+        for deck in list(self.decks.values()):
+            if deck['name'] == name:
+                return deck
 
     def update(self, deck):
         "Add or update an existing deck. Used for syncing and merging."
