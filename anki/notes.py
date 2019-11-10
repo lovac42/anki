@@ -85,8 +85,8 @@ insert or replace into notes values (?,?,?,?,?,?,?,?,?,?,?)""",
         return self.fields
 
     def items(self):
-        return [(f['name'], self.fields[ord])
-                for ord, f in sorted(self._fmap.values())]
+        return [(field['name'], self.fields[ord])
+                for ord, field in sorted(self._fmap.values())]
 
     def _fieldOrd(self, key):
         try:
