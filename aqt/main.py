@@ -174,11 +174,11 @@ class AnkiQt(QMainWindow):
             idx = 0
         f.profiles.setCurrentRow(idx)
 
-    def onProfileRowChange(self, n):
-        if n < 0:
+    def onProfileRowChange(self, profileIndex):
+        if profileIndex < 0:
             # called on .clear()
             return
-        name = self.pm.profiles()[n]
+        name = self.pm.profiles()[profileIndex]
         f = self.profileForm
         self.pm.load(name)
 
@@ -812,8 +812,8 @@ QTreeWidget {
     ##########################################################################
 
     def onUndo(self):
-        n = self.col.undoName()
-        if not n:
+        name = self.col.undoName()
+        if not name:
             return
         cid = self.col.undo()
         if cid and self.state == "review":
@@ -824,8 +824,8 @@ QTreeWidget {
             runHook("revertedCard", cid)
         else:
             self.reset()
-            tooltip(_("Reverted to state prior to '%s'.") % n.lower())
-            runHook("revertedState", n)
+            tooltip(_("Reverted to state prior to '%s'.") % name.lower())
+            runHook("revertedState", name)
         self.maybeEnableUndo()
 
     def maybeEnableUndo(self):
@@ -920,15 +920,15 @@ QTreeWidget {
 
     def onCram(self, search=""):
         import aqt.dyndeckconf
-        n = 1
+        index = 1
         deck = self.col.decks.current()
         if not search:
             if not deck['dyn']:
                 search = 'deck:"%s" ' % deck['name']
         decks = self.col.decks.allNames()
-        while _("Filtered Deck %d") % n in decks:
-            n += 1
-        name = _("Filtered Deck %d") % n
+        while _("Filtered Deck %d") % index in decks:
+            index += 1
+        name = _("Filtered Deck %d") % index
         did = self.col.decks.newDyn(name)
         diag = aqt.dyndeckconf.DeckConf(self, first=True, search=search)
         if not diag.ok:
