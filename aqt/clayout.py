@@ -77,6 +77,13 @@ class CardLayout(QDialog):
         # take the focus away from the first input area when starting up,
         # as users tend to accidentally type into the template
         self.setFocus()
+        self.mm._addTmp(self.model)
+        for idx, template in enumerate(self.model['tmpls']):
+            if self.model['type'] == MODEL_STD:
+                template['tmp']['old type'] = self.model['req'][idx][1]
+                template['tmp']['old req'] = self.model['req'][idx][2]
+            template['tmp']['old qfmt'] = template['qfmt']
+            template['tmp']['is new'] = False
 
     def redraw(self):
         """TODO
@@ -411,6 +418,7 @@ Please create a new card type first."""))
         pos = getOnlyText(
             _("Enter new card position (1...%s):") % numberOfCard,
             default=str(cur))
+        idx = self.ord
         if not pos:
             return
         try:
@@ -447,6 +455,11 @@ Please create a new card type first."""))
         old = self.card.template()
         template['qfmt'] = old['qfmt']
         template['afmt'] = old['afmt']
+        if self.model['type'] == MODEL_STD:
+            template['tmp']['old type'] = old['tmp']['old type']
+            template['tmp']['old req'] = old['tmp']['old req']
+        template['tmp']['old qfmt'] = old['tmp']['old qfmt']
+        template['tmp']['is new'] = True
         self.mm.addTemplate(self.model, template)
         self.ord = len(self.cards)
         self.redraw()

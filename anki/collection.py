@@ -481,10 +481,12 @@ crt=?, mod=?, scm=?, dty=?, usn=?, ls=?, conf=?""",
                 ok.append(template)
         return ok
 
-    def genCards(self, nids):
+    def genCards(self, nids, changedOrNewReq=None):
         """Ids of cards which needs to be removed.
 
-        Generate missing cards of a note with id in nids.
+        Generate missing cards of a note with id in nids and with ord in changedOrNewReq.
+
+        changedOrNewReq -- set of index of templates which needs to be recomputed
         """
         # build map of (nid,ord) so we don't create dupes
         snids = ids2str(nids)
@@ -524,7 +526,7 @@ crt=?, mod=?, scm=?, dty=?, usn=?, ls=?, conf=?""",
         for nid, mid, flds in self.db.execute(
             "select id, mid, flds from notes where id in "+snids):
             model = self.models.get(mid)
-            avail = self.models.availOrds(model, flds)
+            avail = self.models.availOrds(model, flds, changedOrNewReq)
             did = dids.get(nid) or model['did']
             due = dues.get(nid)
             # add any missing cards
@@ -545,9 +547,12 @@ crt=?, mod=?, scm=?, dty=?, usn=?, ls=?, conf=?""",
                     ts += 1
             # note any cards that need removing
             if nid in have:
-                for ord, id in list(have[nid].items()):
-                    if ord not in avail:
-                        rem.append(id)
+                for ord, cid in list(have[nid].items()):
+                    if (
+                            (changedOrNewReq is None or ord in changedOrNewReq)
+                            and ord not in avail
+                    ):
+                        rem.append(cid)
         # bulk update
         self.db.executemany("""
 insert into cards values (?,?,?,?,?,?,0,0,?,0,0,0,0,0,0,0,0,"")""",
@@ -670,12 +675,24 @@ select id from notes where id in %s and id not in (select nid from cards)""" %
         return rem
 
     def emptyCardReport(self, cids):
+        models = self.models
         rep = ""
-        for ords, cnt, flds in self.db.all("""
-select group_concat(ord+1), count(), flds from cards card, notes note
-where card.nid = note.id and card.id in %s group by nid""" % ids2str(cids)):
-            rep += _("Empty card numbers: %(card)s\nFields: %(fieldsContent)s\n\n") % dict(
-                card=ords, fieldsContent=flds.replace("\x1f", " / "))
+        for ords, mid, flds in self.db.all("""
+        select group_concat(ord), mid, flds from cards card, notes n
+        where card.nid = n.id and card.id in %s group by nid order by mid""" % ids2str(cids)):
+            model = models.get(mid)
+            modelName  = model["name"]
+            templates = model["tmpls"]
+            isCloze = model["type"] == MODEL_CLOZE
+            rep += _("Empty cards")+" ("+modelName+"): "
+            if isCloze:
+                 rep+=ords
+            else:
+                for ord in ords.split(","):
+                    ord  = int(ord)
+                    templateName = templates[ord]["name"]
+                    rep += templateName+", "
+            rep +="\nFields: %(f)s\n\n" % dict(f=flds.replace("\x1f", " / "))
         return rep
 
     # Field checksums and sorting fields

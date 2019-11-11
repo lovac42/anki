@@ -128,6 +128,7 @@ defaultTemplate = {
     'did': None,
     'bqfmt': "",
     'bafmt': "",
+    'tmp': {}
     # we don't define these so that we pick up system font size until set
     #'bfont': "Arial",
     #'bsize': 12,
@@ -149,8 +150,28 @@ class ModelManager:
         "Load registry from JSON."
         self.changed = False
         self.models = json.loads(json_)
+        for model in self.models.values():
+            self._addTmp(model)
 
-    def save(self, model=None, templates=False):
+    def _addTmp(self, model):
+        if 'tmp' not in model:
+            model['tmp'] = {}
+        model['tmp']['fieldNameToOrd'] = {}
+        model['tmp']['templateNameToOrd'] = {}
+        for field in model['flds']:
+            if 'tmp' not in field:
+                field['tmp'] = {}
+            name = field['name']
+            ord = field['ord']
+            model['tmp']['fieldNameToOrd'][name] = ord
+        for template in model['tmpls']:
+            if 'tmp' not in template:
+                template['tmp'] = {}
+            name = template['name']
+            ord = template['ord']
+            model['tmp']['templateNameToOrd'][name] = ord
+
+    def save(self, model=None, templates=False, recomputeReq=True):
         """
         * Mark model modified if provided.
         * Schedule registry flush.
@@ -163,9 +184,12 @@ class ModelManager:
         if model and model['id']:
             model['mod'] = intTime()
             model['usn'] = self.col.usn()
-            self._updateRequired(model)
+            if recomputeReq:
+                changedOrNewReq = self._updateRequired(model)
+            else:
+                changedOrNewReq = set()
             if templates:
-                self._syncTemplates(model)
+                self._syncTemplates(model, changedOrNewReq)
         self.changed = True
         runHook("newModel") # By default, only refresh side bar of browser
 
@@ -490,7 +514,6 @@ and notes.mid = ? and cards.ord = ?""", model['id'], ord)
                     template[fmt] = re.sub(
                         pat  % re.escape(fieldType['name']), "", template[fmt])
         fieldType['name'] = newName
-        self.save(model)
 
     def _updateFieldOrds(self, model):
         """
@@ -581,7 +604,7 @@ update cards set ord = ord - 1, usn = ?, mod = ?
         for index, template in enumerate(model['tmpls']):
             template['ord'] = index
 
-    def moveTemplate(self, model, template, idx):
+    def moveTemplate(self, model, template, newidx):
         """Move input template to position idx in model.
 
         Move also every other template to make this consistent.
@@ -589,28 +612,46 @@ update cards set ord = ord - 1, usn = ?, mod = ?
         Comment again after that TODODODO
         """
         oldidx = model['tmpls'].index(template)
-        if oldidx == idx:
+        oldidx = model['tmpls'].index(template)
+        if oldidx == newidx:
             return
-        oldidxs = dict((id(template), template['ord']) for template in model['tmpls'])
         model['tmpls'].remove(template)
-        model['tmpls'].insert(idx, template)
+        model['tmpls'].insert(newidx, template)
         self._updateTemplOrds(model)
-        # generate change map
-        map = []
-        for template in model['tmpls']:
-            map.append("when ord = %d then %d" % (oldidxs[id(template)], template['ord']))
-        # apply
-        self.save(model)
-        self.col.db.execute("""
-update cards set ord = (case %s end),usn=?,mod=? where nid in (
-select id from notes where mid = ?)""" % " ".join(map),
-                             self.col.usn(), intTime(), model['id'])
 
-    def _syncTemplates(self, model):
+        # apply
+        self.save(model, recomputeReq=False)
+        self.col.db.execute("""
+update cards
+  set
+    `ord` = (case
+      when `ord` == :oldidx then :newidx
+      when :mini<= `ord` and `ord` <= :maxi then (`ord` + (:diff))
+      else `ord` end
+    ),
+    usn = :usn,
+    mod = :mod
+  where
+    :mini <= `ord` and
+     `ord` <= :maxi and
+     nid in (select id from notes where mid = :mid)""",
+                            oldidx=oldidx,
+                            newidx=newidx,
+                            mini=min(oldidx, newidx),
+                            maxi=max(oldidx, newidx),
+                            diff= -1 if oldidx < newidx else 1,
+                            usn=self.col.usn(),
+                            mod=intTime(),
+                            mid=model['id'])
+
+    def _syncTemplates(self, model, changedOrNewReq=None):
         """Generate all cards not yet generated, whose note's model is model.
 
-        It's called only when model is saved, a new model is given and template is asked to be computed"""
-        rem = self.col.genCards(self.nids(model))
+        It's called only when model is saved, a new model is given and template is asked to be computed
+
+        changedOrNewReq -- set of index of templates which needs to be recomputed
+        """
+        self.col.genCards(self.nids(model), changedOrNewReq)
 
     # Model changing
     ##########################################################################
@@ -726,17 +767,28 @@ select id from notes where mid = ?)""" % " ".join(map),
     # Required field/text cache
     ##########################################################################
 
-    def _updateRequired(self, model):
-        """Entirely recompute the model's req value"""
+    def _updateRequired(self, model, oldModel=None, newTemplatesData=None):
+        """Entirely recompute the model's req value.
+
+        Return positions idx such that the card type is new or has its question changed
+        """
         if model['type'] == MODEL_CLOZE:
             # nothing to do
             return
         req = []
+        changedOrNewReq = set()
         flds = [fieldType['name'] for fieldType in model['flds']]
-        for template in model['tmpls']:
+        for idx, template in enumerate(model['tmpls']):
+            if 'tmp' in template and 'old req' in template['tmp'] and 'old type' in template['tmp'] and 'old qfmt' in template['tmp'] and template['tmp']['old qfmt'] == template['qfmt']:
+                req.append((idx, template['tmp']['old type'], template['tmp']['old req']))
+                if template['tmp'].get("is new", True):
+                    changedOrNewReq.add(idx)
+                continue
             ret = self._reqForTemplate(model, flds, template)
-            req.append((template['ord'], ret[0], ret[1]))
+            changedOrNewReq.add(idx)
+            req.append((idx, ret[0], ret[1]))
         model['req'] = req
+        return changedOrNewReq
 
     def _reqForTemplate(self, model, flds, template):
         """A rule which is supposed to determine whether a card should be
@@ -781,19 +833,23 @@ select id from notes where mid = ?)""" % " ".join(map),
                 req.append(i)
         return type, req
 
-    def availOrds(self, model, flds):
-        """Given a joined field string, return ordinal of card type which
-        should be generated. See
-        ../documentation/templates_generation_rules.md for the detail
+    def availOrds(self, model, flds, changedOrNewReq=None):
+        #oldModel = None, newTemplatesData = None
+        """Given a joined field string, return template ordinals which should be
+        seen. See ../documentation/templates_generation_rules.md for
+        the detail
 
+        changedOrNewReq -- set of index of templates which needs to be recomputed
         """
         if model['type'] == MODEL_CLOZE:
             return self._availClozeOrds(model, flds)
         fields = {}
         for index, fieldType in enumerate(splitFields(flds)):
             fields[index] = fieldType.strip()
-        avail = []
-        for ord, type, req in model['req']:
+        avail = []#List of ord cards which would be generated
+        ords = changedOrNewReq if changedOrNewReq is not None else range(len(model['req']))
+        for ord in ords:
+            ord, type, req = model['req'][ord]
             # unsatisfiable template
             if type == "none":
                 continue
