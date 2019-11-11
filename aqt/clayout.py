@@ -6,6 +6,7 @@
 * edit a note type
 * preview the different cards of a note."""
 import collections
+import copy
 import json
 import re
 
@@ -63,6 +64,7 @@ class CardLayout(QDialog):
         self.setupMainArea()
         self.setupButtons()
         self.setupShortcuts()
+        self.did = self.parent.deckChooser.selectedId() if hasattr(self.parent,"deckChooser") else None
         self.setWindowTitle(_("Card Types for %s") % self.model['name'])
         v1 = QVBoxLayout()
         v1.addWidget(self.topArea)
@@ -89,20 +91,14 @@ class CardLayout(QDialog):
         """TODO
         update the list of card
         """
-        did = None
-        if hasattr(self.parent,"deckChooser"):
-            did = self.parent.deckChooser.selectedId()
-        self.cards = self.col.previewCards(self.note, 2, did=did)
+        self.cards = self.col.previewCards(self.note, 2, did=self.did)
         #the list of cards of this note, with all templates
-        idx = self.ord
-        if idx >= len(self.cards):
+        if self.ord >= len(self.cards) and not self._isCloze():
             self.ord = len(self.cards) - 1
-
         self.redrawing = True
         self.updateTopArea()
-        self.updateMainArea()
         self.redrawing = False
-        self.onCardSelected(self.ord)
+        self.onCardSelected()
 
     def setupShortcuts(self):
         for i in range(1,9):
@@ -115,11 +111,17 @@ class CardLayout(QDialog):
 
     def setupTopArea(self):
         self.topArea = QWidget()
-        self.topAreaForm = aqt.forms.clayout_top.Ui_Form()
+        module = aqt.forms.clayout_top_cloze if self._isCloze() else aqt.forms.clayout_top
+        self.topAreaForm = module.Ui_Form()
         self.topAreaForm.setupUi(self.topArea)
-        self.topAreaForm.templateOptions.setText(_("Options") + " "+downArrow())
-        self.topAreaForm.templateOptions.clicked.connect(self.onMore)
-        self.topAreaForm.templatesBox.currentIndexChanged.connect(self.onCardSelected)
+        if self._isCloze():
+            cardNumber = self.ord+1
+            self.topAreaForm.clozeNumber.setValue(cardNumber)
+            self.topAreaForm.clozeNumber.valueChanged.connect(self.onCardSelected)
+        else:
+            self.topAreaForm.templateOptions.setText(_("Options") + " "+downArrow())
+            self.topAreaForm.templateOptions.clicked.connect(self.onMore)
+            self.topAreaForm.templatesBox.currentIndexChanged.connect(self.onCardSelected)
 
     def updateTopArea(self):
         cnt = self.mw.col.models.useCount(self.model)
@@ -133,12 +135,13 @@ class CardLayout(QDialog):
     def updateCardNames(self):
         """ In the list of card name, change them according to
         current's name"""
+        if self._isCloze():
+            return
         self.redrawing = True
         combo = self.topAreaForm.templatesBox
         combo.clear()
         combo.addItems(self._summarizedName(template) for template in self.model['tmpls'])
         combo.setCurrentIndex(self.ord)
-        combo.setEnabled(not self._isCloze())
         self.redrawing = False
 
     def _summarizedName(self, tmpl):
@@ -235,13 +238,6 @@ class CardLayout(QDialog):
                               css=["reviewer.css"],
                                js=jsinc)
 
-    def updateMainArea(self):
-        if self._isCloze():
-            cnt = len(self.mm.availOrds(
-                self.model, joinFields(self.note.fields)))
-            for groupBox in self.pform.groupBox, self.pform.groupBox_2:
-                groupBox.setTitle(groupBox.title() + _(" (1 of %d)") % max(cnt, 1))
-
     def onRemove(self):
         """ Remove the current template, except if it would leave a note without card. Ask user for confirmation"""
         if len(self.model['tmpls']) < 2:
@@ -287,11 +283,17 @@ Please create a new card type first."""))
     # Cards
     ##########################################################################
 
-    def onCardSelected(self, idx):
+    def onCardSelected(self, idx=None):
         if self.redrawing:
             return
-        self.card = self.cards[idx]
-        self.ord = idx
+        if idx is not None:
+            self.ord = idx-1 if self._isCloze() else idx
+        if self._isCloze():
+            tmpl = copy.copy(self.note.model()['tmpls'][0])
+            tmpl['ord'] = self.ord
+            self.card = self.col._newCard(self.note, tmpl, 1, flush=False, did=self.did)
+        else:
+            self.card = self.cards[self.ord]
         self.playedAudio = {}
         self.readCard()
         self.renderPreview()
