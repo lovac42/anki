@@ -58,4 +58,8 @@ Add the short-cut CTRL-F5 in browser to update the search
 
 ## Usable card report (25425599)
 Add more informations in the «empty card» report.
+### Minutes in the browser
+Allow the columns in browser to show hours and minutes. It may helps
+to see more precisely when cards in learning are due, and see in which
+order cards and notes where added/edited.
 
