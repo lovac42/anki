@@ -556,6 +556,7 @@ crt=?, mod=?, scm=?, dty=?, usn=?, ls=?, conf=?""",
                 for ord, cid in list(have[nid].items()):
                     if (
                             (changedOrNewReq is None or ord in changedOrNewReq)
+                            and ((not self.conf.get("keepSeenCard", True)) or self.db.scalar(f"select id from cards where id = ? and type = {CARD_NEW}", cid))
                             and ord not in avail
                     ):
                         rem.append(cid)
