@@ -10,6 +10,7 @@ import pprint
 import random
 import re
 import stat
+import sys
 import time
 import traceback
 
@@ -21,6 +22,7 @@ import anki.template
 from anki.consts import *
 from anki.decks import DeckManager
 from anki.errors import AnkiError
+from anki.fixing import FixingManager
 from anki.hooks import runFilter, runHook
 from anki.lang import _, ngettext
 from anki.media import MediaManager
@@ -818,7 +820,7 @@ where card.nid = note.id and card.id in %s group by nid""" % ids2str(cids)):
         return self.db.execute("""
 select card.id, note.id, note.mid, card.did, card.ord, note.tags, note.flds, card.flags
 from cards card, notes note
-where c.nid == note.id
+where card.nid == note.id
 %s""" % where)
 
     def _flagNameFromCardFlags(self, flags):
@@ -955,8 +957,9 @@ where c.nid == note.id
     # DB maintenance
     ##########################################################################
 
-    def basicCheck(self):
+    def basicCheck(self, syncer=None):
         """True if basic integrity is meet.
+        Otherwise an explanation of the error
 
         Used before and after sync, or before a full upload.
 
@@ -966,170 +969,40 @@ where c.nid == note.id
         * each note has a card
         * each card's ord is valid according to the note model.
         """
-        # cards without notes
-        if self.db.scalar("""
-select 1 from cards where nid not in (select id from notes) limit 1"""):
-            return
-        # notes without cards or models
-        if self.db.scalar("""
-select 1 from notes where id not in (select distinct nid from cards)
-or mid not in %s limit 1""" % ids2str(self.models.ids())):
-            return
-        # invalid ords
+        checks = [
+            ("select id, nid from cards where nid not in (select id from notes)",
+             "Card {} belongs to note {} which does not exists"),
+            ("select id, flds, tags, mid from notes where id not in (select distinct nid from cards)",
+             """Note {} has no cards. Fields: «{}», tags:«{}», mid:«{}»"""),
+            ("""select id, flds, tags, mid from notes where mid not in %s""" % ids2str(self.models.ids()),
+             """Note {} has an unexisting note type. Fields: «{}», tags:«{}», mid:{}"""),
+            ("""select nid, ord, count(*), GROUP_CONCAT(id) from cards group by ord, nid having count(*)>1""",
+             """Note {} has card at ord {} repeated {} times. Card ids are {}"""
+            )
+        ]
         for model in self.models.all():
             # ignore clozes
+            mid = model['id']
             if model['type'] != MODEL_STD:
                 continue
-            if self.db.scalar("""
-select 1 from cards where ord not in %s and nid in (
-select id from notes where mid = ?) limit 1""" %
-                               ids2str([template['ord'] for template in model['tmpls']]),
-                               model['id']):
-                return
+            checks.append((f"""select id, ord, nid from cards where ord <0 or ord>{len(model['tmpls'])} and nid in (select id from notes where mid = {mid})""",
+                           "Card {}'s ord {} of note {} does not exists in model {mid}"))
+        errorMessages = list()
+        for query,msg in checks:
+            l = self.db.all(query)
+            for tup in l:
+                #print(f"Message is «{msg}», tup = «{tup}»", file = sys.stderr)
+                formatted = msg.format(*tup)
+                print(formatted, file = sys.stderr)
+                errorMessages.append(formatted)
+        if errorMessages:
+            if syncer:
+                syncer.errorMessages = "\n".join(errorMessages)
+            return
         return True
 
     def fixIntegrity(self):
-        "Fix possible problems and rebuild caches."
-        problems = []
-        curs = self.db.cursor()
-        self.save()
-        oldSize = os.stat(self.path)[stat.ST_SIZE]
-
-        # whether sqlite find a problem in its database
-        if self.db.scalar("pragma integrity_check") != "ok":
-            return (_("Collection is corrupt. Please see the manual."), False)
-
-        # note types with a missing model
-        ids = self.db.list("""
-select id from notes where mid not in """ + ids2str(self.models.ids()))
-        if ids:
-            problems.append(
-                ngettext("Deleted %d note with missing note type.",
-                         "Deleted %d notes with missing note type.", len(ids))
-                         % len(ids))
-            self.remNotes(ids)
-
-        # for each model
-        for model in self.models.all():
-            for template in model['tmpls']:
-                if template['did'] == "None":
-                    template['did'] = None
-                    problems.append(_("Fixed AnkiDroid deck override bug."))
-                    self.models.save(model)
-            if model['type'] == MODEL_STD:
-                # model with missing req specification
-                if 'req' not in model:
-                    self.models._updateRequired(model)
-                    problems.append(_("Fixed note type: %s") % model['name'])
-                # cards with invalid ordinal
-                ids = self.db.list("""
-select id from cards where ord not in %s and nid in (
-select id from notes where mid = ?)""" %
-                                   ids2str([template['ord'] for template in model['tmpls']]),
-                                   model['id'])
-                if ids:
-                    problems.append(
-                        ngettext("Deleted %d card with missing template.",
-                                 "Deleted %d cards with missing template.",
-                                 len(ids)) % len(ids))
-                    self.remCards(ids)
-            # notes with invalid field count
-            ids = []
-            for id, flds in self.db.execute(
-                    "select id, flds from notes where mid = ?", model['id']):
-                if (flds.count("\x1f") + 1) != len(model['flds']):
-                    ids.append(id)
-            if ids:
-                problems.append(
-                    ngettext("Deleted %d note with wrong field count.",
-                             "Deleted %d notes with wrong field count.",
-                             len(ids)) % len(ids))
-                self.remNotes(ids)
-        # delete any notes with missing cards
-        ids = self.db.list("""
-select id from notes where id not in (select distinct nid from cards)""")
-        if ids:
-            cnt = len(ids)
-            problems.append(
-                ngettext("Deleted %d note with no cards.",
-                         "Deleted %d notes with no cards.", cnt) % cnt)
-            self._remNotes(ids)
-        # cards with missing notes
-        ids = self.db.list("""
-select id from cards where nid not in (select id from notes)""")
-        if ids:
-            cnt = len(ids)
-            problems.append(
-                ngettext("Deleted %d card with missing note.",
-                         "Deleted %d cards with missing note.", cnt) % cnt)
-            self.remCards(ids)
-        # cards with odue set when it shouldn't be
-        ids = self.db.list(f"""
-select id from cards where odue > 0 and (type={CARD_LRN} or queue={CARD_DUE}) and not odid""")
-        if ids:
-            cnt = len(ids)
-            problems.append(
-                ngettext("Fixed %d card with invalid properties.",
-                         "Fixed %d cards with invalid properties.", cnt) % cnt)
-            self.db.execute("update cards set odue=0 where id in "+
-                ids2str(ids))
-        # cards with odid set when not in a dyn deck
-        dids = [id for id in self.decks.allIds() if not self.decks.isDyn(id)]
-        ids = self.db.list("""
-        select id from cards where odid > 0 and did in %s""" % ids2str(dids))
-        if ids:
-            cnt = len(ids)
-            problems.append(
-                ngettext("Fixed %d card with invalid properties.",
-                         "Fixed %d cards with invalid properties.", cnt) % cnt)
-            self.db.execute("update cards set odid=0, odue=0 where id in "+
-                ids2str(ids))
-        # tags
-        self.tags.registerNotes()
-        # field cache
-        for model in self.models.all():
-            self.updateFieldCache(self.models.nids(model))
-        # new cards can't have a due position > 32 bits, so wrap items over
-        # 2 million back to 1 million
-        curs.execute(f"""
-update cards set due=1000000+due%1000000,mod=?,usn=? where due>=1000000
-and type = {CARD_NEW}""", [intTime(), self.usn()])
-        if curs.rowcount:
-            problems.append("Found %d new cards with a due number >= 1,000,000 - consider repositioning them in the Browse screen." % curs.rowcount)
-        # new card position
-        self.conf['nextPos'] = self.db.scalar(
-            f"select max(due)+1 from cards where type = {CARD_NEW}") or 0
-        # reviews should have a reasonable due #
-        ids = self.db.list(
-            "select id from cards where queue = 2 and due > 100000")
-        if ids:
-            problems.append("Reviews had incorrect due date.")
-            self.db.execute(
-                "update cards set due = ?, ivl = 1, mod = ?, usn = ? where id in %s"
-                % ids2str(ids), self.sched.today, intTime(), self.usn())
-        # v2 sched had a bug that could create decimal intervals
-        curs.execute("update cards set ivl=round(ivl),due=round(due) where ivl!=round(ivl) or due!=round(due)")
-        if curs.rowcount:
-            problems.append("Fixed %d cards with v2 scheduler bug." % curs.rowcount)
-
-        curs.execute("update revlog set ivl=round(ivl),lastIvl=round(lastIvl) where ivl!=round(ivl) or lastIvl!=round(lastIvl)")
-        if curs.rowcount:
-            problems.append("Fixed %d review history entries with v2 scheduler bug." % curs.rowcount)
-        # models
-        if self.models.ensureNotEmpty():
-            problems.append("Added missing note type.")
-        # and finally, optimize
-        self.optimize()
-        newSize = os.stat(self.path)[stat.ST_SIZE]
-        txt = _("Database rebuilt and optimized.")
-        ok = not problems
-        print("Adding in collection.py")
-        problems.append(txt)
-        # if any problems were found, force a full sync
-        if not ok:
-            self.modSchema(check=False)
-        self.save()
-        return ("\n".join(problems), ok)
+        FixingManager(self).run()
 
     def optimize(self):
         """Tell sqlite to optimize the db"""
