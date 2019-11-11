@@ -887,14 +887,47 @@ update cards
 
         changedOrNewReq -- set of index of templates which needs to be recomputed
         """
+        if self.col.conf.get("complexTemplates", False):
+            return self._availOrdsReal(model, flds, changedOrNewReq)
+        else:
+            return self._availOrdsOriginal(model, flds, changedOrNewReq)
+
+    def _availOrdsReal(self, model, flds, changedOrNewReq):
+        """
+        self -- model manager
+        model -- a model object
+        """
+        available = []
+        flist = splitFields(flds)
+        fields = {} #
+        for (name, (idx, conf)) in list(self.fieldMap(model).items()):#conf is not used
+            fields[name] = flist[idx]
+        if model['type'] == MODEL_CLOZE:
+            potentialOrds = self._availClozeOrds(model, flds)
+        else:
+            potentialOrds = changedOrNewReq if changedOrNewReq is not None else range(len(model["tmpls"]))
+        for ord in potentialOrds:
+            template = model["tmpls"][ord]
+            format = template['qfmt']
+            html, showAField = anki.template.renderAndIsFieldPresent(format, context=fields, ord=ord) #replace everything of the form {{ by its value TODO check
+            if showAField:
+                available.append(ord)
+        return available
+
+    def _availOrdsOriginal(self, model, flds, changedOrNewReq):
+        """Given a joined field string, return ordinal of card type which
+        should be generated. See
+        ../documentation/templates_generation_rules.md for the detail
+
+        """
         if model['type'] == MODEL_CLOZE:
             return self._availClozeOrds(model, flds)
         fields = {}
         for index, fieldType in enumerate(splitFields(flds)):
             fields[index] = fieldType.strip()
         avail = []#List of ord cards which would be generated
-        ords = changedOrNewReq if changedOrNewReq is not None else range(len(model['req']))
-        for ord in ords:
+        potentialOrds = changedOrNewReq if changedOrNewReq is not None else range(len(model['req']))
+        for ord in potentialOrds:
             ord, type, req = model['req'][ord]
             # unsatisfiable template
             if type == "none":
