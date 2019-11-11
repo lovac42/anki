@@ -258,6 +258,7 @@ Not currently enabled; click the sync button in the main window to enable."""))
         "allowEmptyFirstField",
         "compileLaTeX",
         "complexTemplates",
+        "deckOverview",
         "minutesInBrowser",
         "newLineInBatchEdit",
         ("browserOnMissingMedia", True),

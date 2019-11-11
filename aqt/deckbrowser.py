@@ -91,6 +91,10 @@ class DeckBrowser:
 
     def _selDeck(self, did):
         self.mw.col.decks.select(did)
+        self.mw.onReviewOrOverview()
+
+    def _overviewDeck(self, did):
+        self.mw.col.decks.select(did)
         self.mw.onOverview()
 
     # HTML generation
@@ -346,6 +350,9 @@ where id > ?""", (self.mw.col.sched.dayCutoff-86400)*1000)
         a.triggered.connect(lambda b, did=did: self._delete(did))
         a = menu.addAction(_("Adding delay"))
         a.triggered.connect(lambda b, did=did: self._onAddDelay(did))
+        if not self.mw.col.conf.get("overview", False):
+            a = menu.addAction(_("Overview"))
+            a.triggered.connect(lambda b, did=did: self._overviewDeck(did))
         runHook("showDeckOptions", menu, did)
         menu.exec_(QCursor.pos())
 

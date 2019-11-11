@@ -28,6 +28,7 @@ incorporatedAddonsSet = {
     Addon("Copy notes", 1566928056, 1563556640, "b9ad0a66f36db8a7b74c7da3cf967690623cd50c", "https://github.com/Arthur-Milchior/anki-copy-note"),
     Addon("Correcting a bug in anki which makes new card appearing in wrong order", 127334978, 1561608317, "9ec2f1e5c2f4d95de82b6cc7a43bf68cb39a26f7", "https://github.com/Arthur-Milchior/anki-correct-due"),
     Addon("Delete empty NEW cards", 1402327111, 1550534154, "6c45b4117e5d6cc4802ed4382d8b5d05ee80ac81", "https://github.com/Arthur-Milchior/anki-empty-new-cards"),
+    Addon("Directly review, without going through overview page", 1024346707, gitHash="0a0d0365deb022c54197f90c3f1100e9fc259ec0", gitRepo="https://github.com/Arthur-Milchior/anki-direct-to-review"),
     Addon("Empty cards returns more usable informations", 25425599, 1560126141, "299a0a7b3092923f5932da0bf8ec90e16db269af", "https://github.com/Arthur-Milchior/anki-clearer-empty-card"),
     Addon("Enhance main window", 877182321, 1560116344, "4ca79998acd46f4fe295526db5fe4fe7c04889a5", "https://github.com/Arthur-Milchior/anki-enhance-main-window"),
     Addon("Export cards selected in the Browser", 1983204951, 1560768960, "f8990da153af2745078e7b3c33854d01cb9fa304", "https://github.com/Arthur-Milchior/anki-export-from-browser"),
