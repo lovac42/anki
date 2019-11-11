@@ -24,6 +24,7 @@ import aqt.stats
 import aqt.toolbar
 import aqt.webview
 from anki import Collection
+from anki.find import Finder
 from anki.hooks import addHook, runFilter, runHook
 from anki.lang import _, ngettext
 from anki.utils import devMode, ids2str, intTime, isMac, isWin, splitFields
@@ -1032,6 +1033,9 @@ QTreeWidget {
         """Open the about window"""
         return aqt.dialogs.open("About", self)
 
+    def onPostpone_Reviews(self):
+        self.addDelay(self.col.getReviewCards())
+
     def onDonate(self):
         """Ask the OS to open the donate web page"""
         return openLink(aqt.appDonate)
@@ -1039,6 +1043,25 @@ QTreeWidget {
     def onDocumentation(self):
         """Ask the OS to open the documentation web page"""
         openHelp("")
+
+    def addDelay(self, cids):
+        (delay, delayResp) = getText("How many day to add to cards ? (negative number to substract days)")
+        try:
+            delay = int(delay)
+        except ValueError:
+            showWarning("Please enter an integral number of days")
+            return None
+        if (not delayResp) or delay == 0:
+            return None
+        self.checkpoint("Adding delay")
+        self.progress.start()
+        self.col.addDelay(cids, delay)
+        self.progress.finish()
+        self.col.reset()
+        self.reset()
+        tooltip(_("""Delay added."""))
+
+
 
     # Importing & exporting
     ##########################################################################
@@ -1091,6 +1114,7 @@ QTreeWidget {
         menu.actionExport.triggered.connect(self.onExport)
         menu.actionExit.triggered.connect(self.close)
         menu.actionPreferences.triggered.connect(self.onPrefs)
+        menu.actionPostpone_Reviews.triggered.connect(self.onPostpone_Reviews)
         menu.actionAbout.triggered.connect(self.onAbout)
         menu.actionUndo.triggered.connect(self.onUndo)
         if qtminor < 11:

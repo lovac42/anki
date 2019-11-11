@@ -31,6 +31,7 @@ from anki.sound import stripSounds
 from anki.tags import TagManager
 from anki.utils import (devMode, fieldChecksum, ids2str, intTime, joinFields,
                         maxID, splitFields, stripHTMLMedia)
+from aqt.utils import getText, showWarning, tooltip
 
 defaultConf = {
     # review options
@@ -702,6 +703,20 @@ select id from notes where id in %s and id not in (select nid from cards)""" %
             rep +="\nFields: %(f)s\n\n" % dict(f=flds.replace("\x1f", " / "))
         return rep
 
+    def addDelay(self, cids, delay):
+        ivlDelay = round(delay * (self.conf.get("factorAddDay", 0.33) if delay >0 else self.conf.get("factorRemoveDay", 0.33)))
+        for cid in cids:
+            card = mw.col.getCard(cid)
+            if card.type !=2:
+                continue
+            card.ivl += ivlDelay
+            if card.odid: # Also update cards in filtered decks
+                card.odue += delay
+            else:
+                card.due += delay
+            card.flush()
+
+
     # Field checksums and sorting fields
     ##########################################################################
 
@@ -879,6 +894,11 @@ where card.nid == note.id
 
     def findDupes(self, fieldName, search=""):
         return anki.find.findDupes(self, fieldName, search)
+
+    def getReviewCards(self):
+        finder = anki.find.Finder(self)
+        cardsToReview = finder.findCards("is:review")
+        return cardsToReview
 
     # Stats
     ##########################################################################
