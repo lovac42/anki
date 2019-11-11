@@ -448,11 +448,14 @@ class Editor:
         search = f"""\"dupe:{self.note.model()['id']},{contents}\""""
         browser = aqt.dialogs.open("Browser", self.mw, search)
 
-    def fieldsAreBlank(self):
+    def fieldsAreBlank(self, previousNote=None):
         if not self.note:
             return True
-        for index, f in enumerate(self.note.fields):
-            if f and not self.model['flds'][index]['sticky']:
+        for index, fieldValue in enumerate(self.note.fields):
+            notChangedvalues = {"", "<br>"}
+            if previousNote and self.model['flds'][index]['sticky']:
+                notChangedvalues.add(previousNote.fields[index])
+            if fieldValue not in notChangedvalues:
                 return False
         return True
 
