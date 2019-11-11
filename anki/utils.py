@@ -498,3 +498,24 @@ def eltToPos(list1, list2):
         reverse[elt] = pos
     mapping = [(reverse.get(value, l), key) for key, value in  eltToElt(list1, list2)]
     return mapping
+# JSon
+##############################################################################
+# Allow to have newline in strings in JSON
+
+def correctJson(text):
+    """Text, with new lines replaced by \n when inside quotes"""
+    if not isinstance(text,str):
+        return text
+    def correctQuotedString(match):
+        string = match[0]
+        return string.replace("\n","\\n")
+    res= re.sub(r'"(?:(?<=[^\\])(?:\\\\)*\\"|[^"])*"',correctQuotedString,text,re.M)
+    return res
+
+oldLoads=json.loads
+def newLoads(t,*args,**kwargs):
+    t_=correctJson(t)
+    res = oldLoads(t_,*args,**kwargs)
+    return res
+
+json.loads=newLoads

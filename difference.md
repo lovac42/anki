@@ -134,6 +134,11 @@ year. So that you can recover some old part of your collection.
 
 This can be deactivated from the back-up tab of the preferences window.
 
+## New line in Json (112201952)
+In order to lead configurations be easier to edit, this add-on allow
+newline in json strings. It allow add newlines in the add-on
+configuration editor.
+
 ## Refresh browser (1347728560, 832679841)
 Add the short-cut CTRL-F5 in browser to update the search
 
