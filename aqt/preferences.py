@@ -35,6 +35,7 @@ class Preferences(QDialog):
         self.setupCollection()
         self.setupNetwork()
         self.dealWithSettings(self.setupOneSetting)
+        self.setupColor()
         self.show()
 
     def accept(self):
@@ -83,7 +84,6 @@ class Preferences(QDialog):
             f.hwAccel.setVisible(False)
         else:
             f.hwAccel.setChecked(self.mw.pm.glMode() != "software")
-        f.newSpread.addItems(list(newCardSchedulingLabels().values()))
         if self.mw.col.schedVer() != 2:
             f.dayLearnFirst.setVisible(False)
         else:
@@ -200,6 +200,27 @@ Not currently enabled; click the sync button in the main window to enable."""))
         if self.form.fullSync.isChecked():
             self.mw.col.modSchema(check=False)
             self.mw.col.setMod()
+    # Color
+    ########################
+    def setupColor(self):
+        if "colors" not in self.mw.col.conf:
+            self.mw.col.conf["colors"] = defaultColors
+        for colorName in defaultColors:
+            defaultColor = defaultColors.get(colorName, "black")
+            colors = self.mw.col.conf["colors"]
+            color = colors.get(colorName, defaultColor) # useful if another color is added by an add-on.
+            button = getattr(self.form, f"{colorName}Button")
+            button.clicked.connect(lambda: self.onColor(colorName))
+            button.setStyleSheet(f"background-color: {color}")
+
+
+    def onColor(self, name):
+        print(f"on color {name}")
+        new = QColorDialog.getColor(QColor(self.mw.col.conf["colors"][name]), self, f"Choose the color for {name}")
+        if new.isValid():
+            colors = self.mw.col.conf["colors"]
+            newColor = new.name()
+            colors[name] = newColor
 
     # Basic & Advanced Options
     ######################################################################
@@ -296,3 +317,27 @@ Not currently enabled; click the sync button in the main window to enable."""))
         except:
             print(f"problem with {args}")
             raise
+
+    # Basic & Advanced Options
+    ######################################################################
+
+    def setupColor(self):
+        if "colors" not in self.mw.col.conf:
+            self.mw.col.conf["colors"] = defaultColors
+        for colorName in defaultColors:
+            defaultColor = defaultColors.get(colorName, "black")
+            colors = self.mw.col.conf["colors"]
+            color = colors.get(colorName, defaultColor) # useful if another color is added by an add-on.
+            button = getattr(self.form, f"{colorName}Button")
+            button.clicked.connect(lambda: self.onColor(colorName))
+            button.setStyleSheet(f"background-color: {color}")
+
+
+    def onColor(self, name):
+        print(f"on color {name}")
+        new = QColorDialog.getColor(QColor(self.mw.col.conf["colors"][name]), self, f"Choose the color for {name}")
+        if new.isValid():
+            colors = self.mw.col.conf["colors"]
+            newColor = new.name()
+            colors[name] = newColor
+            button.setStyleSheet(f"background-color: {newColor}")
