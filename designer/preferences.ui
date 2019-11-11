@@ -506,6 +506,13 @@
          <property name="text">
           <string>Allow empty first field</string>
          </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="preserveName">
+         <property name="text">
+          <string>When changing a note's type, preserve name of fields/cards</string>
+         </property>
          <property name="checked">
           <bool>true</bool>
          </property>
