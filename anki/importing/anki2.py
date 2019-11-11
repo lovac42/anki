@@ -243,6 +243,7 @@ class Anki2Importer(Importer):
                 model = srcModel.copy()
                 model['id'] = mid
                 model['usn'] = self.col.usn()
+                model['ls'] = self.col.ls
                 self.dst.models.update(model)
                 break
             # there's an existing model; do the schemas match?
