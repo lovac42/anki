@@ -127,6 +127,13 @@ more cards if you did have little to review.
 
 A fourth number will thus be shown in the deck overview windows.
 
+## Long term back-up (529955533)
+Ensure that there are both a lot of recent back-up, and one backup by
+day for the last month, one by month for the last year, and one by
+year. So that you can recover some old part of your collection.
+
+This can be deactivated from the back-up tab of the preferences window.
+
 ## Refresh browser (1347728560, 832679841)
 Add the short-cut CTRL-F5 in browser to update the search
 
