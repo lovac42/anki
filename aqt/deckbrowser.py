@@ -29,8 +29,8 @@ from anki.utils import fmtTimeSpan, ids2str
 from aqt.deckbrowsercolumnoption import DeckBrowserColumnOption
 from aqt.deckcolumns import *
 from aqt.qt import *
-from aqt.utils import (askUser, conditionString, getOnlyText, openHelp,
-                       openLink, shortcut, showWarning)
+from aqt.utils import (askUser, conditionString, getOnlyText, getText,
+                       openHelp, openLink, shortcut, showWarning)
 
 
 class DeckBrowser:
@@ -353,6 +353,8 @@ where id > ?""", (self.mw.col.sched.dayCutoff-86400)*1000)
         if not self.mw.col.conf.get("overview", False):
             a = menu.addAction(_("Overview"))
             a.triggered.connect(lambda b, did=did: self._overviewDeck(did))
+        a = m.addAction(_("Sort"))
+        a.triggered.connect(lambda b, did=did: self._sort(did))
         runHook("showDeckOptions", menu, did)
         menu.exec_(QCursor.pos())
 
@@ -485,6 +487,16 @@ where id > ?""", (self.mw.col.sched.dayCutoff-86400)*1000)
         column = columns.pop(draggedPos)
         columns.insert(ontoPos, column)
         self.show()
+
+    def _sort(self, did):
+        deck = self.mw.col.decks.get(did)
+        params = deck.get("special sort", "")
+        (params, ret) = getText("How to sort those cards", default=params)
+        if not ret:
+            return
+        deck["special sort"] = params
+        self.mw.col.decks.save(deck)
+        self.mw.col.sched.sortDid(did, f"[{params}]")
 
     def _delete(self, did):
         """Delete the deck whose id is did (ask for confirmation first unless

@@ -4,6 +4,7 @@
 
 from copy import copy
 
+from anki.consts import *
 from anki.utils import (fieldChecksum, guid64, intTime, joinFields,
                         splitFields, stripHTMLMedia, timestampID)
 from aqt.utils import tooltip
@@ -293,3 +294,12 @@ space, with an initial and a final white space."""
             # document that the user should open the templates window to
             # garbage collect empty cards
             #self.col.remEmptyCards(ids)
+
+    # Methods to sort new card
+    ######################################################
+
+    def isNew(self):
+        return not self.isNotNew()
+
+    def isNotNew(self):
+        return self.col.db.scalar(f"select 1 from cards where nid = ? and type <> {CARD_NEW} limit 1", self.id)
