@@ -603,6 +603,8 @@ def fieldNames(col, downcase=True):
     return list(fields)
 
 def fieldNamesForNotes(col, nids):
+    """The list of field names of models of notes whose id belongs to
+    nids."""
     fields = set()
     mids = col.db.list("select distinct mid from notes where id in %s" % ids2str(nids))
     for mid in mids:

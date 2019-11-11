@@ -236,6 +236,7 @@ Not currently enabled; click the sync button in the main window to enable."""))
         {"name":"pastePNG", "sync":False},
         "allowEmptyFirstField",
         "minutesInBrowser",
+        "newLineInBatchEdit",
         ("noteWithoutCard", True),
         {"name":"syncAddons", "sync":False},
     ]

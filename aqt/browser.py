@@ -695,6 +695,7 @@ class Browser(QMainWindow):
         self.form.actionChangeModel.triggered.connect(self.onChangeModel)
         self.form.actionFindDuplicates.triggered.connect(self.onFindDupes)
         self.form.actionFindReplace.triggered.connect(self.onFindReplace)
+        self.form.actionBatchEdit.triggered.connect(self.onBatchEdit)
         self.form.actionManage_Note_Types.triggered.connect(self.mw.onNoteTypes)
         self.form.actionDelete.triggered.connect(self.deleteNotes)
         # cards
@@ -1607,16 +1608,16 @@ where id in %s""" % ids2str(
             ",".join([str(s) for s in self.selectedNotes()]))
 
     def oneModelNotes(self):
-        sf = self.selectedNotes()
-        if not sf:
-            return
+        return self.applyToSelected(self._oneModelNotes)
+
+    def _oneModelNotes(self, nids):
         mods = self.col.db.scalar("""
 select count(distinct mid) from notes
-where id in %s""" % ids2str(sf))
+where id in %s""" % ids2str(nids))
         if mods > 1:
             showInfo(_("Please select cards from only one note type."))
             return
-        return sf
+        return nids
 
     def onHelp(self):
         openHelp("browser")
@@ -1850,9 +1851,9 @@ where id in %s""" % ids2str(sf))
         self._deleteNotes()
 
     def _deleteNotes(self):
-        nids = self.selectedNotes()
-        if not nids:
-            return
+        return self.applyToSelected(self.__deleteNotes)
+
+    def __deleteNotes(self, nids):
         self.mw.checkpoint(_("Delete Notes"))
         self.model.beginReset()
         # figure out where to place the cursor after the deletion
@@ -2030,10 +2031,10 @@ update cards set usn=?, mod=?, did=? where id in """ + scids,
             f"select id from cards where type = {CARD_NEW} and id in " + ids2str(cids))
         if not cids2:
             return showInfo(_("Only new cards can be repositioned."))
-        d = QDialog(self)
-        d.setWindowModality(Qt.WindowModal)
+        qdialog = QDialog(self)
+        qdialog.setWindowModality(Qt.WindowModal)
         frm = aqt.forms.reposition.Ui_Dialog()
-        frm.setupUi(d)
+        frm.setupUi(qdialog)
         (pmin, pmax) = self.col.db.first(
             f"select min(due), max(due) from cards where type={CARD_NEW} and odid=0")
         pmin = pmin or 0
@@ -2041,7 +2042,7 @@ update cards set usn=?, mod=?, did=? where id in """ + scids,
         txt = _("Queue top: %d") % pmin
         txt += "\n" + _("Queue bottom: %d") % pmax
         frm.label.setText(txt)
-        if not d.exec_():
+        if not qdialog.exec_():
             return
         self.model.beginReset()
         self.mw.checkpoint(_("Reposition"))
@@ -2061,11 +2062,11 @@ update cards set usn=?, mod=?, did=? where id in """ + scids,
         self.editor.saveNow(self._reschedule)
 
     def _reschedule(self):
-        d = QDialog(self)
-        d.setWindowModality(Qt.WindowModal)
+        qdialog = QDialog(self)
+        qdialog.setWindowModality(Qt.WindowModal)
         frm = aqt.forms.reschedule.Ui_Dialog()
-        frm.setupUi(d)
-        if not d.exec_():
+        frm.setupUi(qdialog)
+        if not qdialog.exec_():
             return
         self.model.beginReset()
         self.mw.checkpoint(_("Reschedule"))
@@ -2130,27 +2131,103 @@ update cards set usn=?, mod=?, did=? where id in """ + scids,
         if on:
             self.form.actionUndo.setText(self.mw.form.actionUndo.text())
 
-    # Edit: replacing
+    # Edit
     ######################################################################
 
+    def applyToSelected(self, fun):
+        nids = self.selectedNotes()
+        if not nids:
+            return
+        return fun(nids)
+
+    # Edit: Batch Edit
+    ######################################################################
+
+    def onBatchEdit(self):
+        return self.editor.saveNow(self._onBatchEdit)
+
+    def _onBatchEdit(self):
+        return self.applyToSelected(self.__onBatchEdit)
+
+    def __onBatchEdit(self, nids):
+        import anki.find
+        fields = anki.find.fieldNamesForNotes(self.mw.col, nids)
+        qdialog = QDialog(self)
+        frm = aqt.forms.batchedit.Ui_Dialog()
+        frm.setupUi(qdialog)
+        qdialog.setWindowModality(Qt.WindowModal)
+        frm.field.addItems(fields)
+        restoreGeom(qdialog, "batchedit")
+        frm.addBefore.clicked.connect(lambda : self.___onBatchEdit(qdialog, frm, "before", nids, fields))
+        frm.addAfter.clicked.connect(lambda : self.___onBatchEdit(qdialog, frm, "after", nids, fields))
+        frm.replace.clicked.connect(lambda : self.___onBatchEdit(qdialog, frm, "replace", nids, fields))
+        qdialog.exec_()
+
+    def ___onBatchEdit(self, qdialog, frm, pos, nids, fields):
+        saveGeom(qdialog, "batchedit")
+        fieldName = fields[frm.field.currentIndex()]
+        self.mw.checkpoint(_("Batch edit"))
+        self.mw.progress.start()
+        self.model.beginReset()
+        isHtml = frm.insertAsHtml.isChecked()
+        html = frm.textToAdd.toPlainText()
+        html = html.replace('\n', '<br/>')
+        if not isHtml:
+            html = html.replace('<', '&lt;')
+            html = html.replace('>', '&gt;')
+        cnt = 0
+        for nid in nids:
+            note = self.mw.col.getNote(nid)
+            try:
+                content = note[fieldName]
+            except KeyError:
+                continue
+            if isHtml:
+                spacer = "\n"
+                breaks = (spacer)
+            else:
+                spacer = "<br/>"
+                breaks = ("<div>", "</div>", "<br>", spacer)
+            if self.col.conf.get("newLineInBatchEdit", False):
+                spacer = ""
+            if pos == "after":
+                if content.endswith(breaks):
+                    spacer = ""
+                note[fieldName] += spacer + html
+            elif pos == "before":
+                if content.startswith(breaks):
+                    spacer = ""
+                note[fieldName] = html + spacer + content
+            elif pos == "replace":
+                note[fieldName] = html
+            note.flush()
+            cnt += 1
+
+        self.model.endReset()
+        self.mw.progress.finish()
+        tooltip(f"<b>Updated</b> {cnt} notes.", parent=self)
+        qdialog.reject()
+
+    # Edit: replacing
+    ######################################################################
     def onFindReplace(self):
-        self.editor.saveNow(self._onFindReplace)
+        return self.editor.saveNow(self._onFindReplace)
 
     def _onFindReplace(self):
-        sf = self.selectedNotes()
-        if not sf:
-            return
+        return self.applyToSelected(self.__onFindReplace)
+
+    def __onFindReplace(self, nids):
         import anki.find
-        fields = anki.find.fieldNamesForNotes(self.mw.col, sf)
-        d = QDialog(self)
+        fields = anki.find.fieldNamesForNotes(self.mw.col, nids)
+        qdialog = QDialog(self)
         frm = aqt.forms.findreplace.Ui_Dialog()
-        frm.setupUi(d)
-        d.setWindowModality(Qt.WindowModal)
+        frm.setupUi(qdialog)
+        qdialog.setWindowModality(Qt.WindowModal)
         frm.field.addItems([_("All Fields")] + fields)
         frm.buttonBox.helpRequested.connect(self.onFindReplaceHelp)
-        restoreGeom(d, "findreplace")
-        r = d.exec_()
-        saveGeom(d, "findreplace")
+        restoreGeom(qdialog, "findreplace")
+        r = qdialog.exec_()
+        saveGeom(qdialog, "findreplace")
         if not r:
             return
         if frm.field.currentIndex() == 0:
@@ -2161,7 +2238,7 @@ update cards set usn=?, mod=?, did=? where id in """ + scids,
         self.mw.progress.start()
         self.model.beginReset()
         try:
-            changed = self.col.findReplace(sf,
+            changed = self.col.findReplace(nids,
                                             str(frm.find.text()),
                                             str(frm.replace.text()),
                                             frm.re.isChecked(),
@@ -2178,9 +2255,9 @@ update cards set usn=?, mod=?, did=? where id in """ + scids,
             self.mw.progress.finish()
         showInfo(ngettext(
             "%(a)d of %(b)d note updated",
-            "%(a)d of %(b)d notes updated", len(sf)) % {
+            "%(a)d of %(b)d notes updated", len(nids)) % {
                 'a': changed,
-                'b': len(sf),
+                'b': len(nids),
             }, parent=self)
 
     def onFindReplaceHelp(self):
@@ -2193,11 +2270,11 @@ update cards set usn=?, mod=?, did=? where id in """ + scids,
         self.editor.saveNow(self._onFindDupes)
 
     def _onFindDupes(self):
-        d = QDialog(self)
-        self.mw.setupDialogGC(d)
+        qdialog = QDialog(self)
+        self.mw.setupDialogGC(qdialog)
         frm = aqt.forms.finddupes.Ui_Dialog()
-        frm.setupUi(d)
-        restoreGeom(d, "findDupes")
+        frm.setupUi(qdialog)
+        restoreGeom(qdialog, "findDupes")
         fields = sorted(anki.find.fieldNames(self.col, downcase=False),
                         key=lambda x: x.lower())
         frm.fields.addItems(fields)
@@ -2205,15 +2282,15 @@ update cards set usn=?, mod=?, did=? where id in """ + scids,
         # links
         frm.webView.onBridgeCmd = self.dupeLinkClicked
         def onFin(code):
-            saveGeom(d, "findDupes")
-        d.finished.connect(onFin)
+            saveGeom(qdialog, "findDupes")
+        qdialog.finished.connect(onFin)
         def onClick():
             field = fields[frm.fields.currentIndex()]
             self.duplicatesReport(frm.webView, field, frm.search.text(), frm)
         search = frm.buttonBox.addButton(
             _("Search"), QDialogButtonBox.ActionRole)
         search.clicked.connect(onClick)
-        d.show()
+        qdialog.show()
 
     def duplicatesReport(self, web, fname, search, frm):
         self.mw.progress.start()

@@ -30,6 +30,13 @@ To add a column, you only need to add one more object of type BrowserColumn.
 Those modification makes anki quicker. Technical details are on the
 add-on page.
 
+## Batch Edit (291119185)
+Allow to make the same edit to multiple cards. Either changing a
+field, or adding text after/before it.
+
+In preferences, you can decide whether you add a new line between the
+old text and the added one.
+
 ## Correcting due (127334978)
 Anki precomputes the order of the new cards to see. While in theory,
 this is all nice, in practice it bugs in some strange case. Those
