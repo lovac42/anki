@@ -98,6 +98,9 @@ exported cards. The problem being, of course, that you may export
 cards in decks you did not select. Thus, importing those cards may
 potentially create more decks than expected.
 
+## Frozen Fields (516643804)
+Add a small icon near the name of the field to make it sticky or not.
+
 ## Improve rendering (1551823299)
 Anki will generate cards's content (question, answer) faster. It will
 also improve the speed at which anki will save modification of card type.
@@ -137,6 +140,10 @@ day for the last month, one by month for the last year, and one by
 year. So that you can recover some old part of your collection.
 
 This can be deactivated from the back-up tab of the preferences window.
+
+## Multi column note editor (3491767031, 2064123047)
+Allow to have editors with multiple columns. Allow to keep some fields
+on their own line.
 
 ## New line in Json (112201952)
 In order to lead configurations be easier to edit, this add-on allow
