@@ -141,6 +141,10 @@ year. So that you can recover some old part of your collection.
 
 This can be deactivated from the back-up tab of the preferences window.
 
+## Merge decks (443286122)
+If you move/rename a deck and that it conflicts with an already
+existing deck, Anki will ask whether you want to merge decks.
+
 ## Multi column note editor (3491767031, 2064123047)
 Allow to have editors with multiple columns. Allow to keep some fields
 on their own line.

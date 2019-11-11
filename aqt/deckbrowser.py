@@ -364,7 +364,7 @@ where id > ?""", (self.mw.col.sched.dayCutoff-86400)*1000)
         Called from the gear on a deck line """
         self.mw.onExport(did=did)
 
-    def _rename(self, did):
+    def _rename(self, did, newName=None):
         """
         Open a window to rename deck whose id is did
 
@@ -372,12 +372,16 @@ where id > ?""", (self.mw.col.sched.dayCutoff-86400)*1000)
         self.mw.checkpoint(_("Rename Deck"))
         deck = self.mw.col.decks.get(did)
         oldName = deck['name']
-        newName = getOnlyText(_("New deck name:"), default=oldName)
-        newName = newName.replace('"', "")
+        if newName is None:
+            newName = getOnlyText(_("New deck name:"), default=oldName)
+            newName = newName.replace('"', "")
         if not newName or newName == oldName:
             return
         try:
-            self.mw.col.decks.rename(deck, newName)
+            if (newName not in self.mw.col.decks.allNames() or
+                askUser(_("The deck %s already exists. Do you want to merge %s in it ?")%(newName, oldName))):
+                self.mw.col.decks.rename(deck, newName, merge=True)
+
         except DeckRenameError as e:
             return showWarning(e.description)
         self.show()
@@ -426,11 +430,10 @@ where id > ?""", (self.mw.col.sched.dayCutoff-86400)*1000)
         then show a warning. Update the window accordingly.
 
         """
-        try:
-            self.mw.col.decks.renameForDragAndDrop(draggedDeckDid, ontoDeckDid)
-        except DeckRenameError as e:
-            return showWarning(e.description)
-
+        ontoDeckName = self.mw.col.decks.newNameForDragAndDrop(draggedDeckDid, ontoDeckDid)
+        if ontoDeckName is None:
+            return
+        self._rename(draggedDeckDid, newName=ontoDeckName)
         self.show()
 
     def _columnOptions(self, colpos):

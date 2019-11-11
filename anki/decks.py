@@ -426,34 +426,50 @@ class DeckManager:
         # mark registry changed, but don't bump mod time
         self.save()
 
-    def rename(self, deck, newName):
-        """Rename the deck object g to newName. Updates
-        children. Creates parents of newName if required.
+    def rename(self, deck, newName, merge=False):
+        """Rename the deck object deck to newName. Updates
+        descendants. Creates parents of newName if required.
 
-        If newName already exists or if it a descendant of a filtered
-        deck, the operation is aborted."""
+        If newName already exists, the content of deck is merged in
+        it. If newName is a descendant of a filtered deck, the
+        operation is aborted.
+
+        """
+        oldName = deck['name']
         # ensure we have parents
         newName = self._ensureParents(newName)
         # make sure target node doesn't already exist
-        if newName in self.allNames():
+        if (not merge) and newName in self.allNames():
             raise DeckRenameError(_("That deck already exists."))
         # make sure we're not nesting under a filtered deck
         for p in self.parentsByName(newName):
             if p['dyn']:
                 raise DeckRenameError(_("A filtered deck cannot have subdecks."))
-        # rename children
-        oldName = deck['name']
         for child in self.childrenDecks(deck['id'], includeSelf=True):
-            child['name'] = child['name'].replace(oldName, newName, 1)
-            self.save(child)
-        # ensure we have parents again, as we may have renamed parent->child
-        newName = self._ensureParents(newName)
+            newChildName = child['name'].replace(oldName, newName, 1)
+            newChild = self.byName(newChildName)
+            childId = child["id"]
+            if newChild: #deck with same name already existed. We move cards.
+                self.col.db.execute("update cards set did=?, mod=?, usn=? where did=?", newChild["id"], intTime(), self.col.usn(), childId)
+                self.rem(childId, childrenToo=False)
+            else: #no deck with same name. Deck renamed.
+                child['name'] = newChildName
+                self.save(child)
+        # ensure we have parents again, as we may have renamed parent->Descendant
+        self._ensureParents(newName)
         # renaming may have altered active did order
         self.maybeAddToActive()
 
     def renameForDragAndDrop(self, draggedDeckDid, ontoDeckDid):
         """Rename the deck whose id is draggedDeckDid as a children of
         the deck whose id is ontoDeckDid."""
+        newName = self.newNameForDragAndDrop(draggedDeckDid, ontoDeckDid)
+        if newName is not None:
+            draggedDeck = self.get(draggedDeckDid)
+            self.rename(draggedDeck, newName)
+
+    def newNameForDragAndDrop(self, draggedDeckDid, ontoDeckDid):
+        """name that would result from this drag and drop. None if it's impossible"""
         draggedDeck = self.get(draggedDeckDid)
         draggedDeckName = draggedDeck['name']
         ontoDeckName = self.get(ontoDeckDid)['name']
@@ -462,10 +478,10 @@ class DeckManager:
             #if the deck is dragged to toplevel
             if len(self._path(draggedDeckName)) > 1:
                 #And is not already at top level
-                self.rename(draggedDeck, self._basename(draggedDeckName))
+                return self._basename(draggedDeckName)
         elif self._canDragAndDrop(draggedDeckName, ontoDeckName):
             assert ontoDeckName.strip()
-            self.rename(draggedDeck, ontoDeckName + "::" + self._basename(draggedDeckName))
+            return ontoDeckName + "::" + self._basename(draggedDeckName)
 
     def _canDragAndDrop(self, draggedDeckName, ontoDeckName):
         """Whether draggedDeckName can be moved as a children of
@@ -687,6 +703,13 @@ same id."""
         dids = self.childDids(did, includeSelf=True)
         return self.col.db.list("select id from cards where did in "+
                                 ids2str(dids))
+
+    def cards(self, did, children=False):
+        """Return the list of cards whose deck's id is did.
+
+        If Children is set to true, returns also the list of the cards
+        of the descendant."""
+        return [self.col.getCard(cid) for cid in self.cids(did, children)]
 
     def _recoverOrphans(self):
         """Move the cards whose deck does not exists to the default
