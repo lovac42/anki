@@ -324,6 +324,12 @@
      <string>&amp;Columns</string>
     </property>
     <addaction name="actionRefresh"/>
+   </widget>
+   <widget class="QMenu" name="menuColumns">
+    <property name="title">
+     <string>&amp;Columns</string>
+    </property>
+    <addaction name="actionRefresh"/>
     <addaction name="actionShowNotesCards"/>
     <addaction name="actionShow_Hours_and_Minutes"/>
    </widget>
