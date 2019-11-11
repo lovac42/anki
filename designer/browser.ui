@@ -332,6 +332,7 @@
     <addaction name="actionRefresh"/>
     <addaction name="actionShowNotesCards"/>
     <addaction name="actionShow_Hours_and_Minutes"/>
+    <addaction name="actionShowNotesCards"/>
    </widget>
    <widget class="QMenu" name="menu_Decks">
     <property name="title">
