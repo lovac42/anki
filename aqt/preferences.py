@@ -256,6 +256,7 @@ Not currently enabled; click the sync button in the main window to enable."""))
         ("noteWithoutCard", True),
         {"name":"pastePNG", "sync":False},
         "allowEmptyFirstField",
+        "compileLaTeX",
         "minutesInBrowser",
         "newLineInBatchEdit",
         ("noteWithoutCard", True),

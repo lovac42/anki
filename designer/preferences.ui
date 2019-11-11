@@ -474,9 +474,23 @@
         </widget>
        </item>
        <item>
+        <widget class="Line" name="line">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+        </widget>
+       </item>
+       <item>
         <widget class="QCheckBox" name="noteWithoutCard">
          <property name="text">
           <string>Note with no card: create card 1 instead of deleting the note</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="compileLaTeX">
+         <property name="text">
+          <string>Compile LaTeX as soon as it is written</string>
          </property>
         </widget>
        </item>
@@ -494,6 +508,13 @@
          </property>
          <property name="checked">
           <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="label_2">
+         <property name="text">
+          <string>This option adds a tag LaTeXError to cards with faulty LaTeX. </string>
          </property>
         </widget>
        </item>
