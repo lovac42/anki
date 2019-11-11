@@ -263,6 +263,7 @@ Not currently enabled; click the sync button in the main window to enable."""))
         ("copyLog", True),
         ("keepEmptyNote", True),
         ("keepSeenCard", True),
+        ("limitAllCards", True),
         ("noteWithoutCard", True),
         ("preserveCreation", True),
         ("preserveName", True),

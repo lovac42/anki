@@ -187,6 +187,7 @@ defaultColumns = [{"name":"name", "header": "Deck", "header class": "colspan=5 a
                   {"name":"today",},
                   {"name":"flag2",},
                   ]
+colToday = "red"
 
 # Websites' page
 appWebsite="http://ankisrs.net/"

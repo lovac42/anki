@@ -174,9 +174,9 @@ to their original deck.""")
                 self.mw.col.sched.finishedMsg())
         else:
             l = [
-                (_("Learning"), counts[1], "learn"),
-                (_("New"), counts[0], "new"),
-                (_("To Review"), counts[2], "rev"),
+                (_("Learning"), counts[1], colLearn),
+                (_("New"), counts[0], colNew),
+                (_("To Review"), counts[2], colRev),
             ]
             from aqt import mw
             if mw and mw.pm.profile.get("limitAllCards", False):
@@ -185,7 +185,7 @@ to their original deck.""")
             <table width=400 cellpadding=5>
             <tr><td align=center valign=top>
             <table cellspacing=5>'''
-                   +"\n              ".join([f'''<tr><td>{string}:</td><td><b><font color={self.mw.col.conf.get("colors", defaultColors)[col]}>{count}</font></b></td></tr>'''
+                   +"\n              ".join([f'''<tr><td>{string}:</td><td><b><font color={col}>{count}</font></b></td></tr>'''
                                for string, count, col in l])
                    +f'''\
              </table>

@@ -88,11 +88,18 @@ class Scheduler(BothScheduler):
             self._restorePreviewCard(card)
             self._removeFromFiltered(card)
 
-    def counts(self, card=None):
+    def counts(self, card=None, sync=False):
+        """
+        sync -- whether it's called from sync, and the return must satisfies sync sanity check
+        """
         counts = [self.newCount, self.lrnCount, self.revCount]
         if card:
             idx = self.countIdx(card)
             counts[idx] += 1
+        from aqt import mw
+        cur = self.col.decks.current()
+        if (not sync) and self.col.conf.get("limitAllCards", False):
+            counts.append(counts[0] + counts[2]- cur['revToday'][1] - cur['newToday'][1] - cur['lrnToday'][1])
         return tuple(counts)
 
     def countIdx(self, card):
@@ -224,6 +231,25 @@ class Scheduler(BothScheduler):
 
         # collapse or finish
         return self._getLrnCard(collapse=True)
+
+    # New cards
+    ##########################################################################
+
+    def _deckNewLimitSingle(self, deck, sync=False):
+        """Limit for deck without parent limits.
+        sync -- whether it's called from sync, and the return must satisfies sync sanity check
+        """
+        if deck['dyn']:
+            return self.dynReportLimit
+        c = self.col.decks.confForDid(deck['id'])
+        nbNewToSee = c['new']['perDay'] - deck['newToday'][1]
+        from aqt import mw
+        if (not sync) and mw and mw.pm.profile.get("limitAllCards", False):
+            nbCardToSee = c.get('perDay', 1000) - deck['revToday'][1] - deck['newToday'][1]
+            lim = min(nbNewToSee, nbCardToSee)
+        else:
+            lim = nbNewToSee
+        return max(0, lim)
 
     # Learning queues
     ##########################################################################
@@ -439,18 +465,25 @@ and due <= ? limit ?)""",
     # Reviews
     ##########################################################################
 
-    def _currentRevLimit(self):
-        d = self.col.decks.get(self.col.decks.selected(), default=False)
-        return self._deckRevLimitSingle(d)
+    def _currentRevLimit(self, sync=False):
+        """
+        sync -- whether it's called from sync, and the return must satisfies sync sanity check
+        """
+        deck = self.col.decks.get(self.col.decks.selected(), default=False)
+        return self._deckRevLimitSingle(deck, sync=sync)
 
-    def _deckRevLimitSingle(self, d, parentLimit=None):
-        lim = super()._deckRevLimitSingle(d)
+    def _deckRevLimitSingle(self, deck, parentLimit=None, sync=False):
+        """
+        sync -- whether it's called from sync, and the return must satisfies sync sanity check
+        """
+        # invalid deck selected?
+        lim = super()._deckRevLimitSingle(deck)
         if parentLimit is not None:
             return min(parentLimit, lim)
-        elif '::' not in d['name']:
+        elif '::' not in deck['name']:
             return lim
         else:
-            for parent in self.col.decks.parents(d['id']):
+            for parent in self.col.decks.parents(deck['id']):
                 # pass in dummy parentLimit so we don't do parent lookup again
                 lim = min(lim, self._deckRevLimitSingle(parent, parentLimit=lim))
             return lim
@@ -465,8 +498,11 @@ select count() from
 and due <= ? limit ?)""" % ids2str(dids),
             self.today, lim)
 
-    def _resetRevCount(self):
-        lim = self._currentRevLimit()
+    def _resetRevCount(self, sync=False):
+        """
+        sync -- whether it's called from sync, and the return must satisfies sync sanity check
+        """
+        lim = self._currentRevLimit(sync=sync)
         self.revCount = self.col.db.scalar(f"""
 select count() from (select id from cards where
 did in %s and queue = {QUEUE_REV} and due <= ? limit {lim})""" %

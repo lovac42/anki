@@ -65,16 +65,18 @@ class BothScheduler:
             card.startTimer()
             return card
 
-    def reset(self):
+    def reset(self, sync=False):
         """
         Deal with the fact that it's potentially a new day.
         Reset number of learning, review, new cards according to current decks
         empty queues. Set haveQueues to true
+
+        sync -- whether we need to compute as in original anki, for synchronization to succeed.
         """
         self._updateCutoff()
         self._resetLrn()
-        self._resetRev()
-        self._resetNew()
+        self._resetRev(sync=sync)
+        self._resetNew(sync=sync)
         self._haveQueues = True
 
     def dueForecast(self, days=7):
@@ -133,7 +135,7 @@ order by due""" % (self._deckLimit()),
         It is used to compute the number to display in footer, to tell
         what you'll have to study today before changing deck.
 
-        limFn -- function which associate to each deck obejct the maximum number of card to consider
+        limFn -- function which associate to each deck object the maximum number of card to consider
         cntFn -- function which, given a deck id and a limit, return a number of card at most equal to this limit.
 
         """
@@ -204,19 +206,25 @@ order by due""" % (self._deckLimit()),
 
     # This part deals with current decks
     ##################
-    def _resetNewCount(self):
-        """Set newCount to the counter of new cards for the active decks."""
+    def _resetNewCount(self, sync=False):
+        """
+        Set newCount to the counter of new cards for the active decks.
+        sync -- whether it's called from sync, and the return must satisfies sync sanity check
+        """
         # Number of card in deck did, at most lim
         def cntFn(did, lim):
             ret = self.col.db.scalar(f"""
 select count() from (select 1 from cards where
 did = ? and queue = {QUEUE_NEW_CRAM} limit ?)""", did, lim)
             return ret
-        self.newCount = self._walkingCount(self._deckNewLimitSingle, cntFn)
+        self.newCount = self._walkingCount(lambda deck:self._deckNewLimitSingle(deck, sync=sync), cntFn)
 
-    def _resetNew(self):
-        """Set newCount, newDids, newCardModulus. Empty newQueue. """
-        self._resetNewCount()
+    def _resetNew(self, sync=False):
+        """
+        Set newCount, newDids, newCardModulus. Empty newQueue.
+        sync -- whether it's called from sync, and the return must satisfies sync sanity check
+        """
+        self._resetNewCount(sync=sync)
         self._newDids = self.col.decks.active()[:]
         self._newQueue = []
         self._updateNewCardRatio()
@@ -313,23 +321,6 @@ select count() from
 select count() from cards where id in (
 select id from cards where did in %s and queue = {QUEUE_NEW_CRAM} limit ?)"""
             % ids2str(self.col.decks.active()), self.reportLimit)
-
-    # New cards
-    ##########################################################################
-
-    def _deckNewLimitSingle(self, deck):
-        """Maximum number of new card to see today for deck deck, not considering parent limit.
-
-        If deck is a dynamic deck, then reportLimit.
-        Otherwise the number of card to see in this deck option, plus the number of card exceptionnaly added to this deck today.
-
-        keyword arguments:
-        deck -- a deck dictionnary
-        """
-        if deck['dyn']:
-            return self.reportLimit
-        conf = self.col.decks.confForDid(deck['id'])
-        return max(0, conf['new']['perDay'] - deck['newToday'][1])
 
     # Learning queues
     ##########################################################################
@@ -456,24 +447,34 @@ did = ? and queue = {QUEUE_DAY_LRN} and due <= ? limit ?""",
     # Reviews
     ##########################################################################
 
-    def _deckRevLimitSingle(self, d):
-        """Maximum number of card to review today in deck d.
+    def _deckRevLimitSingle(self, deck, sync=False):
+        """Maximum number of card to review today in deck deck.
 
         self.reportLimit for dynamic deck. Otherwise the number of review according to deck option, plus the number of review added in custom study today.
         keyword arguments:
-        d -- a deck object"""
+        deck -- a deck object"""
         # invalid deck selected?
-        if not d:
+        if not deck:
             return 0
 
-        if d['dyn']:
+        if deck['dyn']:
             return self.reportLimit
-        conf = self.col.decks.confForDid(d['id'])
-        return max(0, conf['rev']['perDay'] - d['revToday'][1])
+        conf = self.col.decks.confForDid(deck['id'])
+        nbRevToSee = conf['rev']['perDay'] - deck['revToday'][1]
+        from aqt import mw
+        if (not sync) and mw and mw.pm.profile.get("limitAllCards", False):
+            nbCardToSee = conf.get('perDay', 1000) - deck['revToday'][1] - deck['newToday'][1]
+            limit = min(nbRevToSee, nbCardToSee)
+        else:
+            limit = nbRevToSee
+        return max(0, limit)
 
-    def _resetRev(self):
-        """Set revCount, empty _revQueue, _revDids"""
-        self._resetRevCount()
+    def _resetRev(self, sync=False):
+        """
+        Set revCount, empty _revQueue, _revDids
+        sync -- whether it's called from sync, and the return must satisfies sync sanity check
+        """
+        self._resetRevCount(sync=sync)
         self._revQueue = []
 
     def _getRevCard(self):
@@ -483,7 +484,7 @@ did = ? and queue = {QUEUE_DAY_LRN} and due <= ? limit ?""",
 
     def totalRevForCurrentDeck(self):
         return self.col.db.scalar(
-            """
+            f"""
 select count() from cards where id in (
 select id from cards where did in %s and queue = {QUEUE_REV} and due <= ? limit ?)"""
             % ids2str(self.col.decks.active()), self.today, self.reportLimit)
