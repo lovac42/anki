@@ -106,46 +106,49 @@ class Template:
         tag = r"%(otag)s(#|=|&|!|>|\{)?(.+?)\1?%(ctag)s+"
         self.tag_re = re.compile(tag % tags)
 
+    def sub_section(self, match, context):
+        section, section_name, inner = match.group(0, 1, 2)
+        section_name = section_name.strip()
+        if section_name in self.fieldsForbiddenInSection():
+            return _("<b>Please don't use {{%s%s}} in card type/field.</b>%s") % (symbol, section_name, inner)
+
+        # val will contain the content of the field considered
+        # right now
+        val = None
+        match = re.match("c[qa]:(\d+):(.+)", section_name)
+        if match:
+            # get full field text
+            txt = get_or_attr(context, match.group(2), None)
+            match = re.search(clozeReg%match.group(1), txt)
+            if match:
+                val = match.group(1)
+        else:
+            val = get_or_attr(context, section_name, None)
+        replacer = ''
+        # Whether it's {{^
+        inverted = section[2] == "^"
+        # Ensuring we don't consider whitespace in val
+        if val:
+            val = stripHTMLMedia(val).strip()
+        if bool(val) != inverted:
+            replacer = inner
+        return replacer
+
     def render_sections(self, template, context):
         """replace {{#foo}}bar{{/foo}} and {{^foo}}bar{{/foo}} by
         their normal value."""
-        while 1:
-            match = self.section_re.search(template)
-            if match is None:
-                break
-
-            section, section_name, inner = match.group(0, 1, 2)
-            section_name = section_name.strip()
-            symbol = section[2]
-
-            # val will contain the content of the field considered
-            # right now
-            val = None
-            match = re.match(r"c[qa]:(\d+):(.+)", section_name)
-            if match:
-                # get full field text
-                txt = get_or_attr(context, match.group(2), None)
-                match = re.search(clozeReg%match.group(1), txt)
-                if match:
-                    val = match.group(1)
-            else:
-                val = get_or_attr(context, section_name, None)
-
-            replacer = ''
-            # Whether it's {{^
-            inverted = symbol == "^"
-            # Ensuring we don't consider whitespace in val
-            if val:
-                val = stripHTMLMedia(val).strip()
-            if bool(val) != inverted:
-                replacer = inner
-
-            if section_name in self.fieldsForbiddenInSection():
-                replacer = _("<b>Please don't use {{%s%s}} in card type/field.</b>%s") % (symbol, section_name, inner)
-
-            template = template.replace(section, replacer)
-
+        n = 1
+        while n:
+            template, n = self.section_re.subn(lambda match:self.sub_section(match,context), template)
         return template
+
+    def sub_tag(self, match, context):
+        tag, tag_type, tag_name = match.group(0, 1, 2)
+        # i.e. "{{!foo}}", "!", "foo"
+        tag_name = tag_name.strip()
+        func = modifiers[tag_type]
+        replacement = func(self, tag_name, context)
+        return replacement
 
     def render_tags(self, template, context):
         """A pair with:
@@ -153,28 +156,10 @@ class Template:
         {{# and {{^ are removed,
         * whether a field is shown"""
         repCount = 0
-        while 1:
-            if repCount > 100:
-                print("too many replacements")
-                break
-            repCount += 1
-
-            # search for some {{foo}}
-            match = self.tag_re.search(template)
-            if match is None:
-                break
-
-            #
-            tag, tag_type, tag_name = match.group(0, 1, 2)
-            tag_name = tag_name.strip()
-            try:
-                func = modifiers[tag_type]
-                replacement = func(self, tag_name, context)
-                template = template.replace(tag, replacement)
-            except (SyntaxError, KeyError):
-                return "{{invalid template}}"
-
-        return template
+        try:
+            return self.tag_re.sub(lambda match: self.sub_tag(match, context),template)
+        except (SyntaxError, KeyError):
+            return "{{invalid template}}"
 
     # {{{ functions just like {{ in anki
     @modifier('{')

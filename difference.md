@@ -98,6 +98,10 @@ exported cards. The problem being, of course, that you may export
 cards in decks you did not select. Thus, importing those cards may
 potentially create more decks than expected.
 
+## Improve rendering (1551823299)
+Anki will generate cards's content (question, answer) faster. It will
+also improve the speed at which anki will save modification of card type.
+
 ## Keep seen card.
 By default, this version of anki does not delete a card if it has
 already been seen once. Because, it should probably not be empty, and
