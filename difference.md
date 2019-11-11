@@ -24,6 +24,8 @@ You can sort any columns. Including decks, cards, notes, tags.
 ### Improvment for dev
 To add a column, you only need to add one more object of type BrowserColumn.
 
+## Allow to keep first field empty (46741504)
+
 ## Anki quicker (802285486)
 Those modification makes anki quicker. Technical details are on the
 add-on page.
