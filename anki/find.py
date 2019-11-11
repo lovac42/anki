@@ -27,6 +27,7 @@ class Finder:
             card=self._findTemplate,
             deck=self._findDeck,
             mid=self._findMid,
+            did=self._findDid,
             nid=self._findNids,
             cid=self._findCids,
             note=self._findModel,
@@ -417,6 +418,12 @@ select distinct(n.id) from cards c, notes n where c.nid=n.id and """
         if re.search("[^0-9]", val):
             return
         return "n.mid = %s" % val
+
+    def _findDid(self, args):
+        (val, args) = args
+        if re.search("[^0-9]", val):
+            return
+        return "c.did = %s" % val
 
     def _findModel(self, args):
         """A sql query restricting model (i.e. note type) to whose name is in
