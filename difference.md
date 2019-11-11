@@ -106,6 +106,10 @@ cards.
 ## Refresh browser (1347728560, 832679841)
 Add the short-cut CTRL-F5 in browser to update the search
 
+## Remove "Map to" in item import window for CSV (46741504)
+Because of this text, the keyboard can't be used to search a field. I
+thus remove it.
+
 ## Usable card report (25425599)
 Add more informations in the «empty card» report.
 ### Minutes in the browser
