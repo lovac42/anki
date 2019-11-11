@@ -343,7 +343,7 @@
        <property name="spacing">
         <number>12</number>
        </property>
-       <property name="margin">
+	   <property name="margin">
         <number>12</number>
        </property>
        <item>
@@ -467,9 +467,12 @@
         </widget>
        </item>
        <item>
-        <widget class="QCheckBox" name="noteWithoutCard">
+        <widget class="QLabel" name="label_12">
          <property name="text">
-          <string>Note with no card: create card 1 instead of deleting the note</string>
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Configure how and when anki generate cards&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
+         <property name="wordWrap">
+          <bool>true</bool>
          </property>
         </widget>
        </item>
@@ -519,9 +522,23 @@
         </widget>
        </item>
        <item>
+        <widget class="QCheckBox" name="preserveCreation">
+         <property name="text">
+          <string>Note copy: preserve date of creation</string>
+         </property>
+        </widget>
+       </item>
+       <item>
         <widget class="QLabel" name="label_2">
          <property name="text">
           <string>This option adds a tag LaTeXError to cards with faulty LaTeX. </string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="preserveReviewInfo">
+         <property name="text">
+          <string>Note copy: preserve easyness, interval, due date, ...</string>
          </property>
         </widget>
        </item>
@@ -532,6 +549,13 @@
          </property>
          <property name="text">
           <string>Cards are generated if and only if they show a field.</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="copyLog">
+         <property name="text">
+          <string>Note copy: Copy log</string>
          </property>
         </widget>
        </item>
@@ -558,7 +582,7 @@
        <property name="spacing">
         <number>12</number>
        </property>
-       <property name="margin">
+	   <property name="margin">
         <number>12</number>
        </property>
        <item>
