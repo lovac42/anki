@@ -234,6 +234,7 @@ Not currently enabled; click the sync button in the main window to enable."""))
         "minutesInBrowser",
         ("noteWithoutCard", True),
         {"name":"pastePNG", "sync":False},
+        ("noteWithoutCard", True),
     ]
 
     def setupOneSetting(self, name, default=False, kind="check", sync=True, fromCol=identity, toCol=identity):

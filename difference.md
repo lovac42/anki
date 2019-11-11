@@ -62,4 +62,8 @@ Add more informations in the «empty card» report.
 Allow the columns in browser to show hours and minutes. It may helps
 to see more precisely when cards in learning are due, and see in which
 order cards and notes where added/edited.
+In the preferences, the button «Note with no card: create card 1
+instead of deleting the note» chage the behavior of anki when he finds
+a note which has no more card. This allow to lose the content of the
+note, and let you correct the note instead to generate cards.
 
