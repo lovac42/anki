@@ -193,6 +193,14 @@ Add the short-cut CTRL-F5 in browser to update the search
 Because of this text, the keyboard can't be used to search a field. I
 thus remove it.
 
+## Tag missing media (2027876532)
+If a note is supposed to have media (image or audio), it will have the
+tag "MissingMedia", when you «check media».
+
+The prefenece "In case of missing media, show the notes in the
+browser" allows to decide whether the browser show you the list of
+notes with missing media when you check media.
+
 ## Usable card report (25425599)
 Add more informations in the «empty card» report.
 ### Minutes in the browser

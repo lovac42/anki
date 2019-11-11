@@ -260,6 +260,7 @@ Not currently enabled; click the sync button in the main window to enable."""))
         "complexTemplates",
         "minutesInBrowser",
         "newLineInBatchEdit",
+        ("browserOnMissingMedia", True),
         ("copyLog", True),
         ("keepEmptyNote", True),
         ("keepSeenCard", True),
