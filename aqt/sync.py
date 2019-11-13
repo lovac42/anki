@@ -232,10 +232,10 @@ enter your details below.""") %
         dialog.show()
         accepted = dialog.exec_()
         u = user.text()
-        p = passwd.text()
-        if not accepted or not u or not p:
+        pw = passwd.text()
+        if not accepted or not u or not pw:
             return
-        return (u, p)
+        return (u, pw)
 
     def _confirmFullSync(self):
         self.mw.progress.finish()
