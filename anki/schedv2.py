@@ -1045,7 +1045,7 @@ due = (case when odue>0 then odue else due end), odue = 0, odid = 0, usn = ? whe
     def remFromDyn(self, cids):
         self.emptyDyn(None, "id in %s and odid" % ids2str(cids))
 
-    def _dynOrder(self, o, l):
+    def _dynOrder(self, o, limit):
         if o == DYN_OLDEST:
             sort = "(select max(id) from revlog where cid=card.id)"
         elif o == DYN_RANDOM:
@@ -1065,7 +1065,7 @@ due = (case when odue>0 then odue else due end), odue = 0, odid = 0, usn = ? whe
                     self.today, self.today)
         else:# DYN_DUE or unknown
             sort = "card.due, card.ord"
-        return sort + " limit %d" % l
+        return sort + " limit %d" % limit
 
     def _moveToDyn(self, did, ids, start=-100000):
         deck = self.col.decks.get(did)
