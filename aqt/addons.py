@@ -52,19 +52,19 @@ class AddonManager:
 
     def allAddons(self):
         l = []
-        for d in os.listdir(self.addonsFolder()):
-            path = self.addonsFolder(d)
+        for addonFolder in os.listdir(self.addonsFolder()):
+            path = self.addonsFolder(addonFolder)
             if not os.path.exists(os.path.join(path, "__init__.py")):
                 continue
-            l.append(d)
+            l.append(addonFolder)
         l.sort()
         if os.getenv("ANKIREVADDONS", ""):
             l = reversed(l)
         return l
 
     def managedAddons(self):
-        return [d for d in self.allAddons()
-                if re.match(r"^\d+$", d)]
+        return [addonFolderName for addonFolderName in self.allAddons()
+                if re.match(r"^\d+$", addonFolderName)]
 
     def addonsFolder(self, dir=None):
         root = self.mw.pm.addonFolder()
@@ -159,7 +159,7 @@ and have been disabled: %(found)s") % dict(name=self.addonName(dir), found=addon
         conflicts = conflicts or self.addonConflicts(dir)
 
         installed = self.allAddons()
-        found = [d for d in conflicts if d in installed and self.isEnabled(d)]
+        found = [conflict for conflict in conflicts if conflict in installed and self.isEnabled(conflict)]
         found.extend(self.allAddonConflicts().get(dir, []))
         if not found:
             return []
@@ -503,7 +503,7 @@ class AddonsDialog(QDialog):
         addonList = self.form.addonList
         mgr = self.mgr
         
-        self.addons = [(mgr.annotatedName(d), d) for d in mgr.allAddons()]
+        self.addons = [(mgr.annotatedName(addon), addon) for addon in mgr.allAddons()]
         self.addons.sort()
 
         selected = set(self.selectedAddons())
@@ -616,7 +616,7 @@ class AddonsDialog(QDialog):
         if not updated:
             tooltip(_("No updates available."))
         else:
-            names = [self.mgr.addonName(d) for d in updated]
+            names = [self.mgr.addonName(addon) for addon in updated]
             if askUser(_("Update the following add-ons?") +
                                "\n" + "\n".join(names)):
                 log, errs = self.mgr.downloadIds(updated)
