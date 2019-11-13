@@ -73,11 +73,11 @@ class _Collection:
         self.tags = TagManager(self)
         self.load()
         if not self.crt:
-            d = datetime.datetime.today()
-            d -= datetime.timedelta(hours=4)
-            d = datetime.datetime(d.year, d.month, d.day)
-            d += datetime.timedelta(hours=4)
-            self.crt = int(time.mktime(d.timetuple()))
+            dt = datetime.datetime.today()
+            dt -= datetime.timedelta(hours=4)
+            dt = datetime.datetime(dt.year, dt.month, dt.day)
+            dt += datetime.timedelta(hours=4)
+            self.crt = int(time.mktime(dt.timetuple()))
         if not server:
             self.conf['localOffset'] = timezoneOffset()
         self._loadScheduler()
