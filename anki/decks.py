@@ -212,9 +212,9 @@ class DeckManager:
     def allNames(self, dyn=True, forceDefault=True):
         "An unsorted list of all deck names."
         if dyn:
-            return [x['name'] for x in self.all(forceDefault=forceDefault)]
+            return [deck['name'] for deck in self.all(forceDefault=forceDefault)]
         else:
-            return [x['name'] for x in self.all(forceDefault=forceDefault) if not x['dyn']]
+            return [deck['name'] for deck in self.all(forceDefault=forceDefault) if not deck['dyn']]
 
     def all(self, forceDefault=True):
         "A list of all decks."
