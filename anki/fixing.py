@@ -26,8 +26,9 @@ class FixingManager:
             return (_("Collection is corrupt. Please see the manual."), False)
 
         # note types with a missing model
-        ids = self.db.list("""
-select id from notes where mid not in """ + ids2str(self.col.models.ids()))
+        ids = self.db.list(
+            """select id from notes where mid not in """ + ids2str(self.col.models.ids()),
+        )
         if ids:
             problems.append(
                 ngettext("Deleted %d note with missing note type.",
@@ -48,11 +49,11 @@ select id from notes where mid not in """ + ids2str(self.col.models.ids()))
                 self.col.models._updateRequired(model)
                 problems.append(_("Fixed note type: %s") % model['name'])
             # cards with invalid ordinal
-            ids = self.db.list("""
-select id from cards where ord not in %s and nid in (
-select id from notes where mid = ?)""" %
-                               ids2str([template['ord'] for template in model['tmpls']]),
-                               model['id'])
+            ids = self.db.list(
+                """select id from cards where ord not in %s and nid in ( select id
+                from notes where mid = ?)""" %
+                ids2str([template['ord'] for template in model['tmpls']]),
+                model['id'])
             if ids:
                 problems.append(
                     ngettext("Deleted %d card with missing template.",
@@ -71,8 +72,10 @@ select id from notes where mid = ?)""" %
                              len(ids)) % len(ids))
                 self.col.remNotes(ids)
         # delete any notes with missing cards
-        ids = self.db.list("""
-select id from notes where id not in (select distinct nid from cards)""")
+        ids = self.db.list(
+            """select id from notes where id not in
+            (select distinct nid from cards)""",
+        )
         if ids:
             cnt = len(ids)
             problems.append(
@@ -80,8 +83,9 @@ select id from notes where id not in (select distinct nid from cards)""")
                          "Deleted %d notes with no cards.", cnt) % cnt)
             self.col._remNotes(ids)
         # cards with missing notes
-        ids = self.db.list("""
-select id from cards where nid not in (select id from notes)""")
+        ids = self.db.list(
+            """select id from cards where nid not in (select id from notes)""",
+        )
         if ids:
             cnt = len(ids)
             problems.append(
@@ -89,8 +93,10 @@ select id from cards where nid not in (select id from notes)""")
                          "Deleted %d cards with missing note.", cnt) % cnt)
             self.col.remCards(ids)
         # cards with odue set when it shouldn't be
-        ids = self.db.list(f"""
-select id from cards where odue > 0 and (type={CARD_LRN} or queue={CARD_DUE}) and not odid""")
+        ids = self.db.list(
+            f"""select id from cards where odue > 0 and (type={CARD_LRN} or
+            queue={CARD_DUE}) and not odid""",
+        )
         if ids:
             cnt = len(ids)
             problems.append(
@@ -116,28 +122,36 @@ select id from cards where odue > 0 and (type={CARD_LRN} or queue={CARD_DUE}) an
             self.col.updateFieldCache(self.col.models.nids(model))
         # new cards can't have a due position > 32 bits, so wrap items over
         # 2 million back to 1 million
-        curs.execute(f"""
-update cards set due=1000000+due%1000000,mod=?,usn=? where due>=1000000
-and type = {CARD_NEW}""", [intTime(), self.col.usn()])
+        curs.execute(
+            f"""update cards set due=1000000+due%1000000,mod=?,usn=? where
+            due>=1000000 and type = {CARD_NEW}""",
+            [intTime(), self.col.usn()])
         if curs.rowcount:
             problems.append("Found %d new cards with a due number >= 1,000,000 - consider repositioning them in the Browse screen." % curs.rowcount)
         # new card position
         self.col.conf['nextPos'] = self.db.scalar(
-            f"select max(due)+1 from cards where type = {CARD_NEW}") or 0
+            f"""select max(due)+1 from cards where type = {CARD_NEW}""",
+        ) or 0
         # reviews should have a reasonable due #
         ids = self.db.list(
-            "select id from cards where queue = 2 and due > 100000")
+            """select id from cards where queue = 2 and due > 100000""",
+        )
         if ids:
             problems.append("Reviews had incorrect due date.")
             self.db.execute(
-                "update cards set due = ?, ivl = 1, mod = ?, usn = ? where id in %s"
-                % ids2str(ids), self.col.sched.today, intTime(), self.col.usn())
+                """update cards set due = ?, ivl = 1, mod = ?, usn = ? where id in %s"""
+                % ids2str(ids),
+                self.col.sched.today, intTime(), self.col.usn())
         # v2 sched had a bug that could create decimal intervals
-        curs.execute("update cards set ivl=round(ivl),due=round(due) where ivl!=round(ivl) or due!=round(due)")
+        curs.execute(
+            """update cards set ivl=round(ivl),due=round(due) where ivl!=round(ivl) or due!=round(due)""",
+        )
         if curs.rowcount:
             problems.append("Fixed %d cards with v2 scheduler bug." % curs.rowcount)
 
-        curs.execute("update revlog set ivl=round(ivl),lastIvl=round(lastIvl) where ivl!=round(ivl) or lastIvl!=round(lastIvl)")
+        curs.execute(
+            """update revlog set ivl=round(ivl),lastIvl=round(lastIvl) where ivl!=round(ivl) or lastIvl!=round(lastIvl)""",
+        )
         if curs.rowcount:
             problems.append("Fixed %d review history entries with v2 scheduler bug." % curs.rowcount)
         # models
