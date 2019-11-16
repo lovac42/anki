@@ -190,6 +190,8 @@ class DataModel(QAbstractTableModel):
         invalid = False
         try:
             self.cards = self.col.findCards(txt, order=True)
+            if self.browser.sortBackwards:
+                self.cards.reverse()
         except Exception as e:
             if str(e) == "invalidSearch":
                 self.cards = []
