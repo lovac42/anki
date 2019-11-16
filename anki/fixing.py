@@ -43,6 +43,7 @@ class FixingManager:
                     template['did'] = None
                     problems.append(_("Fixed AnkiDroid deck override bug."))
                     self.col.models.save(model)
+                    
         for model in self.col.models.all(MODEL_STD):
             # model with missing req specification
             if 'req' not in model:
@@ -60,6 +61,7 @@ class FixingManager:
                              "Deleted %d cards with missing template.",
                              len(ids)) % len(ids))
                 self.col.remCards(ids)
+
         for model in self.col.models.all():
             # notes with invalid field count
             ids = self.db.execute(
@@ -71,6 +73,7 @@ class FixingManager:
                              "Deleted %d notes with wrong field count.",
                              len(ids)) % len(ids))
                 self.col.remNotes(ids)
+
         # delete any notes with missing cards
         ids = self.db.list(
             """select id from notes where id not in
@@ -82,16 +85,7 @@ class FixingManager:
                 ngettext("Deleted %d note with no cards.",
                          "Deleted %d notes with no cards.", cnt) % cnt)
             self.col._remNotes(ids)
-        # cards with missing notes
-        ids = self.db.list(
-            """select id from cards where nid not in (select id from notes)""",
-        )
-        if ids:
-            cnt = len(ids)
-            problems.append(
-                ngettext("Deleted %d card with missing note.",
-                         "Deleted %d cards with missing note.", cnt) % cnt)
-            self.col.remCards(ids)
+
         # cards with odue set when it shouldn't be
         ids = self.db.list(
             f"""select id from cards where odue > 0 and (type={CARD_LRN} or
@@ -104,6 +98,7 @@ class FixingManager:
                          "Fixed %d cards with invalid properties.", cnt) % cnt)
             self.db.execute("update cards set odue=0 where id in "+
                 ids2str(ids))
+
         # cards with odid set when not in a dyn deck
         dids = [id for id in self.col.decks.allIds() if not self.col.decks.isDyn(id)]
         ids = self.db.list("""
@@ -115,11 +110,14 @@ class FixingManager:
                          "Fixed %d cards with invalid properties.", cnt) % cnt)
             self.db.execute("update cards set odid=0, odue=0 where id in "+
                 ids2str(ids))
+
         # tags
         self.col.tags.registerNotes()
+
         # field cache
         for model in self.col.models.all():
             self.col.updateFieldCache(self.col.models.nids(model))
+
         # new cards can't have a due position > 32 bits, so wrap items over
         # 2 million back to 1 million
         curs.execute(
@@ -128,10 +126,12 @@ class FixingManager:
             [intTime(), self.col.usn()])
         if curs.rowcount:
             problems.append("Found %d new cards with a due number >= 1,000,000 - consider repositioning them in the Browse screen." % curs.rowcount)
+
         # new card position
         self.col.conf['nextPos'] = self.db.scalar(
             f"""select max(due)+1 from cards where type = {CARD_NEW}""",
         ) or 0
+
         # reviews should have a reasonable due #
         ids = self.db.list(
             """select id from cards where queue = 2 and due > 100000""",
@@ -142,6 +142,7 @@ class FixingManager:
                 """update cards set due = ?, ivl = 1, mod = ?, usn = ? where id in %s"""
                 % ids2str(ids),
                 self.col.sched.today, intTime(), self.col.usn())
+
         # v2 sched had a bug that could create decimal intervals
         curs.execute(
             """update cards set ivl=round(ivl),due=round(due) where ivl!=round(ivl) or due!=round(due)""",
@@ -154,9 +155,11 @@ class FixingManager:
         )
         if curs.rowcount:
             problems.append("Fixed %d review history entries with v2 scheduler bug." % curs.rowcount)
+
         # models
         if self.col.models.ensureNotEmpty():
             problems.append("Added missing note type.")
+
         # and finally, optimize
         self.col.optimize()
         newSize = os.stat(self.col.path)[stat.ST_SIZE]
