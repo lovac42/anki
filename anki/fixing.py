@@ -42,29 +42,28 @@ select id from notes where mid not in """ + ids2str(self.col.models.ids()))
                     template['did'] = None
                     problems.append(_("Fixed AnkiDroid deck override bug."))
                     self.col.models.save(model)
-            if model['type'] == MODEL_STD:
-                # model with missing req specification
-                if 'req' not in model:
-                    self.col.models._updateRequired(model)
-                    problems.append(_("Fixed note type: %s") % model['name'])
-                # cards with invalid ordinal
-                ids = self.db.list("""
+        for model in self.col.models.all(MODEL_STD):
+            # model with missing req specification
+            if 'req' not in model:
+                self.col.models._updateRequired(model)
+                problems.append(_("Fixed note type: %s") % model['name'])
+            # cards with invalid ordinal
+            ids = self.db.list("""
 select id from cards where ord not in %s and nid in (
 select id from notes where mid = ?)""" %
-                                   ids2str([template['ord'] for template in model['tmpls']]),
-                                   model['id'])
-                if ids:
-                    problems.append(
-                        ngettext("Deleted %d card with missing template.",
-                                 "Deleted %d cards with missing template.",
-                                 len(ids)) % len(ids))
-                    self.col.remCards(ids)
+                               ids2str([template['ord'] for template in model['tmpls']]),
+                               model['id'])
+            if ids:
+                problems.append(
+                    ngettext("Deleted %d card with missing template.",
+                             "Deleted %d cards with missing template.",
+                             len(ids)) % len(ids))
+                self.col.remCards(ids)
+        for model in self.col.models.all():
             # notes with invalid field count
-            ids = []
-            for id, flds in self.db.execute(
-                    "select id, flds from notes where mid = ?", model['id']):
-                if (flds.count("\x1f") + 1) != len(model['flds']):
-                    ids.append(id)
+            ids = self.db.execute(
+                """select id from notes where mid = ? and 
+                (LEN(flds)-LEN(REPLACE(flds, '\x1f', ''))) <> ?""", model['id'])
             if ids:
                 problems.append(
                     ngettext("Deleted %d note with wrong field count.",
