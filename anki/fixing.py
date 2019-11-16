@@ -44,12 +44,14 @@ class FixingManager:
                     problems.append(_("Fixed AnkiDroid deck override bug."))
                     self.col.models.save(model)
                     
+        # model with missing req specification
         for model in self.col.models.all(MODEL_STD):
-            # model with missing req specification
             if 'req' not in model:
                 self.col.models._updateRequired(model)
                 problems.append(_("Fixed note type: %s") % model['name'])
-            # cards with invalid ordinal
+
+        # cards with invalid ordinal
+        for model in self.col.models.all(MODEL_STD):
             ids = self.db.list(
                 """select id from cards where ord not in %s and nid in ( select id
                 from notes where mid = ?)""" %
@@ -62,6 +64,7 @@ class FixingManager:
                              len(ids)) % len(ids))
                 self.col.remCards(ids)
 
+        # notes with invalid field count
         for model in self.col.models.all():
             # notes with invalid field count
             ids = self.db.execute(
