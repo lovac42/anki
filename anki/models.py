@@ -210,13 +210,16 @@ class ModelManager:
         if id in self.models:
             return self.models[id]
 
-    def all(self):
+    def all(self, type=None):
         "Get all model objects."
-        return list(self.models.values())
+        models = self.models.values()
+        if type is not None:
+            models = filter(lambda model: model['type'] == type, models)
+        return models
 
-    def allNames(self):
+    def allNames(self, type=None):
         "Get all model names."
-        return [model['name'] for model in self.all()]
+        return map(lambda model:model['name'], self.all(type=type))
 
     def byName(self, name):
         """Get model whose name is name.
