@@ -962,25 +962,21 @@ where card.nid == note.id
         * each note has a card
         * each card's ord is valid according to the note model.
         """
-        # cards without notes
-        if self.db.scalar("""
-select 1 from cards where nid not in (select id from notes) limit 1"""):
-            return
-        # notes without cards or models
-        if self.db.scalar("""
-select 1 from notes where id not in (select distinct nid from cards)
-or mid not in %s limit 1""" % ids2str(self.models.ids())):
-            return
-        # invalid ords
-        for model in self.models.all():
-            # ignore clozes
-            if model['type'] != MODEL_STD:
-                continue
-            if self.db.scalar("""
-select 1 from cards where ord not in %s and nid in (
-select id from notes where mid = ?) limit 1""" %
-                               ids2str([template['ord'] for template in model['tmpls']]),
-                               model['id']):
+
+        queries = [
+            # cards without notes
+            """select 1 from cards where nid not in (select id from notes) limit 1""",
+            # notes without cards or models
+            """select 1 from notes where id not in (select distinct nid from
+            cards) or mid not in %s limit 1""" % ids2str(self.models.ids())
+            # invalid ords
+        ]
+        for model in self.models.all(type=MODEL_CLOZE):
+            queries.append(f"""
+select 1 from cards where ord not in {ids2str([template['ord'] for template in model['tmpls']])} and nid in (
+select id from notes where mid = {model['id']}) limit 1""")
+        for query in queries:
+            if self.db.scalar(query):
                 return
         return True
 
