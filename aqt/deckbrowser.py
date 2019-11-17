@@ -73,18 +73,6 @@ class DeckBrowser:
     # HTML generation
     ##########################################################################
 
-    _body = """
-<center>
-<table cellspacing=0 cellpading=3>
-%(tree)s
-</table>
-
-<br>
-%(stats)s
-%(countwarn)s
-</center>
-"""
-
     def _renderPage(self, reuse=False):
         """Write the HTML of the deck browser. Move to the last vertical position."""
         if not reuse:
@@ -95,7 +83,17 @@ class DeckBrowser:
     def __renderPage(self, offset):
         tree = self._renderDeckTree(self.mw.col.decks.topLevel.getChildren())
         stats = self._renderStats()
-        self.web.stdHtml(self._body%dict(
+        self.web.stdHtml("""
+<center>
+<table cellspacing=0 cellpading=3>
+%(tree)s
+</table>
+
+<br>
+%(stats)s
+%(countwarn)s
+</center>
+"""%dict(
             tree=tree, stats=stats, countwarn=self._countWarn()),
                          css=["deckbrowser.css"],
                          js=["jquery.js", "jquery-ui.js", "deckbrowser.js"])
