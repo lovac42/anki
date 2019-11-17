@@ -21,6 +21,7 @@ from anki.utils import (bodyClass, fmtTimeSpan, htmlToTextLine, ids2str,
                         intTime, isMac, isWin)
 from aqt.browserColumn import (ColumnByMethod, DateColumnFromQuery,
                                UselessColumn)
+from aqt.exporting import ExportDialog
 from aqt.main import \
     AnkiQt  # used to be `from aqt import AnkiQt` but this lead to import in errors
 from aqt.qt import *
@@ -493,6 +494,7 @@ class Browser(QMainWindow):
         self.form.actionOrange_Flag.triggered.connect(lambda: self.onSetFlag(2))
         self.form.actionGreen_Flag.triggered.connect(lambda: self.onSetFlag(3))
         self.form.actionBlue_Flag.triggered.connect(lambda: self.onSetFlag(4))
+        self.form.action_Export.triggered.connect(lambda: ExportDialog(self.mw, cids=self.selectedCards()))
         # jumps
         self.form.actionPreviousCard.triggered.connect(self.onPreviousCard)
         self.form.actionNextCard.triggered.connect(self.onNextCard)
