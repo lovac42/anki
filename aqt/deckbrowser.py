@@ -209,8 +209,6 @@ where id > ?""", (self.mw.col.sched.dayCutoff-86400)*1000)
             klass = 'deck current'
         else:
             klass = 'deck'
-        buf = f"""
-    <tr class='{klass}' id='{did}'>"""
         # deck link
         if children:
             collapse = f"""<a class=collapse href=# onclick='return pycmd(\"collapse:{did}\")'>{prefix}</a>"""
@@ -220,6 +218,8 @@ where id > ?""", (self.mw.col.sched.dayCutoff-86400)*1000)
             extraclass = """filtered"""
         else:
             extraclass = ""
+        buf = f"""
+    <tr class='{klass}' id='{did}'>"""
         buf += f"""
 
       <td class=decktd colspan=5>
