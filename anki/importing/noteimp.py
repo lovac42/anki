@@ -158,15 +158,15 @@ class NoteImporter(Importer):
                                 " ".join(note.fields))
                 continue
             # earlier in import?
-            if fld0 in firsts and self.importMode != addMode:
+            if fld0 in firsts and self.importMode != addMode and not self.col.conf.get("allowDuplicateFirstField", False):
                 # duplicates in source file; log and ignore
                 self.log.append(_("Appeared twice in file: %s") %
                                 fld0)
                 continue
             firsts[fld0] = True
-            # already exists?
             found = False#Whether a note with a similar first field was found
-            if csum in csums:
+            if csum in csums and not self.col.conf.get("allowDuplicateFirstField", False):
+                # if duplicate allowed, don't test?
                 # csum is not a guarantee; have to check
                 for id in csums[csum]:
                     flds = self.col.db.scalar(
