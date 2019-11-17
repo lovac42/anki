@@ -115,9 +115,8 @@ where id > ?""", (self.mw.col.sched.dayCutoff-86400)*1000)
         cards = cards or 0
         thetime = thetime or 0
         msgp1 = ngettext("""<!--studied-->%d card""", """<!--studied-->%d cards""", cards) % cards
-        buf = _("""Studied %(mspg1)s %(theTime)s today.""") % dict(mspg1=msgp1,
+        return _("""Studied %(mspg1)s %(theTime)s today.""") % dict(mspg1=msgp1,
                                                      theTime=fmtTimeSpan(thetime, unit=1, inTime=True))
-        return buf
 
     def _countWarn(self):
         if (self.mw.col.decks.count() < 25 or
@@ -180,8 +179,7 @@ where id > ?""", (self.mw.col.sched.dayCutoff-86400)*1000)
         # parent toggled for collapsing
         for ancestor in self.mw.col.decks.parents(did, nameMap):
             if ancestor['collapsed']:
-                buff = ""
-                return buff
+                return ""
         prefix = "-"
         if self.mw.col.decks.get(did)['collapsed']:
             prefix = "+"
