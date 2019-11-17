@@ -181,8 +181,6 @@ where id > ?""", (self.mw.col.sched.dayCutoff-86400)*1000)
         if self.mw.col.decks.get(did)['collapsed']:
             prefix = "+"
         due = rev + lrn
-        def indent():
-            return "&nbsp;"*6*depth
         if did == self.mw.col.conf['curDeck']:
             klass = 'deck current'
         else:
@@ -201,7 +199,7 @@ where id > ?""", (self.mw.col.sched.dayCutoff-86400)*1000)
 
         <td class=decktd colspan=5>%s%s<a class="deck %s"
         href=# onclick="return pycmd('open:%d')">%s</a></td>"""% (
-            indent(), collapse, extraclass, did, name)
+            "&nbsp;"*6*depth, collapse, extraclass, did, name)
         # due counts
         def nonzeroColour(cnt, colour):
             if not cnt:
