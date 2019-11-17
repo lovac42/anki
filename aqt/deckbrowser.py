@@ -218,35 +218,31 @@ where id > ?""", (self.mw.col.sched.dayCutoff-86400)*1000)
             extraclass = """filtered"""
         else:
             extraclass = ""
-        buf = f"""
-    <tr class='{klass}' id='{did}'>"""
-        buf += f"""
-
+        return f"""
+    <tr class='{klass}' id='{did}'>
       <td class=decktd colspan=5>
         {"&nbsp;"*6*depth}{collapse}
         <a class="deck {extraclass}" href=# onclick="return pycmd('open:{did}')">
           {name}
         </a>
-      </td>"""
-        # due counts
-        buf += f"""
+      </td>
+      <!--- due counts -->
       <td align=right>
 {DeckBrowser.nonzeroColour(due, colDue)}
       </td>
       <td align=right>
 {DeckBrowser.nonzeroColour(new, colNew)}
-      </td>"""
-        # options
-        buf += f"""
+      </td>
+      <!--- options -->
       <td align=center class=opts>
         <a onclick='return pycmd(\"opts:{did}\");'>
           <img src='/_anki/imgs/gears.svg' class=gears>
         </a>
       </td>
-    </tr>"""
-        # children
-        buf += self._renderDeckTree(children, depth+1)
-        return buf
+    </tr>
+    <!--- children -->
+    # children
+{self._renderDeckTree(children, depth+1)}"""
 
     def _topLevelDragRow(self):
         return """
