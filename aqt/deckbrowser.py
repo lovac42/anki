@@ -114,8 +114,8 @@ select count(), sum(time)/1000 from revlog
 where id > ?""", (self.mw.col.sched.dayCutoff-86400)*1000)
         cards = cards or 0
         thetime = thetime or 0
-        msgp1 = ngettext("<!--studied-->%d card", "<!--studied-->%d cards", cards) % cards
-        buf = _("Studied %(mspg1)s %(theTime)s today.") % dict(mspg1=msgp1,
+        msgp1 = ngettext("""<!--studied-->%d card""", """<!--studied-->%d cards""", cards) % cards
+        buf = _("""Studied %(mspg1)s %(theTime)s today.""") % dict(mspg1=msgp1,
                                                      theTime=fmtTimeSpan(thetime, unit=1, inTime=True))
         return buf
 
@@ -123,13 +123,13 @@ where id > ?""", (self.mw.col.sched.dayCutoff-86400)*1000)
         if (self.mw.col.decks.count() < 25 or
                 self.mw.pm.profile.get("hideDeckLotsMsg")):
             return ""
-        return "<br><div style='width:50%;border: 1px solid #000;padding:5px;'>"+(
-            _("You have aButton lot of decks. Please see %(aButton)s. %(hide)s") % dict(
-                aButton=("<a href=# onclick=\"return pycmd('lots')\">%s</a>" % _(
-                    "this page")),
-                hide=("<br><small><a href=# onclick='return pycmd(\"hidelots\")'>("
-                   "%s)</a></small>" % (_("hide"))+
-                    "</div>")))
+        return """<br><div style='width:50%;border: 1px solid #000;padding:5px;'>"""+(
+            _("""You have aButton lot of decks. Please see %(aButton)s. %(hide)s""") % dict(
+                aButton=("""<a href=# onclick=\"return pycmd('lots')\">%s</a>""" % _(
+                    """this page""")),
+                hide=("""<br><small><a href=# onclick='return pycmd(\"hidelots\")'>("""
+                   """%s)</a></small>""" % (_("""hide"""))+
+                    """</div>""")))
 
     def _renderDeckTree(self, nodes, depth=0):
         """Html used to show the deck tree.
@@ -185,14 +185,14 @@ where id > ?""", (self.mw.col.sched.dayCutoff-86400)*1000)
             klass = 'deck current'
         else:
             klass = 'deck'
-        buf = "<tr class='%s' id='%d'>" % (klass, did)
+        buf = """<tr class='%s' id='%d'>""" % (klass, did)
         # deck link
         if children:
-            collapse = "<a class=collapse href=# onclick='return pycmd(\"collapse:%d\")'>%s</a>" % (did, prefix)
+            collapse = """<a class=collapse href=# onclick='return pycmd(\"collapse:%d\")'>%s</a>""" % (did, prefix)
         else:
-            collapse = "<span class=collapse></span>"
+            collapse = """<span class=collapse></span>"""
         if deck['dyn']:
-            extraclass = "filtered"
+            extraclass = """filtered"""
         else:
             extraclass = ""
         buf += """
@@ -206,19 +206,19 @@ where id > ?""", (self.mw.col.sched.dayCutoff-86400)*1000)
                 colour = "#e0e0e0"
             if cnt >= 1000:
                 cnt = "1000+"
-            return "<font color='%s'>%s</font>" % (colour, cnt)
-        buf += "<td align=right>%s</td><td align=right>%s</td>" % (
+            return """<font color='%s'>%s</font>""" % (colour, cnt)
+        buf += """<td align=right>%s</td><td align=right>%s</td>""" % (
             nonzeroColour(due, colDue),
             nonzeroColour(new, colNew))
         # options
-        buf += ("<td align=center class=opts><a onclick='return pycmd(\"opts:%d\");'>"
-        "<img src='/_anki/imgs/gears.svg' class=gears></a></td></tr>" % did)
+        buf += ("""<td align=center class=opts><a onclick='return pycmd(\"opts:%d\");'>"""
+        """<img src='/_anki/imgs/gears.svg' class=gears></a></td></tr>""" % did)
         # children
         buf += self._renderDeckTree(children, depth+1)
         return buf
 
     def _topLevelDragRow(self):
-        return "<tr class='top-level-drag-row'><td colspan='6'>&nbsp;</td></tr>"
+        return """<tr class='top-level-drag-row'><td colspan='6'>&nbsp;</td></tr>"""
 
     # Options
     ##########################################################################
