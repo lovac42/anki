@@ -127,8 +127,7 @@ where id > ?""", (self.mw.col.sched.dayCutoff-86400)*1000)
             _("""You have aButton lot of decks. Please see %(aButton)s. %(hide)s""") % dict(
                 aButton=("""<a href=# onclick=\"return pycmd('lots')\">%s</a>""" % _(
                     """this page""")),
-                hide=("""<br><small><a href=# onclick='return pycmd(\"hidelots\")'>("""
-                   """%s)</a></small>""" % (_("""hide"""))+
+                hide=("""<br><small><a href=# onclick='return pycmd(\"hidelots\")'>(%s)</a></small>""" % (_("""hide"""))+
                     """</div>""")))
 
     def _renderDeckTree(self, nodes, depth=0):
@@ -211,8 +210,7 @@ where id > ?""", (self.mw.col.sched.dayCutoff-86400)*1000)
             nonzeroColour(due, colDue),
             nonzeroColour(new, colNew))
         # options
-        buf += ("""<td align=center class=opts><a onclick='return pycmd(\"opts:%d\");'>"""
-        """<img src='/_anki/imgs/gears.svg' class=gears></a></td></tr>""" % did)
+        buf += ("""<td align=center class=opts><a onclick='return pycmd(\"opts:%d\");'><img src='/_anki/imgs/gears.svg' class=gears></a></td></tr>""" % did)
         # children
         buf += self._renderDeckTree(children, depth+1)
         return buf
