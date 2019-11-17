@@ -154,6 +154,14 @@ where id > ?""", (self.mw.col.sched.dayCutoff-86400)*1000)
             buf += self._topLevelDragRow()
         return buf
 
+    @staticmethod
+    def nonzeroColour(cnt, colour):
+        if not cnt:
+            colour = "#e0e0e0"
+        if cnt >= 1000:
+            cnt = "1000+"
+        return """<font color='%s'>%s</font>""" % (colour, cnt)
+
     def _deckRow(self, node, depth, cnt, nameMap):
         """The HTML for a single deck (and its descendant)
 
@@ -200,15 +208,9 @@ where id > ?""", (self.mw.col.sched.dayCutoff-86400)*1000)
         href=# onclick="return pycmd('open:%d')">%s</a></td>"""% (
             indent(), collapse, extraclass, did, name)
         # due counts
-        def nonzeroColour(cnt, colour):
-            if not cnt:
-                colour = "#e0e0e0"
-            if cnt >= 1000:
-                cnt = "1000+"
-            return """<font color='%s'>%s</font>""" % (colour, cnt)
         buf += """<td align=right>%s</td><td align=right>%s</td>""" % (
-            nonzeroColour(due, colDue),
-            nonzeroColour(new, colNew))
+            DeckBrowser.nonzeroColour(due, colDue),
+            DeckBrowser.nonzeroColour(new, colNew))
         # options
         buf += ("""<td align=center class=opts><a onclick='return pycmd(\"opts:%d\");'><img src='/_anki/imgs/gears.svg' class=gears></a></td></tr>""" % did)
         # children
