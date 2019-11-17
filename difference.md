@@ -2,6 +2,12 @@
 This files list the difference between regular anki and this forked
 version. It also lists the different options in the Preferences's extra page.
 
+## Browser from reviewer (1555020859)
+
+Reviewer opens the browser by showing current card only if preference
+is set.
+
+
 ## Explain errors
 You obtain more detailled error message if a sync fail, and if you try
 do do a «Check database».
