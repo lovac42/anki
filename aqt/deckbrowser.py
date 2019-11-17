@@ -82,20 +82,17 @@ class DeckBrowser:
         self.web.evalWithCallback("window.pageYOffset", self.__renderPage)
 
     def __renderPage(self, offset):
-        tree = self._renderDeckTree(self._dueTree)
-        stats = self._renderStats()
-        self.web.stdHtml("""
+        self.web.stdHtml(f"""
 <center>
 <table cellspacing=0 cellpading=3>
-%(tree)s
+{self._renderDeckTree(self._dueTree)}
 </table>
 
 <br>
-%(stats)s
-%(countwarn)s
+{self._renderStats()}
+{self._countWarn()}
 </center>
-"""%dict(
-            tree=tree, stats=stats, countwarn=self._countWarn()),
+""",
                          css=["deckbrowser.css"],
                          js=["jquery.js", "jquery-ui.js", "deckbrowser.js"])
         self.web.key = "deckBrowser"
@@ -104,7 +101,7 @@ class DeckBrowser:
             self._scrollToOffset(offset)
 
     def _scrollToOffset(self, offset):
-        self.web.eval("$(function() { window.scrollTo(0, %d, 'instant'); });" % offset)
+        self.web.eval(f"$(function() {{ window.scrollTo(0, {offset}, 'instant'); }});")
 
     def _renderStats(self):
         cards, thetime = self.mw.col.db.first("""
@@ -122,10 +119,8 @@ where id > ?""", (self.mw.col.sched.dayCutoff-86400)*1000)
             return ""
         return """<br><div style='width:50%;border: 1px solid #000;padding:5px;'>"""+(
             _("""You have aButton lot of decks. Please see %(aButton)s. %(hide)s""") % dict(
-                aButton=("""<a href=# onclick=\"return pycmd('lots')\">%s</a>""" % _(
-                    """this page""")),
-                hide=("""<br><small><a href=# onclick='return pycmd(\"hidelots\")'>(%s)</a></small>""" % (_("""hide"""))+
-                    """</div>""")))
+                aButton=f"""<a href=# onclick=\"return pycmd('lots')\">{_("this page")}</a>""",
+                hide=f"""<br><small><a href=# onclick='return pycmd(\"hidelots\")'>({_("hide")})</a></small></div>"""))
 
     def _renderDeckTree(self, nodes, depth=0):
         """Html used to show the deck tree.
@@ -137,10 +132,9 @@ where id > ?""", (self.mw.col.sched.dayCutoff-86400)*1000)
             return ""
         if depth == 0:
             #Toplevel
-            buf = """
-<tr><th colspan=5 align=left>%s</th><th class=count>%s</th>
-<th class=count>%s</th><th class=optscol></th></tr>""" % (
-            _("Deck"), _("Due"), _("New"))
+            buf = f"""
+<tr><th colspan=5 align=left>{_("Deck")}</th><th class=count>{_("Due")}</th>
+<th class=count>{_("New")}</th><th class=optscol></th></tr>"""
             buf += self._topLevelDragRow()
         else:
             buf = ""
@@ -157,7 +151,7 @@ where id > ?""", (self.mw.col.sched.dayCutoff-86400)*1000)
             colour = "#e0e0e0"
         if cnt >= 1000:
             cnt = "1000+"
-        return """<font color='%s'>%s</font>""" % (colour, cnt)
+        return f"""<font color='{colour}'>{cnt}</font>"""
 
     def _deckRow(self, node, depth, cnt, nameMap):
         """The HTML for a single deck (and its descendant)
@@ -186,27 +180,24 @@ where id > ?""", (self.mw.col.sched.dayCutoff-86400)*1000)
             klass = 'deck current'
         else:
             klass = 'deck'
-        buf = """<tr class='%s' id='%d'>""" % (klass, did)
+        buf = f"""<tr class='{klass}' id='{did}'>"""
         # deck link
         if children:
-            collapse = """<a class=collapse href=# onclick='return pycmd(\"collapse:%d\")'>%s</a>""" % (did, prefix)
+            collapse = f"""<a class=collapse href=# onclick='return pycmd(\"collapse:{did}\")'>{prefix}</a>"""
         else:
             collapse = """<span class=collapse></span>"""
         if deck['dyn']:
             extraclass = """filtered"""
         else:
             extraclass = ""
-        buf += """
+        buf += f"""
 
-        <td class=decktd colspan=5>%s%s<a class="deck %s"
-        href=# onclick="return pycmd('open:%d')">%s</a></td>"""% (
-            "&nbsp;"*6*depth, collapse, extraclass, did, name)
+        <td class=decktd colspan=5>{"&nbsp;"*6*depth}{collapse}<a class="deck {extraclass}"
+        href=# onclick="return pycmd('open:{did}')">{name}</a></td>"""
         # due counts
-        buf += """<td align=right>%s</td><td align=right>%s</td>""" % (
-            DeckBrowser.nonzeroColour(due, colDue),
-            DeckBrowser.nonzeroColour(new, colNew))
+        buf += f"""<td align=right>{DeckBrowser.nonzeroColour(due, colDue)}</td><td align=right>{DeckBrowser.nonzeroColour(new, colNew)}</td>"""
         # options
-        buf += ("""<td align=center class=opts><a onclick='return pycmd(\"opts:%d\");'><img src='/_anki/imgs/gears.svg' class=gears></a></td></tr>""" % did)
+        buf += f"""<td align=center class=opts><a onclick='return pycmd(\"opts:{did}\");'><img src='/_anki/imgs/gears.svg' class=gears></a></td></tr>"""
         # children
         buf += self._renderDeckTree(children, depth+1)
         return buf
@@ -301,8 +292,8 @@ where id > ?""", (self.mw.col.sched.dayCutoff-86400)*1000)
         drawLinks = deepcopy(self.drawLinks)
         for (shortcut_, cmd, text) in drawLinks:
             if shortcut_:
-                shortcut_ = _("Shortcut key: %s") % shortcut(shortcut_)
-            buf += """<button title='%s' onclick='pycmd(\"%s\");'>%s</button>""" % (shortcut_, cmd, text)
+                shortcut_ = _(f"Shortcut key: {shortcut(shortcut_)}")
+            buf += f"""<button title='{shortcut_}' onclick='pycmd(\"{cmd}\");'>{text}</button>"""
         self.bottom.draw(buf)
         self.bottom.web.onBridgeCmd = self._linkHandler
 
