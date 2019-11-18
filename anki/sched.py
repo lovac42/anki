@@ -256,6 +256,30 @@ class Scheduler(BothScheduler):
         # collapse or finish
         return self._getLrnCard(collapse=True)
 
+    # New cards
+    ##########################################################################
+
+    def _deckNewLimitSingle(self, deck, sync=False):
+        """Maximum number of new card to see today for deck deck, not considering parent limit.
+
+        If deck is a dynamic deck, then reportLimit.
+        Otherwise the number of card to see in this deck option, plus the number of card exceptionnaly added to this deck today.
+
+        keyword arguments:
+        deck -- a deck dictionnary
+        sync -- whether it's called from sync, and the return must satisfies sync sanity check
+        """
+        if deck['dyn']:
+            return self.reportLimit
+        c = deck.getConf()
+        nbNewToSee = c['new']['perDay'] - deck['newToday'][1]
+        if (not sync) and self.col.conf.get("limitAllCards", False):
+            nbCardToSee = c.get('perDay', 1000) - deck['revToday'][1] - deck['newToday'][1]
+            limit = min(nbNewToSee, nbCardToSee)
+        else:
+            limit = nbNewToSee
+        return max(0, limit)
+
     # Learning queues
     ##########################################################################
 
