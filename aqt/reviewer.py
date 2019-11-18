@@ -520,6 +520,9 @@ time = %(time)d;
             counts = list(self.mw.col.sched.counts())
         else:
             counts = list(self.mw.col.sched.counts(self.card))
+        if self.mw.pm.profile.get("limitAllCards", False):
+            counts[0] = min(counts[0], counts[3])
+            counts[2] = min(counts[2], counts[3])
         idx = self.mw.col.sched.countIdx(self.card)
         counts[idx] = "<u>%s</u>" % (counts[idx])
         listColors = [colNew, colLearn,colRev]
