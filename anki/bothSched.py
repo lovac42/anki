@@ -403,17 +403,26 @@ did = ? and queue = {QUEUE_DAY_LRN} and due <= ? limit ?""",
     # Reviews
     ##########################################################################
 
-    def _deckRevLimitSingle(self, deck):
-        """Maximum number of card to review today in deck d.
+    def _deckRevLimitSingle(self, deck, sync=False):
+        """Maximum number of card to review today in deck deck.
 
         self.reportLimit for dynamic deck. Otherwise the number of review according to deck option, plus the number of review added in custom study today.
         keyword arguments:
         d -- a deck object"""
         # invalid deck selected?
+        if not deck:
+            return 0
+
         if deck.isDyn():
             return self.reportLimit
         conf = deck.getConf()
-        return max(0, conf['rev']['perDay'] - deck['revToday'][1])
+        nbRevToSee = conf['rev']['perDay'] - deck['revToday'][1]
+        if (not sync) and self.col.conf.get("limitAllCards", False):
+            nbCardToSee = conf.get('perDay', 1000) - deck['revToday'][1] - deck['newToday'][1]
+            limit = min(nbRevToSee, nbCardToSee)
+        else:
+            limit = nbRevToSee
+        return max(0, limit)
 
     def _resetRev(self):
         """Set revCount, empty _revQueue, _revDids"""
