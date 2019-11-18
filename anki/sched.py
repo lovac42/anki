@@ -504,8 +504,11 @@ and due <= ? limit ?)""" ,
     # Reviews
     ##########################################################################
 
-    def _deckRevLimit(self, did):
-        return self._deckNewLimit(did, self._deckRevLimitSingle)
+    def _deckRevLimit(self, did, sync=False):
+        """
+        sync -- whether it's called from sync, and the return must satisfies sync sanity check
+        """
+        return self._deckNewLimit(did, lambda deck: self._deckRevLimitSingle(deck, sync=sync))
 
     def _revForDeck(self, did, lim):
         """number of cards to review today for deck did
