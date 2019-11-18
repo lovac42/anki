@@ -64,16 +64,18 @@ class BothScheduler:
             card.startTimer()
             return card
 
-    def reset(self):
+    def reset(self, sync=False):
         """
         Deal with the fact that it's potentially a new day.
         Reset number of learning, review, new cards according to current decks
         empty queues. Set haveQueues to true
+
+        sync -- whether we need to compute as in original anki, for synchronization to succeed.
         """
         self._updateCutoff()
         self._resetLrn()
-        self._resetRev()
-        self._resetNew()
+        self._resetRev(sync=sync)
+        self._resetNew(sync=sync)
         self._haveQueues = True
 
     def dueForecast(self, days=7):
