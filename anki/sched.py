@@ -522,8 +522,11 @@ select count() from
 and due <= ? limit ?)""",
             did, self.today, lim)
 
-    def _resetRevCount(self):
-        """Set revCount"""
+    def _resetRevCount(self, sync=False):
+        """
+        Set revCount
+        sync -- whether it's called from sync, and the return must satisfies sync sanity check
+        """
         def cntFn(did, lim):
             """Number of review cards to see today for deck with id did. At most equal to lim."""
             return self.col.db.scalar(f"""
@@ -531,7 +534,7 @@ select count() from (select id from cards where
 did = ? and queue = {QUEUE_REV} and due <= ? limit %d)""" % (lim),
                                       did, self.today)
         self.revCount = self._walkingCount(
-            self._deckRevLimitSingle, cntFn)
+            lambda deck: self._deckRevLimitSingle(deck, sync), cntFn)
 
     def _resetRev(self):
         super()._resetRev()
