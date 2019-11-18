@@ -463,6 +463,9 @@ and due <= ? limit ?)""",
     ##########################################################################
 
     def _currentRevLimit(self, sync=False):
+        """
+        sync -- whether it's called from sync, and the return must satisfies sync sanity check
+        """
         deck = self.col.decks.get(self.col.decks.selected(), default=False)
         return self._deckRevLimitSingle(deck, sync=sync)
 
