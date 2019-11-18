@@ -424,9 +424,12 @@ did = ? and queue = {QUEUE_DAY_LRN} and due <= ? limit ?""",
             limit = nbRevToSee
         return max(0, limit)
 
-    def _resetRev(self):
-        """Set revCount, empty _revQueue, _revDids"""
-        self._resetRevCount()
+    def _resetRev(self, sync=False):
+        """
+        Set revCount, empty _revQueue, _revDids
+        sync -- whether it's called from sync, and the return must satisfies sync sanity check
+        """
+        self._resetRevCount(sync=sync)
         self._revQueue = []
 
     def _getRevCard(self):
