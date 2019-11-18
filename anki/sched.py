@@ -536,8 +536,11 @@ did = ? and queue = {QUEUE_REV} and due <= ? limit %d)""" % (lim),
         self.revCount = self._walkingCount(
             lambda deck: self._deckRevLimitSingle(deck, sync), cntFn)
 
-    def _resetRev(self):
-        super()._resetRev()
+    def _resetRev(self, sync=False):
+        """
+        sync -- whether it's called from sync, and the return must satisfies sync sanity check
+        """
+        super()._resetRev(sync=sync)
         self._revDids = self.col.decks.active()[:]
 
     def _fillRev(self):
