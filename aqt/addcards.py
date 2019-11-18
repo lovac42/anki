@@ -39,8 +39,8 @@ class AddCards(QDialog):
         self.history: List[int] = []
         self.previousNote = None
         restoreGeom(self, "add")
-        addHook('reset', self.onReset)
         addHook('currentModelChanged', self.onModelChange)
+        addHook("reset",lambda: self.onResetSameModel)
         addCloseShortcut(self)
         self.show()
 
@@ -218,7 +218,7 @@ question on all cards."""), help="AddItems")
         tooltip(_("Added"), period=500)
         # stop anything playing
         clearAudioQueue()
-        self.onReset(keep=True)
+        self.onResetSameModel(keep=True)
         self.mw.col.autosave()
 
     def keyPressEvent(self, evt):
@@ -239,7 +239,7 @@ question on all cards."""), help="AddItems")
         """Close the window.
 
         Don't check whether data will be lost"""
-        remHook('reset', self.onReset)
+        remHook('reset', self.onResetSameModel)
         remHook('currentModelChanged', self.onModelChange)
         clearAudioQueue()
         self.removeTempNote(self.editor.note)
