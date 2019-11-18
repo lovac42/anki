@@ -2,11 +2,10 @@ import os.path
 from tempfile import TemporaryDirectory
 from zipfile import ZipFile
 
-from aqt.addons import AddonManager
-from anki.utils import readableJson
 from mock import MagicMock
 from nose.tools import assert_equals
 
+from anki.utils import correctJson, readableJson
 from aqt.addons import AddonManager
 
 
@@ -92,3 +91,11 @@ def testRedable():
     assert readableJson(""" "\\n" """) == """ "
 " """
     assert readableJson(""" "\\\\n" """) == """ "\\\\n" """
+
+def testCorrect():
+    assert "foo" == correctJson("foo")
+    assert "\\n" == correctJson("\\n")
+    assert """\\n""" == correctJson("""\\n""")
+    assert """ "\\n" """ == correctJson(""" "
+" """)
+    assert """ "\\\\n" """ == correctJson(""" "\\\\n" """)

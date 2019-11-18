@@ -16,7 +16,7 @@ import aqt
 import aqt.forms
 from anki.addons import AddonManager as AM
 from anki.lang import _, ngettext
-from anki.utils import readableJson
+from anki.utils import jsonLoads, readableJson
 from aqt.downloader import downloadIds
 from aqt.qt import *
 from aqt.utils import (askUser, getFile, isWin, openFolder, openLink,
@@ -397,7 +397,7 @@ class ConfigEditor(QDialog):
         """
         txt = self.form.editor.toPlainText()
         try:
-            new_conf = json.loads(txt)
+            new_conf = jsonLoads(txt)
         except Exception as e:
             showInfo(_("Invalid configuration: ") + repr(e))
             return

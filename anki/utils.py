@@ -468,6 +468,26 @@ def identity(x):
 def negation(x):
     return not x
 
+# JSon
+##############################################################################
+# Allow to have newline in strings in JSON
+
+def correctJson(text):
+    """Text, with new lines replaced by \n when inside quotes"""
+    if not isinstance(text,str):
+        return text
+    def correctQuotedString(match):
+        string = match[0]
+        return string.replace("\n","\\n")
+    res = re.sub(r'"(?:(?<=[^\\])(?:\\\\)*\\"|[^"])*"',correctQuotedString,text,re.M)
+    return res
+
+def jsonLoads(t, *args, **kwargs):
+    t_ = correctJson(t)
+    res = json.loads(t_, *args, **kwargs)
+    return res
+
+
 # Classes to extend dicts
 #############################################################################
 
