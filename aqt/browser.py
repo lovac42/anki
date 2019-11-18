@@ -2274,38 +2274,45 @@ class ChangeModel(QDialog):
                 break
         indices[cb] = i
 
-    def getTemplateMap(self, old=None, combos=None, new=None):
-        """A map from template's ord of the old model to template's ord of the new
-        model. Or None if no template
-
-        Contrary to what this name indicates, the method may be used
-        without templates. In getFieldMap it is used for fields
+    def _getMap(self, old, combos, new):
+        """A map from template/field's ord of the old model to
+        template/field's ord of the new model, or to None if it's sent
+        to no template/field
 
         keywords parameter:
-        old -- the list of templates of the old model
-        combos -- the python list of gui's list of template
-        new -- the list of templates of the new model
+        old -- the list of template/fields of the old model
+        combos -- the python list of gui's list of template/field
+        new -- the list of template/fields of the new model
         If old is not given, the other two arguments are not used.
+
         """
-        if not old:
-            old = self.oldModel['tmpls']
-            combos = self.tcombos
-            new = self.targetModel['tmpls']
         map = {}
-        for i, fldType in enumerate(old):
+        for i, element in enumerate(old):
             idx = combos[i].currentIndex()
             if idx == len(new):
                 # ignore. len(new) corresponds probably to nothing in the list
-                map[fldType['ord']] = None
+                map[element['ord']] = None
             else:
                 f2 = new[idx]
-                map[fldType['ord']] = f2['ord']
+                map[element['ord']] = f2['ord']
         return map
 
+    def getTemplateMap(self):
+        """A map from template's ord of the old model to template's ord of the
+        new model, or to None if its sent to no template.
+
+        """
+        return self._getMap(
+            old=self.oldModel['tmpls'],
+            combos=self.tcombos,
+            new=self.targetModel['tmpls'])
+
     def getFieldMap(self):
-        """Associating to each field's ord of the source model a field's
-        ord (or None) of the new model."""
-        return self.getTemplateMap(
+        """A map from field's ord of the old model to field's ord of the new
+        model, or None if it's sent to no field.
+
+        """
+        return self._getMap(
             old=self.oldModel['flds'],
             combos=self.fcombos,
             new=self.targetModel['flds'])
