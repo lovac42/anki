@@ -370,9 +370,9 @@ class ConfigEditor(QDialog):
             self.form.scrollArea.setVisible(False)
 
     def updateText(self, conf):
-        self.form.editor.setPlainText(
-            json.dumps(conf, ensure_ascii=False, sort_keys=True,
-                       indent=4, separators=(',', ': ')))
+        text = json.dumps(conf, sort_keys=True,
+                          indent=4, separators=(',', ': '))
+        self.form.editor.setPlainText(text)
 
     def onClose(self):
         saveGeom(self, "addonconf")
