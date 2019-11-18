@@ -16,6 +16,7 @@ import aqt
 import aqt.forms
 from anki.addons import AddonManager as AM
 from anki.lang import _, ngettext
+from anki.utils import readableJson
 from aqt.downloader import downloadIds
 from aqt.qt import *
 from aqt.utils import (askUser, getFile, isWin, openFolder, openLink,
@@ -372,6 +373,7 @@ class ConfigEditor(QDialog):
     def updateText(self, conf):
         text = json.dumps(conf, sort_keys=True,
                           indent=4, separators=(',', ': '))
+        text = readableJson(text)
         self.form.editor.setPlainText(text)
 
     def onClose(self):

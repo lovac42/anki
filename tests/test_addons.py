@@ -2,6 +2,8 @@ import os.path
 from tempfile import TemporaryDirectory
 from zipfile import ZipFile
 
+from aqt.addons import AddonManager
+from anki.utils import readableJson
 from mock import MagicMock
 from nose.tools import assert_equals
 
@@ -82,3 +84,11 @@ def assertReadManifest(contents, expectedManifest, nameInZip="manifest.json"):
 
         with ZipFile(zfn, "r") as zfile:
             assert_equals(adm.readManifestFile(zfile), expectedManifest)
+
+def testRedable():
+    assert readableJson("foo") == "foo"
+    assert readableJson("\\n") == "\\n"
+    assert readableJson("""\\n""") == """\\n"""
+    assert readableJson(""" "\\n" """) == """ "
+" """
+    assert readableJson(""" "\\\\n" """) == """ "\\\\n" """
