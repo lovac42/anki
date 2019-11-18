@@ -179,8 +179,12 @@ did = ? and queue = {QUEUE_NEW_CRAM} limit ?)""", did, lim)
             return ret
         self.newCount = self._walkingCount(lambda deck:self._deckNewLimitSingle(deck, sync=sync), cntFn)
 
-    def _resetNew(self):
-        self._resetNewCount()
+    def _resetNew(self, sync=False):
+        """
+        Set newCount, newDids, newCardModulus. Empty newQueue.
+        sync -- whether it's called from sync, and the return must satisfies sync sanity check
+        """
+        self._resetNewCount(sync=sync)
         self._newDids = self.col.decks.active()[:]
         self._newQueue = []
         self._updateNewCardRatio()
