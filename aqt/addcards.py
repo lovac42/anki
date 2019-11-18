@@ -33,10 +33,10 @@ class AddCards(QDialog):
         self.setWindowTitle(_("Add"))
         self.setMinimumHeight(300)
         self.setMinimumWidth(400)
-        self.setupChoosers()
         self.setupEditor()
         self.setupButtons()
         self.onReset()
+        self.setupChoosers()
         self.history: List[int] = []
         self.previousNote = None
         restoreGeom(self, "add")
