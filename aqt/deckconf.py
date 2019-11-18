@@ -3,6 +3,8 @@
 # License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
 from operator import itemgetter
 
+from PyQt5 import QtWidgets
+
 import aqt
 from anki.consts import NEW_CARDS_RANDOM
 from anki.lang import _, ngettext
@@ -20,6 +22,14 @@ class DeckConf(QDialog):
         self._origNewOrder = None
         self.form = aqt.forms.dconf.Ui_Dialog()
         self.form.setupUi(self)
+        if self.col.conf.get("limitAllCards", False):
+            self.form.totalPerDay = QtWidgets.QSpinBox(self.form.tab_5)
+            self.form.totalPerDay.setObjectName("totalPerDay")
+            self.form.gridLayout_5.addWidget(self.form.totalPerDay, 1, 1, 1, 1)
+            self.form.label_16 = QtWidgets.QLabel(self.form.tab_5)
+            self.form.label_16.setObjectName("label_16")
+            self.form.gridLayout_5.addWidget(self.form.label_16, 1, 0, 1, 1)
+            self.form.label_16.setText(_("total card/day"))
         self.mw.checkpoint(_("Options"))
         self.setupCombos()
         self.setupConfs()
@@ -196,10 +206,12 @@ class DeckConf(QDialog):
         self.form.leechAction.setCurrentIndex(conf['leechAction'])
         # general
         conf = self.conf
-        self.form.maxTaken.setValue(conf['maxTaken'])
-        self.form.showTimer.setChecked(conf.get('timer', 0))
-        self.form.autoplaySounds.setChecked(conf['autoplay'])
-        self.form.replayQuestion.setChecked(conf.get('replayq', True))
+        if self.col.conf.get("limitAllCards", False):
+            self.form.totalPerDay.setValue(c.get('perDay', 1000))
+        self.form.maxTaken.setValue(c['maxTaken'])
+        self.form.showTimer.setChecked(c.get('timer', 0))
+        self.form.autoplaySounds.setChecked(c['autoplay'])
+        self.form.replayQuestion.setChecked(c.get('replayq', True))
         # description
         self.form.desc.setPlainText(self.deck['desc'])
 
@@ -282,6 +294,8 @@ class DeckConf(QDialog):
         conf['timer'] = self.form.showTimer.isChecked() and 1 or 0
         conf['autoplay'] = self.form.autoplaySounds.isChecked()
         conf['replayq'] = self.form.replayQuestion.isChecked()
+        if self.col.conf.get("limitAllCards", False):
+            conf['perDay'] = f.totalPerDay.value()
         # description
         self.deck['desc'] = self.form.desc.toPlainText()
         self.deck.save()
