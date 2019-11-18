@@ -40,7 +40,6 @@ class AddCards(QDialog):
         self.history: List[int] = []
         self.previousNote = None
         restoreGeom(self, "add")
-        addHook('currentModelChanged', self.onModelChange)
         addHook("reset",lambda: self.onResetSameModel)
         addCloseShortcut(self)
         self.show()
