@@ -88,11 +88,23 @@ class Scheduler(BothScheduler):
             self._restorePreviewCard(card)
             self._removeFromFiltered(card)
 
-    def counts(self, card=None):
+    def counts(self, card=None, sync=False):
+        """
+        4-tuple with:
+        nb of new cards to see today
+        nb of review of cards forgotten/in learning
+        nb of cards to review today
+        nb of review of any kind
+
+        sync -- whether it's called from sync, and the return must satisfies sync sanity check
+        """
         counts = [self.newCount, self.lrnCount, self.revCount]
         if card:
             idx = self.countIdx(card)
             counts[idx] += 1
+        cur = self.col.decks.current()
+        if (not sync) and self.col.conf.get("limitAllCards", False):
+            counts.append(counts[0] + counts[2]- cur['revToday'][1] - cur['newToday'][1] - cur['lrnToday'][1])
         return tuple(counts)
 
     def countIdx(self, card):

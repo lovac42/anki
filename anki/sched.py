@@ -68,11 +68,17 @@ class Scheduler(BothScheduler):
         card.usn = self.col.usn()
         card.flushSched()
 
-    def counts(self, card=None):
-        """The three numbers to show in anki deck's list/footer.
-        Number of new cards, learning repetition, review card.
+    def counts(self, card=None, sync=False):
+        """The numbers to show in anki deck's list/footer.
+
+        4-tuple with:
+        nb of new cards to see today
+        nb of review of cards forgotten/in learning
+        nb of cards to review today
+        nb of review of any kind
 
         If cards, then the tuple takes into account the card.
+        sync -- whether it's called from sync, and the return must satisfies sync sanity check
         """
         counts = [self.newCount, self.lrnCount, self.revCount]
         if card:
@@ -81,6 +87,13 @@ class Scheduler(BothScheduler):
                 counts[1] += card.left // 1000
             else:
                 counts[idx] += 1
+        cur = self.col.decks.current()
+        conf = cur.getConf()
+        if (not sync) and self.col.conf.get("limitAllCards", False):
+            today = conf.get('perDay',1000) - cur['revToday'][1] - cur['newToday'][1]
+            counts.append(today)
+            # counts[0] = max(counts[0], today)
+            # counts[2] = max(counts[2], today)
         return tuple(counts)
 
     def countIdx(self, card):
