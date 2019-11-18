@@ -166,11 +166,18 @@ order by due""" % (self._deckLimit()),
     # New cards
     ##########################################################################
 
-    def _resetNewCount(self):
-        cntFn = lambda did, lim: self.col.db.scalar(f"""
+    def _resetNewCount(self, sync=False):
+        """
+        Set newCount to the counter of new cards for the active decks.
+        sync -- whether it's called from sync, and the return must satisfies sync sanity check
+        """
+        # Number of card in deck did, at most lim
+        def cntFn(did, lim):
+            ret = self.col.db.scalar(f"""
 select count() from (select 1 from cards where
 did = ? and queue = {QUEUE_NEW_CRAM} limit ?)""", did, lim)
-        self.newCount = self._walkingCount(self._deckNewLimitSingle, cntFn)
+            return ret
+        self.newCount = self._walkingCount(lambda deck:self._deckNewLimitSingle(deck, sync=sync), cntFn)
 
     def _resetNew(self):
         self._resetNewCount()
