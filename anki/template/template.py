@@ -134,6 +134,13 @@ class Template:
 
         return template
 
+    def sub_tag(self, match, context):
+        tag, tag_type, tag_name = match.group(0, 1, 2)
+        # i.e. "{{!foo}}", "!", "foo"
+        tag_name = tag_name.strip()
+        func = modifiers[tag_type]
+        return func(self, tag_name, context)
+
     def render_tags(self, template, context):
         """Renders all the tags in a template for a context. Normally
         {{# and {{^ are already removed."""
@@ -150,12 +157,9 @@ class Template:
                 if match is None:
                     break
 
-                #
-                tag, tag_type, tag_name = match.group(0, 1, 2)
-                tag_name = tag_name.strip()
-                     func = modifiers[tag_type]
-                    replacement = func(self, tag_name, context)
-                    template = template.replace(tag, replacement)
+                replacement = self.sub_tag(match, context)
+
+                template = template.replace(tag, replacement)
         except (SyntaxError, KeyError):
             return "{{invalid template}}"
 
