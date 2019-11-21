@@ -14,3 +14,7 @@ instead of deleting the note» chage the behavior of anki when he finds
 a note which has no more card. This allow to lose the content of the
 note, and let you correct the note instead to generate cards.
 
+## Improve rendering (1551823299)
+Anki will generate cards's content (question, answer) faster. It will
+also improve the speed at which anki will save modification of card type.
+
