@@ -1049,6 +1049,7 @@ QTreeWidget {
         menu.actionExport.triggered.connect(self.onExport)
         menu.actionExit.triggered.connect(self.close)
         menu.actionPreferences.triggered.connect(self.onPrefs)
+        menu.actionPostpone_Reviews.triggered.connect(self.onPostpone_Reviews)
         menu.actionAbout.triggered.connect(self.onAbout)
         menu.actionUndo.triggered.connect(self.onUndo)
         if qtminor < 11:
