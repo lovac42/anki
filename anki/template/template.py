@@ -98,6 +98,33 @@ class Template:
         tag = r"%(otag)s(#|=|&|!|>|\{)?(.+?)\1?%(ctag)s+"
         self.tag_re = re.compile(tag % tags)
 
+    @staticmethod
+    def sub_section(match, context):
+        section, section_name, inner = match.group(0, 1, 2)
+        section_name = section_name.strip()
+
+        # val will contain the content of the field considered
+        # right now
+        val = None
+        match = re.match("c[qa]:(\d+):(.+)", section_name)
+        if match:
+            # get full field text
+            txt = get_or_attr(context, match.group(2), None)
+            match = re.search(clozeReg%match.group(1), txt)
+            if match:
+                val = match.group(1)
+        else:
+            val = get_or_attr(context, section_name, None)
+        replacer = ''
+        # Whether it's {{^
+        inverted = section[2] == "^"
+        # Ensuring we don't consider whitespace in wval
+        if val:
+            val = stripHTMLMedia(val).strip()
+        if bool(val) != inverted:
+                replacer = inner
+        return replacer
+
     def render_sections(self, template, context):
         """replace {{#foo}}bar{{/foo}} and {{^foo}}bar{{/foo}} by
         their normal value."""
@@ -106,31 +133,7 @@ class Template:
             if match is None:
                 break
 
-            section, section_name, inner = match.group(0, 1, 2)
-            section_name = section_name.strip()
-
-            # val will contain the content of the field considered
-            # right now
-            val = None
-            match = re.match(r"c[qa]:(\d+):(.+)", section_name)
-            if match:
-                # get full field text
-                txt = get_or_attr(context, match.group(2), None)
-                match = re.search(clozeReg%match.group(1), txt)
-                if match:
-                    val = match.group(1)
-            else:
-                val = get_or_attr(context, section_name, None)
-
-            replacer = ''
-            # Whether it's {{^
-            inverted = section[2] == "^"
-            # Ensuring we don't consider whitespace in wval
-            if val:
-                val = stripHTMLMedia(val).strip()
-            if bool(val) != inverted:
-                replacer = inner
-
+            replace = self.sub_section(match, context)
             template = template.replace(section, replacer)
 
         return template
