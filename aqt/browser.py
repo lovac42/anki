@@ -1790,6 +1790,9 @@ update cards set usn=?, mod=?, did=? where id in """ + scids,
         self.mw.requireReset()
         self.model.endReset()
 
+    def onPostpone_reviews(self):
+        self.applyToSelectedCard(self.mw.addDelay)
+
     # Edit: selection
     ######################################################################
 
