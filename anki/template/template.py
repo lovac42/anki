@@ -128,13 +128,9 @@ class Template:
     def render_sections(self, template, context):
         """replace {{#foo}}bar{{/foo}} and {{^foo}}bar{{/foo}} by
         their normal value."""
-        while 1:
-            match = self.section_re.search(template)
-            if match is None:
-                break
-
-            replace = self.sub_section(match, context)
-            template = template.replace(section, replacer)
+        n = 1
+        while n:
+            template, n = self.section_re.subn(lambda match:self.sub_section(match,context), template)
 
         return template
 
