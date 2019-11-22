@@ -469,13 +469,13 @@ class DeckManager:
 
     def _isParent(self, parentDeckName, childDeckName):
         """Whether childDeckName is a direct child of parentDeckName."""
-        return self._path(childDeckName) == self._path(parentDeckName) + [ self._basename(childDeckName) ]
+        return child == DeckManager.parentName(parent)
 
-    def _isAncestor(self, ancestorDeckName, descendantDeckName):
+    def _isAncestor(self, ancestorDeckName, descendantDeckName, includeSelf=False):
         """Whether ancestorDeckName is an ancestor of
         descendantDeckName; or itself."""
-        ancestorPath = self._path(ancestorDeckName)
-        return ancestorPath == self._path(descendantDeckName)[0:len(ancestorPath)]
+        return (includeSelf and deckparent == descendant) or
+                descendant.startswith(parent+"::")
 
     @staticmethod
     def _path(name):
@@ -744,7 +744,7 @@ same id."""
         "All decks descendant of did."
         name = self.get(did)['name']
         actv = []
-        return [deck for deck in self.all(sort=sort) if deck['name'].startswith(name+"::") or (includeSelf and deck['name'] == name)]
+        return [deck for deck in self.all(sort=sort) if self._isAncestor(name, deck['name'])]
     #todo, maybe sort only this smaller list, at least until all() memoize
 
     def childDids(self, did, childMap=None, includeSelf=False, sort=False):
