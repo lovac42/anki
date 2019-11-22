@@ -264,7 +264,7 @@ class DeckManager:
             id = intTime(1000)
             if str(id) not in self.decks:
                 break
-        deck['id'] = id
+        deck.getId() = id
         self.decks[str(id)] = deck
         self.save(deck)
         self.maybeAddToActive()
@@ -397,7 +397,7 @@ class DeckManager:
 
     def update(self, deck):
         "Add or update an existing deck. Used for syncing and merging."
-        self.decks[str(deck['id'])] = deck
+        self.decks[str(deck.getId())] = deck
         self.maybeAddToActive()
         # mark registry changed, but don't bump mod time
         self.save()
@@ -596,7 +596,7 @@ same id."""
         dids = []
         for deck in list(self.decks.values()):
             if 'conf' in deck and deck['conf'] == conf['id']:
-                dids.append(deck['id'])
+                dids.append(deck.getId())
         return dids
 
     def restoreToDefault(self, conf):
@@ -655,7 +655,7 @@ same id."""
         #nor in the function called by this code.
         #maybe is not appropriate, since no condition occurs
         deck = self.current()
-        self.select(deck['id'])
+        self.select(deck.getId())
 
     def cids(self, did, children=False):
         """Return the list of id of cards whose deck's id is did.
@@ -734,7 +734,7 @@ same id."""
 
     def children(self, did, includeSelf=False, sort=False):
         "All descendant of did, as (name, id)."
-        return [(deck['name'], deck['id']) for deck in self.childrenDecks(includeSelf=includeSelf, sort=sort)]
+        return [(deck['name'], deck.getId()) for deck in self.childrenDecks(includeSelf=includeSelf, sort=sort)]
 
     def childrenDecks(self, did, includeSelf=False, sort=False, grandChildren=True):
         """All decks descendant of did.
@@ -773,13 +773,13 @@ same id."""
 
         # go through all decks, sorted by name
         for deck in self.all(sort=True):
-            childMap[deck['id']] = {}
+            childMap[deck.getId()] = {}
 
             # add note to immediate parent
             immediateParent = self.parentName(deck['name'])
             if immediateParent:
                 pid = nameMap[immediateParent]['id']
-                childMap[pid][deck['id']] = childMap[deck['id']]
+                childMap[pid][deck.getId()] = childMap[deck.getId()]
 
         return childMap
 
@@ -904,6 +904,9 @@ class DictAugmented
 
     def isStd(self):
         return not self.isDyn()
+
+    def getId(self):
+        return self["id"]
 
 class Deck(DictAugmented):
     """
@@ -1032,6 +1035,9 @@ class Deck(DictAugmented):
             self.rename(value)
         else:
             super.__setitem__(key, value)
+
+    def isDefault(self):
+        return str(self.getId()) == "1"
 
 class DConf(DictAugmented):
     """

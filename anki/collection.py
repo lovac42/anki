@@ -600,7 +600,7 @@ insert into cards values (?,?,?,?,?,?,0,0,?,0,0,0,0,0,0,0,0,"")""",
             # must not be a filtered deck
             card.did = 1
         else:
-            card.did = deck['id']
+            card.did = deck.getId()
         card.due = self._dueForDid(card.did, due)
         if flush:
             card.flush()

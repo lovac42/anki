@@ -226,9 +226,9 @@ class AnkiExporter(Exporter):
             dids = self.src.decks.childDids(self.did, includeSelf=True)
         dconfs = {}
         for deck in self.src.decks.all():
-            if str(deck['id']) == "1":
+            if deck.isDefault():
                 continue
-            if dids and deck['id'] not in dids:
+            if dids and deck.getId() not in dids:
                 continue
             if not deck.isDyn() and deck['conf'] != 1:
                 if self.includeSched:
@@ -240,7 +240,7 @@ class AnkiExporter(Exporter):
             self.dst.decks.update(deck)
         # copy used deck confs
         for dc in self.src.decks.allConf():
-            if dc['id'] in dconfs:
+            if dc.getId() in dconfs:
                 self.dst.decks.updateConf(dc)
         # find used media
         media = {}

@@ -256,7 +256,7 @@ select count() from
         "Limit for deck without parent limits."
         if deck.isDyn():
             return self.reportLimit
-        conf = self.col.decks.confForDid(deck['id'])
+        conf = self.col.decks.confForDid(deck.getId())
         return max(0, conf['new']['perDay'] - deck['newToday'][1])
 
     def totalNewForCurrentDeck(self):
@@ -403,7 +403,7 @@ did = ? and queue = {QUEUE_DAY_LRN} and due <= ? limit ?""",
         # invalid deck selected?
         if deck.isDyn():
             return self.reportLimit
-        conf = self.col.decks.confForDid(deck['id'])
+        conf = self.col.decks.confForDid(deck.getId())
         return max(0, conf['rev']['perDay'] - deck['revToday'][1])
 
     def _resetRev(self):

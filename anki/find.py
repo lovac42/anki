@@ -474,7 +474,7 @@ class Finder:
             val = re.escape(val).replace(r"\*", ".*")
             for deck in self.col.decks.all():
                 if re.match("(?i)"+val, unicodedata.normalize("NFC", deck['name'])):
-                    ids.update(dids(deck['id']))
+                    ids.update(dids(deck.getId()))
         if not ids:
             return
         sids = ids2str(ids)
