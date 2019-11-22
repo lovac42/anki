@@ -164,7 +164,7 @@ class FixingManager:
 
         def odidNotInDyn(self):
         # cards with odid set when not in a dyn deck
-        dids = [id for id in self.col.decks.allIds() if not self.col.decks.isDyn(id)]
+        dids = [deck.getId() for deck in self.col.decks.all() if deck.isStd()]
         return self._template("""
         select id from cards where odid > 0 and did in %s""" % ids2str(dids),
                       "unset odid, odue in card {} because not in dynamic deck",

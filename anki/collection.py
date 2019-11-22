@@ -730,7 +730,7 @@ where card.nid = note.id and card.id in %s group by nid""" % ids2str(cids)):
         afmt -- answer format string (as in template)
         Return a dictionnary associating the question, the answer and the card id
         """
-        cid, nid, mid, did, ord, tags, flds, cardFlags = data
+        cid, nid, mid, deck, ord, tags, flds, cardFlags = data
         # data is [cid, nid, mid, did, ord, tags, flds, cardFlags]
         # unpack fields and create dict
 
@@ -739,7 +739,7 @@ where card.nid = note.id and card.id in %s group by nid""" % ids2str(cids)):
             template = model['tmpls'][ord]
         else:
             template = model['tmpls'][0]
-        fields = self._extendedFields(flds, tags, ord, cardFlags, model, template, did)
+        fields = self._extendedFields(flds, tags, ord, cardFlags, model, template, deck)
         # render q & a
         d = dict()
         d['id'] = cid
@@ -757,7 +757,7 @@ where card.nid = note.id and card.id in %s group by nid""" % ids2str(cids)):
             fields[name] = flist[idx]
         return fields
 
-    def _extendedFields(self, flds, tags, ord, cardFlags, model, template, did):
+    def _extendedFields(self, flds, tags, ord, cardFlags, model, template, deck):
         """A dict associating:
         for each field name it's content
         Type: the name of the model,
@@ -768,7 +768,7 @@ where card.nid = note.id and card.id in %s group by nid""" % ids2str(cids)):
         fields = self._basicFields(flds, model)
         fields['Tags'] = tags.strip()
         fields['Type'] = model['name']
-        fields['Deck'] = self.decks.name(did)
+        fields['Deck'] = deck.getName()
         fields['Subdeck'] = self.decks._basename(fields['Deck'])
         fields['CardFlag'] = self._flagNameFromCardFlags(cardFlags)
         fields['Card'] = template['name']

@@ -101,7 +101,7 @@ class ExportDialog(QDialog):
             self.exporter.did = None
         else:
             name = self.decks[self.frm.deck.currentIndex()]
-            self.exporter.did = self.col.decks.id(name)
+            self.exporter.deck = self.col.decks.byName(name)
         if self.isVerbatim:
             name = time.strftime("-%Y-%m-%d@%H-%M-%S",
                                  time.localtime(time.time()))

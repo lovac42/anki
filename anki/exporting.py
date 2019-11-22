@@ -22,10 +22,10 @@ class Exporter:
     """
     includeHTML = None
 
-    def __init__(self, col, did=None):
-        #Currently, did is never set during initialisation.
+    def __init__(self, col, deck=None):
+        #Currently, deck is never set during initialisation. It's set by the method creating this.
         self.col = col
-        self.did = did
+        self.deck = deck
 
     @staticmethod
     def doExport(path):
@@ -78,11 +78,11 @@ class Exporter:
         return text
 
     def cardIds(self):
-        """card ids of cards in deck self.did if it is set, all ids otherwise."""
-        if not self.did:
+        """card ids of cards in deck self.deck if it is set, all ids otherwise."""
+        if not self.deck:
             cids = self.col.db.list("select id from cards")
         else:
-            cids = self.col.decks.cids(self.did, children=True)
+            cids = self.deck.cids(children=True)
         self.count = len(cids)
         return cids
 
@@ -220,15 +220,15 @@ class AnkiExporter(Exporter):
             if int(model['id']) in mids:
                 self.dst.models.update(model)
         # decks
-        if not self.did:
-            dids = []
+        if not self.deck:
+            descendants = []
         else:
-            dids = self.src.decks.childDids(self.did, includeSelf=True)
+            descendants = self.deck.getDescendants(includeSelf=True)
         dconfs = {}
         for deck in self.src.decks.all():
             if deck.isDefault():
                 continue
-            if dids and deck.getId() not in dids:
+            if descendants and deck not in descendants:
                 continue
             if not deck.isDyn() and not deck.isDefaultConf():
                 if self.includeSched:

@@ -377,6 +377,9 @@ class DeckManager:
         """The number of decks."""
         return len(self.decks)
 
+    def getDefaultDeck(self):
+        return self.get(1)
+
     def get(self, did, default=True):
         """Returns the deck objects whose id is did.
 
@@ -389,11 +392,14 @@ class DeckManager:
         elif default:
             return self.decks['1']
 
-    def byName(self, name):
+    def byName(self, name, create=False):
         """Get deck with NAME, ignoring case."""
         for deck in list(self.decks.values()):
             if self.equalName(deck['name'], name):
                 return deck
+        if create:
+            id = self.id(name)
+            return self.get(id)
 
     def update(self, deck):
         "Add or update an existing deck. Used for syncing and merging."
@@ -853,9 +859,6 @@ same id."""
         self.select(did)
         return did
 
-    def isDyn(self, did):
-        return self.get(did).isDyn()
-
     @staticmethod
     def normalizeName(name):
         return unicodedata.normalize("NFC", name.lower())
@@ -891,9 +894,6 @@ class DictAugmented
     def dumps(self):
         return json.dumps(self.dic)
 
-    def path(self):
-        return self.getName().split("::")
-
     def __eq__(self, other):
         return self.get("id") == other.get("id")
 
@@ -918,6 +918,7 @@ class Deck(DictAugmented):
         self.parent = None
         self.children = []
         self.baseName = dict.get("name").rpslit("::", 1)[-1]
+        self.topLevel = False
 
     def getBaseName(self):
         return self.baseName
@@ -925,14 +926,14 @@ class Deck(DictAugmented):
     def ancestors(self):
         current = self
         l = []
-        while current:
+        while not current.topLevel:
             l.append(current)
             current = current.parent
         l.reverse()
         return l
 
     def getName(self, parentName=None):
-        "::".join(self.path)
+        "::".join(self.path())
 
     def dumps(self):
         self.name
@@ -967,11 +968,11 @@ class Deck(DictAugmented):
             l.insert(0, self)
         return l
 
-    def getDescendantsIds(self):
-        return map(operator.itemgetter('id'), self.getDescendants())
+    def getDescendantsIds(self, includeSelf=False):
+        return map(operator.itemgetter('id'), self.getDescendants(includeSelf))
 
-    def getDescendantsNames(self):
-        return map(operator.itemgetter('name'), self.getDescendants())
+    def getDescendantsNames(self, includeSelf=False):
+        return map(operator.itemgetter('name'), self.getDescendants(includeSelf))
 
     def collapse(self):
         self['collapsed'] = not self['collapsed']
@@ -1022,7 +1023,7 @@ class Deck(DictAugmented):
     def rename(self, newName):
         newBaseName = self.manager._basename(newBaseName)
         newParentName = self.manager._parentName(newName)
-        newParent = self.id(newParentName)
+        newParent = self.manager.get(self.manager.id(newParentName))
         self.changeBaseName(newBaseName)
         self.moveTo(newParent)
 

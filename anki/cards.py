@@ -95,7 +95,7 @@ class Card:
             self.lapses = 0
             self.left = 0
             self.odue = 0
-            self.odid = 0
+            self.odeck = None
             self.flags = 0
             self.data = ""
 
@@ -134,7 +134,7 @@ class Card:
         self.mod = intTime()
         self.usn = self.col.usn()
         # bug check
-        if self.queue == QUEUE_REV and self.odue and not self.col.decks.isDyn(self.did):
+        if self.queue == QUEUE_REV and self.odue and not self.deck.isDyn():
             runHook("odueInvalid")
         assert self.due < 4294967296
         self.col.db.execute(
@@ -156,7 +156,7 @@ insert or replace into cards values
             self.lapses,
             self.left,
             self.odue,
-            self.odid,
+            self.odeck.getId() if self.odeck else 0,
             self.flags,
             self.data)
         self.col.log(self)
@@ -169,7 +169,7 @@ insert or replace into cards values
         self.mod = intTime()
         self.usn = self.col.usn()
         # bug checks
-        if self.queue == QUEUE_REV and self.odue and not self.col.decks.isDyn(self.did):
+        if self.queue == QUEUE_REV and self.odue and not self.deck.isDyn():
             runHook("odueInvalid")
         assert self.due < 4294967296
         self.col.db.execute(
@@ -187,7 +187,7 @@ lapses=?, left=?, odue=?, odid=?, did=? where id = ?""",
             self.lapses,
             self.left,
             self.odue,
-            self.odid,
+            self.odeck.getId() if self.odeck else 0,
             self.did,
             self.id)
         self.col.log(self)
@@ -263,14 +263,14 @@ lapses=?, left=?, odue=?, odid=?, did=? where id = ?""",
         """Time limit for answering in milliseconds.
 
         According to the deck's information."""
-        conf = self.col.decks.confForDid(self.originalDeck())
+        conf = self.originalDeck().getConf()
         return conf['maxTaken']*1000
 
     def shouldShowTimer(self):
         """Whether timer should be shown.
 
         According to the deck's information."""
-        conf = self.col.decks.confForDid(self.originalDeck())
+        conf = self.originalDeck().getConf()
         return conf['timer']
 
     def timeTaken(self):
@@ -302,8 +302,12 @@ lapses=?, left=?, odue=?, odid=?, did=? where id = ?""",
         self.flags = (self.flags & ~0b111) | flag
 
     def isFiltered(self):
-        return self.odid
+        return self.odeck
 
     def originalDeck(self):
         """Independantly of whether the card is filtered or not."""
-        return self.odid or self.did
+        return self.odeck or self.deck
+
+    def originalDeckId(self):
+        """Independantly of whether the card is filtered or not."""
+        return self.originalDeckId().getId()
