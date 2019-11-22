@@ -100,6 +100,18 @@ bury -- If True, when a review card is answered, the related cards of
 its notes are buried
 """
 
+import bisect
+import copy
+import functools
+import operator
+import unicodedata
+
+from anki.consts import *
+from anki.errors import DeckRenameError
+from anki.hooks import runHook
+from anki.lang import _
+from anki.utils import ids2str, intTime, json
+
 # fixmes:
 # - make sure users can't set grad interval < 1
 
@@ -201,30 +213,15 @@ class DeckManager:
         decks -- json dic associating to each id (as string) its deck
         dconf -- json dic associating to each id (as string) its configuration(option)
         """
-        self.decks = json.loads(decks)
-        self.dconf = json.loads(dconf)
-        # set limits to within bounds
-        found = False
-        for conf in list(self.dconf.values()):
-            for type in ('rev', 'new'):
-                pd = 'perDay'
-                if conf[type][pd] > 999999:
-                    conf[type][pd] = 999999
-                    self.save(conf)
-                    found = True
-        if not found:
-            self.changed = False
+        self.decks = dict()
+        for key, deck in json.loads(decks):
+            self.decks[key] = Deck(deck, self)
+        for key, dconf in json.loads(dconf):
+            self.dconf[key] = DConf(dconf, self)
 
     def save(self, deckOrOption=None):
-        """State that the DeckManager has been changed. Changes the
-        mod and usn of the potential argument.
-
-        The potential argument can be either a deck or a deck
-        configuration.
-        """
         if deckOrOption:
-            deckOrOption['mod'] = intTime()
-            deckOrOption['usn'] = self.col.usn()
+            deckOrOption.save()
         self.changed = True
 
     def flush(self):
@@ -233,8 +230,8 @@ class DeckManager:
         """
         if self.changed:
             self.col.db.execute("update col set decks=?, dconf=?",
-                                 json.dumps(self.decks),
-                                 json.dumps(self.dconf))
+                                 json.dumps(self.decks, default=lambda object: object.dumps()),
+                                 json.dumps(self.dconf, default=lambda object: object.dumps()))
             self.changed = False
 
     # Deck save/load
@@ -369,17 +366,12 @@ class DeckManager:
     def collapse(self, did):
         """Change the collapsed state of deck whose id is did. Then
         save the change."""
-        deck = self.get(did)
-        deck['collapsed'] = not deck['collapsed']
-        self.save(deck)
+        self.get(did).collapse()
 
     def collapseBrowser(self, did):
         """Change the browserCollapsed state of deck whose id is did. Then
         save the change."""
-        deck = self.get(did)
-        collapsed = deck.get('browserCollapsed', False)
-        deck['browserCollapsed'] = not collapsed
-        self.save(deck)
+        self.get(did).collapseBrowser()
 
     def count(self):
         """The number of decks."""
@@ -425,11 +417,7 @@ class DeckManager:
         for ancestor in self.parentsByName(newName):
             if ancestor['dyn']:
                 raise DeckRenameError(_("A filtered deck cannot have subdecks."))
-        # rename children
-        oldName = deck['name']
-        for child in self.childrenDecks(deck['id'], includeSelf=True):
-            child['name'] = child['name'].replace(oldName, newName, 1)
-            self.save(child)
+        deck.rename(newName)
         # ensure we have parents again, as we may have renamed parent->child
         newName = self._ensureParents(newName)
         # renaming may have altered active did order
@@ -674,11 +662,7 @@ same id."""
 
         If Children is set to true, returns also the list of the cards
         of the descendant."""
-        if not children:
-            return self.col.db.list("select id from cards where did=?", did)
-        dids = self.childDids(did, includeSelf=True)
-        return self.col.db.list("select id from cards where did in "+
-                                ids2str(dids))
+        return self.get(did).cids(children)
 
     def _recoverOrphans(self):
         """Move the cards whose deck does not exists to the default
@@ -757,19 +741,7 @@ same id."""
 
         grandChildren -- Whether to also include child of child.
         """
-        name = self.get(did)['name']
-        actv = []
-        for deck in self.all(sort=sort):
-            childName = deck['name']
-            if grandChildren:
-                if self._isAncestor(name, deck, includeSelf):
-                    actv.add(deck)
-            else:
-                if includeSelf and deck['name'] == name:
-                    actv.add(deck)
-                if self._isParent(name, deck):
-                    actv.add(deck)
-        return actv
+        return self.get(did).childrenDecks(includeSelf, sort, grandChildren)
     #todo, maybe sort only this smaller list, at least until all() memoize
 
     def childDids(self, did, childMap=None, includeSelf=False, sort=False, grandChildren=True):
@@ -786,7 +758,7 @@ same id."""
         grandChildren -- Whether to also include child of child
         """
         # get ancestors names
-        return [deck['id'] for deck in self.childrenDecks(did, includeSelf=includeSelf, sort=sort, grandChildren=grandChildren)]
+        return self.get(did).childDids(childMap, includeSelf, sort, grandChildren)
 
     def childMap(self):
         """A tree, containing for each pair parent/child, an entry of the form:
@@ -890,3 +862,186 @@ same id."""
     @staticmethod
     def equalName(name1, name2):
         return DeckManager.normalizeName(name1) == DeckManager.normalizeName(name2)
+
+@functools.total_ordering
+class DictAugmented
+    def __getitem__(self, key, value=None):
+        return self.dic.get(key, value)
+
+    def __setitem(self, key, value):
+        self.dic[key] = value
+
+    def __init__(self, dic, manager):
+        self.manager = manager
+        self.dic = dic
+
+    def save(self, saveManager=False):
+        """State that the DeckManager has been changed. Changes the
+        mod and usn of the potential argument.
+
+        The potential argument can be either a deck or a deck
+        configuration.
+        """
+        self['mod'] = intTime()
+        self['usn'] = self.col.usn()
+        if saveManager:
+            self.manager.save()
+
+    def dumps(self):
+        return json.dumps(self.dic)
+
+    def path(self):
+        return self.getName().split("::")
+
+    def __eq__(self, other):
+        return self.get("id") == other.get("id")
+
+    def __lt__(self, other):
+        return self.get("name") < other.get("name")
+
+class Deck(DictAugmented):
+    """
+    dic -- the JSON object associated to this deck.
+    """
+    def __init__(self, dict, manager):
+        super().__init__(dict, manager)
+        self.parent = None
+        self.children = []
+        self.baseName = dict.get("name").rpslit("::", 1)[-1]
+
+    def getBaseName(self):
+        return self.baseName
+
+    def ancestors(self):
+        current = self
+        l = []
+        while current:
+            l.append(current)
+            current = current.parent
+        l.reverse()
+        return l
+
+    def getName(self, parentName=None):
+        "::".join(self.path)
+
+    def dumps(self):
+        self.name
+
+    def path(self):
+        return map (lambda deck: deck.getBaseName(), self.ancestors())
+
+    def getParent(self):
+        return self.parent
+
+    def getChildren(self):
+        return self.children
+
+    def getChildrenIds(self):
+        return map(operator.itemgetter('id'), self.getChildren())
+
+    def getChildrenNames(self):
+        return map(operator.itemgetter('name'), self.getChildren())
+
+    def addChild(self, child):
+        bisect.insort(self.children, child)
+
+    def removeChild(self, child):
+        # as in example https://docs.python.org/fr/3/library/bisect.html
+        i = bisect_left(self.children, child)
+        if i != len(self.children) and self.children[i] == child:
+            self.children.pop(i)
+
+    def getDescendants(self, includeSelf=False):
+        l = [*children.getDescendant(True) for children in self.getChildren()]
+        if includeSelf:
+            l.insert(0, self)
+        return l
+
+    def getDescendantsIds(self):
+        return map(operator.itemgetter('id'), self.getDescendants())
+
+    def getDescendantsNames(self):
+        return map(operator.itemgetter('name'), self.getDescendants())
+
+    def collapse(self):
+        self['collapsed'] = not self['collapsed']
+        self.save(True)
+
+    def collapseBrowser(self):
+        deck['browserCollapsed'] = not deck.get('browserCollapsed', False)
+        self.save(True)
+
+    def cids(self, children=False):
+        """Return the list of id of cards whose deck's id is did.
+
+        If Children is set to true, returns also the list of the cards
+        of the descendant."""
+        if not children:
+            return self.manager.col.db.list("select id from cards where did=?", self['did'])
+        dids = self.childDids(did, includeSelf=True)
+        return self.manager.col.db.list("select id from cards where did in "+
+                                ids2str(dids))
+
+    def isAncestorOf(self, descendant, includeSelf=False):
+        while descendant:
+            if includeSelf and self == descendant:
+                return True
+            includeSelf = True
+            descendant = descendant.parent
+        return False
+
+    def isParentOf(self, child):
+        return child.parent == self
+
+    def isChildOf(self, parent):
+        return self.parent == parent
+
+    def isDescendantOf(self, ancestor, includeSelf=False):
+        return ancestor.isAncestorOf(self, includeSelf)
+
+    def moveTo(self, newParent):
+        if self.parent:
+            self.parent.removeChild(self)
+        self.parent = newParent
+        if newParent:
+            newParent.addChild(self)
+
+    def changeBaseName(self, newBaseName):
+        self.baseName = newBaseName
+
+    def rename(self, newName):
+        newBaseName = self.manager._basename(newBaseName)
+        newParentName = self.manager._parentName(newName)
+        newParent = self.id(newParentName)
+        self.changeBaseName(newBaseName)
+        self.moveTo(newParent)
+
+    def __getitem__(self, key, value=None):
+        if key == "name":
+            return self.getName()
+        return super().__getitem__(key, value)
+
+    def __setitem__(self, key, value):
+        if key == "name":
+            self.rename(value)
+        else:
+            super.__setitem__(key, value)
+
+class DConf(DictAugmented):
+    """
+    dic -- the JSON object associated to this conf.
+    """
+
+    def __init__(self, dict, manager):
+        super.__init__(dict, manager)
+        # set limits to within bounds
+        for type in ('rev', 'new'):
+            pd = 'perDay'
+            if conf[type][pd] > 999999:
+                conf[type][pd] = 999999
+                self.save(conf)
+                self.manager.changed = True
+
+    def getName(self):
+        return self['name']
+
