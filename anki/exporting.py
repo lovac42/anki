@@ -27,7 +27,8 @@ class Exporter:
         self.col = col
         self.did = did
 
-    def doExport(self, path):
+    @staticmethod
+    def doExport(path):
         raise Exception("not implemented")
 
     def exportInto(self, path):
@@ -53,7 +54,8 @@ class Exporter:
 
         return text
 
-    def escapeText(self, text):
+    @staticmethod
+    def escapeText(text):
         "Escape newlines, tabs, CSS and quotechar."
         # fixme: we should probably quote fields with newlines
         # instead of converting them to spaces
@@ -65,7 +67,8 @@ class Exporter:
             text = "\"" + text.replace("\"", "\"\"") + "\""
         return text
 
-    def stripHTML(self, text):
+    @staticmethod
+    def stripHTML(text):
         # very basic conversion to text
         text = re.sub(r"(?i)<(br ?/?|div|p)>", " ", text)
         text = re.sub(r"\[sound:[^]]+\]", "", text)
@@ -271,7 +274,8 @@ class AnkiExporter(Exporter):
         self.postExport()
         self.dst.close()
 
-    def postExport(self):
+    @staticmethod
+    def postExport():
         # overwrite to apply customizations to the deck before it's closed,
         # such as update the deck description
         pass
@@ -279,7 +283,8 @@ class AnkiExporter(Exporter):
     def removeSystemTags(self, tags):
         return self.src.tags.remFromStr("marked leech", tags)
 
-    def _modelHasMedia(self, model, fname):
+    @staticmethod
+    def _modelHasMedia(model, fname):
         # First check the styling
         if fname in model["css"]:
             return True
@@ -335,7 +340,8 @@ class AnkiPackageExporter(AnkiExporter):
         shutil.rmtree(path.replace(".apkg", ".media"))
         return media
 
-    def _exportMedia(self, zip, files, fdir):
+    @staticmethod
+    def _exportMedia(zip, files, fdir):
         media = {}
         for index, file in enumerate(files):
             cStr = str(index)
@@ -352,14 +358,16 @@ class AnkiPackageExporter(AnkiExporter):
 
         return media
 
-    def prepareMedia(self):
+    @staticmethod
+    def prepareMedia():
         # chance to move each file in self.mediaFiles into place before media
         # is zipped up
         pass
 
     # create a dummy collection to ensure older clients don't try to read
     # data they don't understand
-    def _addDummyCollection(self, zip):
+    @staticmethod
+    def _addDummyCollection(zip):
         path = namedtmp("dummy.anki2")
         col = Collection(path)
         note = col.newNote()

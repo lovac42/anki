@@ -121,7 +121,8 @@ class ProfileManager(PM):
         up = Unpickler(io.BytesIO(data), errors="ignore")
         return up.load()
 
-    def _pickle(self, obj):
+    @staticmethod
+    def _pickle(obj):
         return pickle.dumps(obj, protocol=0)
 
     def load(self, name):
@@ -237,7 +238,8 @@ and no other programs are accessing your profile folders, then try again."""))
     # Helpers
     ######################################################################
 
-    def _defaultBase(self):
+    @staticmethod
+    def _defaultBase():
         """The folder containing every file related to anki's configuration. """
         if isWin:
             from aqt.winpaths import get_appdata

@@ -92,7 +92,8 @@ class Finder:
     # Tokenizing
     ######################################################################
 
-    def _tokenize(self, query):
+    @staticmethod
+    def _tokenize(query):
         inQuote = False
         tokens = []
         token = ""
@@ -272,7 +273,8 @@ class Finder:
     # Commands
     ######################################################################
 
-    def _findTag(self, args):
+    @staticmethod
+    def _findTag(args):
         """A sql query as in 'tag:val'. Add the tag val to args. Returns a
         query which, given a tag, search it.
 
@@ -309,7 +311,8 @@ class Finder:
 (card.queue = {QUEUE_LRN} and card.due <= %d)""" % (
     self.col.sched.today, self.col.sched.dayCutoff)
 
-    def _findFlag(self, args):
+    @staticmethod
+    def _findFlag(args):
         """A sql query restricting cards to the one whose flag is `val`, as in
         'flag:val'
 
@@ -389,13 +392,15 @@ class Finder:
         queries.append("(%s %s %s)" % (prop, cmp, val))
         return " and ".join(queries)
 
-    def _findText(self, val, args):
+    @staticmethod
+    def _findText(val, args):
         val = val.replace("*", "%")
         args.append("%"+val+"%")
         args.append("%"+val+"%")
         return "(note.sfld like ? escape '\\' or note.flds like ? escape '\\')"
 
-    def _findNids(self, args):
+    @staticmethod
+    def _findNids(args):
         """A sql query restricting to notes whose id is in the list
         `val`. `val` should contains only numbers and commas. It
         corresponds to the query `nid:val`.
@@ -406,7 +411,8 @@ class Finder:
             return
         return "note.id in (%s)" % val
 
-    def _findCids(self, args):
+    @staticmethod
+    def _findCids(args):
         """A sql query restricting to cards whose id is in the list
         `val`. `val` should contains only numbers and commas. It
         corresponds to the query `cid:val`.
@@ -417,7 +423,8 @@ class Finder:
             return
         return "card.id in (%s)" % val
 
-    def _findMid(self, args):
+    @staticmethod
+    def _findMid(args):
         """A sql query restricting model (i.e. note type) to whose id is in
         the list `val`. `val` should contains only numbers and
         commas. It corresponds to the query `mid:val`.

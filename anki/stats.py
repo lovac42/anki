@@ -392,7 +392,8 @@ group by day order by day""" % (self._limit(), lim),
                 _("%(tot)0.1fs (%(text)s)") % dict(tot=(tot*60)/total, text=text))
         return self._lineTbl(tableLines), int(tot)
 
-    def _splitRepData(self, data, spec):
+    @staticmethod
+    def _splitRepData(data, spec):
         sep = {}
         totcnt = {}
         totd = {}

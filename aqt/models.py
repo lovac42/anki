@@ -230,5 +230,6 @@ class AddModel(QDialog):
             self.mw.col.models.setCurrent(self.model)
         QDialog.accept(self)
 
-    def onHelp(self):
+    @staticmethod
+    def onHelp():
         openHelp("notetypes")

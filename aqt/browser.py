@@ -424,7 +424,8 @@ class DataModel(QAbstractTableModel):
         # normal deck
         return card.col.decks.name(card.did)
 
-    def question(self, card, *args):
+    @staticmethod
+    def question(card, *args):
         return htmlToTextLine(card.q(browser=True))
     questionContent = question
 

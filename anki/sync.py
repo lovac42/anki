@@ -174,7 +174,8 @@ class Syncer:
         self.col.save()
         return "sanityCheckFailed"
 
-    def _gravesChunk(self, graves):
+    @staticmethod
+    def _gravesChunk(graves):
         """A pair. If graves contains less than 250 elements, then grave,None. Else the 250 first elements of graves, and the remaining elements)"""
         lim = 250
         chunk = dict(notes=[], cards=[], decks=[])
@@ -287,7 +288,8 @@ class Syncer:
             len(self.col.decks.allConf()),
         ]
 
-    def usnLim(self):
+    @staticmethod
+    def usnLim():
         return "usn = -1"
 
     def finish(self, mod=None):
@@ -648,7 +650,8 @@ class AnkiRequestsClient:
             buf.write(chunk)
         return buf.getvalue()
 
-    def _agentName(self):
+    @staticmethod
+    def _agentName():
         """Anki versionNumber"""
         from anki import version
         return "Anki {}".format(version)

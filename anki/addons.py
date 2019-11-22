@@ -409,8 +409,8 @@ class AddonManager:
         else:
             return ""
 
-
-    def addonFromModule(self, module):
+    @staticmethod
+    def addonFromModule(module):
         """Returns the string of module before the first dot"""
         return module.split(".",1)[0]
 

@@ -571,7 +571,8 @@ time = %(time)d;
     # Leeches
     ##########################################################################
 
-    def onLeech(self, card):
+    @staticmethod
+    def onLeech(card):
         # for now
         text = _("Card was a leech.")
         if card.queue < 0:

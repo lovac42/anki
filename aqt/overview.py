@@ -140,7 +140,8 @@ class Overview:
                          css=["overview.css"],
                          js=["jquery.js", "overview.js"])
 
-    def _desc(self, deck):
+    @staticmethod
+    def _desc(deck):
         if deck['dyn']:
             desc = _("""\
 This is a special deck for studying outside of the normal schedule.""")

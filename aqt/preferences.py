@@ -60,7 +60,8 @@ class Preferences(QDialog):
         self.form.lang.setCurrentIndex(self.langIdx())
         self.form.lang.currentIndexChanged.connect(self.onLangIdxChanged)
 
-    def langIdx(self):
+    @staticmethod
+    def langIdx():
         codes = [x[1] for x in anki.lang.langs]
         try:
             return codes.index(anki.lang.getLang())

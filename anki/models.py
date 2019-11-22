@@ -231,7 +231,8 @@ class ModelManager:
             if model['name'] == name:
                 return model
 
-    def new(self, name):
+    @staticmethod
+    def new(name):
         "Create a new model, save it in the registry, and return it."
         # caller should call save() after modifying
         model = defaultModel.copy()
@@ -343,13 +344,15 @@ and notes.mid = ? and cards.ord = ?""", model['id'], ord)
     # Fields
     ##################################################
 
-    def newField(self, name):
+    @staticmethod
+    def newField(name):
         """A new field, similar to the default one, whose name is name."""
         fieldType = defaultField.copy()
         fieldType['name'] = name
         return fieldType
 
-    def fieldMap(self, model):
+    @staticmethod
+    def fieldMap(model):
         """Mapping of (field name) -> (ord, field object).
 
         keyword arguments:
@@ -357,11 +360,13 @@ and notes.mid = ? and cards.ord = ?""", model['id'], ord)
         """
         return dict((fieldType['name'], (fieldType['ord'], fieldType)) for fieldType in model['flds'])
 
-    def fieldNames(self, model):
+    @staticmethod
+    def fieldNames(model):
         """The list of names of fields of this model."""
         return [fieldType['name'] for fieldType in model['flds']]
 
-    def sortIdx(self, model):
+    @staticmethod
+    def sortIdx(model):
         """The index of the field used for sorting."""
         return model['sortf']
 
@@ -483,7 +488,8 @@ and notes.mid = ? and cards.ord = ?""", model['id'], ord)
         fieldType['name'] = newName
         self.save(model)
 
-    def _updateFieldOrds(self, model):
+    @staticmethod
+    def _updateFieldOrds(model):
         """
         Change the order of the field of the model in order to copy
         the order in model['flds'].
@@ -512,7 +518,8 @@ and notes.mid = ? and cards.ord = ?""", model['id'], ord)
     # Templates
     ##################################################
 
-    def newTemplate(self, name):
+    @staticmethod
+    def newTemplate(name):
         """A new template, whose content is the one of
         defaultTemplate, and name is name.
 
@@ -567,7 +574,8 @@ update cards set ord = ord - 1, usn = ?, mod = ?
         self.save(model)
         return True
 
-    def _updateTemplOrds(self, model):
+    @staticmethod
+    def _updateTemplOrds(model):
         """Change the value of 'ord' in each template of this model to reflect its new position"""
         for index, template in enumerate(model['tmpls']):
             template['ord'] = index
@@ -702,7 +710,8 @@ select id from notes where mid = ?)""" % " ".join(map),
     # Schema hash
     ##########################################################################
 
-    def scmhash(self, model):
+    @staticmethod
+    def scmhash(model):
         """Return a hash of the schema, to see if models are
         compatible. Consider only name of fields and of card type, and
         not the card type itself.

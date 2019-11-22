@@ -251,14 +251,16 @@ class MPVBase:
     #
     # Message handling
     #
-    def _compose_message(self, message):
+    @staticmethod
+    def _compose_message(message):
         """Return a json representation from a message dictionary.
         """
         # XXX may be strict is too strict ;-)
         data = json.dumps(message, separators=",:")
         return data.encode("utf8", "strict") + b"\n"
 
-    def _parse_message(self, data):
+    @staticmethod
+    def _parse_message(data):
         """Return a message dictionary from a json representation.
         """
         # XXX may be strict is too strict ;-)
@@ -290,7 +292,7 @@ class MPVBase:
            dictionary of the form {"command": ["arg1", "arg2", ...]}. Responses
            from the mpv process must be collected using _get_response().
         """
-        data = self._compose_message(message)
+        data = MPVBase._compose_message(message)
 
         if self.debug:
             sys.stdout.write(">>> " + data.decode("utf8", "replace"))

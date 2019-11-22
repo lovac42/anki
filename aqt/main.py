@@ -342,7 +342,8 @@ close the profile or restart Anki."""))
     # Sound/video
     ##########################################################################
 
-    def setupSound(self):
+    @staticmethod
+    def setupSound():
         if isWin:
             return
         try:
@@ -623,7 +624,8 @@ from the profile screen."))
     # HTML helpers
     ##########################################################################
 
-    def button(self, link, name, key=None, class_="", id="", extra=""):
+    @staticmethod
+    def button(link, name, key=None, class_="", id="", extra=""):
         class_ = "but "+ class_
         if key:
             key = _("Shortcut key: %s") % key
@@ -672,7 +674,8 @@ title="%s" %s>%s</button>''' % (
                 webWidget._domReady = False
                 webWidget._page.setContent(bytes("", "ascii"))
 
-    def closeAllWindows(self, onsuccess):
+    @staticmethod
+    def closeAllWindows(onsuccess):
         aqt.dialogs.closeAll(onsuccess)
 
     def executeInProgress(self, fun, immediate=True):
@@ -962,11 +965,13 @@ QTreeWidget {
         """Open the about window"""
         aqt.dialogs.open("About", self)
 
-    def onDonate(self):
+    @staticmethod
+    def onDonate():
         """Ask the OS to open the donate web page"""
         openLink(aqt.appDonate)
 
-    def onDocumentation(self):
+    @staticmethod
+    def onDocumentation():
         """Ask the OS to open the documentation web page"""
         openHelp("")
 
@@ -1337,7 +1342,8 @@ will be lost. Continue?"""))
     def _debugCard(self):
         return self.reviewer.card.__dict__
 
-    def _debugBrowserCard(self):
+    @staticmethod
+    def _debugBrowserCard():
         return aqt.dialogs._dialogs['Browser'][1].card.__dict__
 
     def onDebugPrint(self, frm):
@@ -1464,7 +1470,8 @@ Please ensure a profile is open and Anki is not busy, then try again."""),
         obj.deleteLater()
         self.progress.timer(1000, self.doGC, False, requiresCollection=False)
 
-    def disableGC(self):
+    @staticmethod
+    def disableGC():
         gc.collect()
         gc.disable()
 

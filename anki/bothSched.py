@@ -343,7 +343,8 @@ did = ? and queue = {QUEUE_DAY_LRN} and due <= ? limit ?""",
             ok = i
         return ok+1
 
-    def _delayForGrade(self, conf, left):
+    @staticmethod
+    def _delayForGrade(conf, left):
         """The number of second for the delay until the next time the card can
         be reviewed. Assuming the number of left steps is left,
         according to configuration conf
@@ -425,7 +426,8 @@ select id from cards where did in %s and queue = {QUEUE_REV} and due <= ? limit 
     # Interval management
     ##########################################################################
 
-    def _fuzzedIvl(self, ivl):
+    @staticmethod
+    def _fuzzedIvl(ivl):
         """Return a randomly chosen number of day for the interval,
         not far from ivl.
 
@@ -435,7 +437,8 @@ select id from cards where did in %s and queue = {QUEUE_REV} and due <= ? limit 
         min, max = self._fuzzIvlRange(ivl)
         return random.randint(min, max)
 
-    def _fuzzIvlRange(self, ivl):
+    @staticmethod
+    def _fuzzIvlRange(ivl):
         """Return an increasing pair of numbers.  The new interval will be a
         number randomly selected between the first and the second
         element.

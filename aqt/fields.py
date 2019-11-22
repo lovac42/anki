@@ -171,5 +171,6 @@ class FieldDialog(QDialog):
     def accept(self):
         self.reject()
 
-    def onHelp(self):
+    @staticmethod
+    def onHelp():
         openHelp("fields")

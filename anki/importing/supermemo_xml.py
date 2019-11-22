@@ -119,17 +119,20 @@ class SupermemoXmlImporter(NoteImporter):
 
     ## TOOLS
 
-    def _fudgeText(self, text):
+    @staticmethod
+    def _fudgeText(text):
         "Replace sm syntax to Anki syntax"
         text = text.replace("\n\r", "<br>")
         text = text.replace("\n", "<br>")
         return text
 
-    def _unicode2ascii(self,str):
+    @staticmethod
+    def _unicode2ascii(str):
         "Remove diacritic punctuation from strings (titles)"
         return "".join([ char for char in unicodedata.normalize('NFKD', str) if not unicodedata.combining(char)])
 
-    def _decode_htmlescapes(self,s):
+    @staticmethod
+    def _decode_htmlescapes(s):
         """Unescape HTML code."""
         #In case of bad formated html you can import MinimalSoup etc.. see btflsoup source code
         from bs4 import BeautifulSoup as btflsoup
@@ -142,7 +145,8 @@ class SupermemoXmlImporter(NoteImporter):
 
         return str(btflsoup(s, "html.parser"))
 
-    def _afactor2efactor(self, af):
+    @staticmethod
+    def _afactor2efactor(af):
         # Adapted from <http://www.supermemo.com/beta/xml/xml-core.htm>
 
         # Ranges for A-factors and E-factors
@@ -182,7 +186,8 @@ class SupermemoXmlImporter(NoteImporter):
         self.log.append(ngettext("%d card imported.", "%d cards imported.", self.total) % self.total)
         return self.notes
 
-    def fields(self):
+    @staticmethod
+    def fields():
         return 2
 
     ## PARSER METHODS
@@ -259,7 +264,8 @@ class SupermemoXmlImporter(NoteImporter):
 
 
     # OPEN AND LOAD
-    def openAnything(self,source):
+    @staticmethod
+    def openAnything(source):
         "Open any source / actually only openig of files is used"
 
         if source == "-":

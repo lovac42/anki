@@ -95,7 +95,8 @@ class Scheduler(BothScheduler):
             counts[idx] += 1
         return tuple(counts)
 
-    def countIdx(self, card):
+    @staticmethod
+    def countIdx(card):
         if card.queue in (QUEUE_DAY_LRN,QUEUE_PREVIEW):
             return QUEUE_LRN
         return card.queue
@@ -303,7 +304,8 @@ select count() from cards where did in %s and queue = {QUEUE_PREVIEW}
 
         self._logLrn(card, ease, conf, leaving, type, lastLeft)
 
-    def _updateRevIvlOnFail(self, card, conf):
+    @staticmethod
+    def _updateRevIvlOnFail(card, conf):
         card.lastIvl = card.ivl
         card.ivl = self._lapseIvl(card, conf)
 
@@ -357,7 +359,8 @@ select count() from cards where did in %s and queue = {QUEUE_PREVIEW}
             card.queue = QUEUE_DAY_LRN
         return delay
 
-    def _delayForRepeatingGrade(self, conf, left):
+    @staticmethod
+    def _delayForRepeatingGrade(conf, left):
         # halfway between last and next
         delay1 = self._delayForGrade(conf, left)
         if len(conf['delays']) > 1:
@@ -399,7 +402,8 @@ select count() from cards where did in %s and queue = {QUEUE_PREVIEW}
         tod = self._leftToday(conf['delays'], tot)
         return tot + tod*1000
 
-    def _graduatingIvl(self, card, conf, early, fuzz=True):
+    @staticmethod
+    def _graduatingIvl(card, conf, early, fuzz=True):
         if card.type in (CARD_DUE, CARD_FILTERED):
             return card.ivl
         if not early:
@@ -545,7 +549,8 @@ limit ?""" % ids2str(self.col.decks.active()),
 
         return delay
 
-    def _lapseIvl(self, card, conf):
+    @staticmethod
+    def _lapseIvl(card, conf):
         ivl = max(1, conf['minInt'], int(card.ivl*conf['mult']))
         return ivl
 
@@ -603,7 +608,8 @@ limit ?""" % ids2str(self.col.decks.active()),
             (card.ivl + delay) * fct * conf['ease4'], conf, ivl3, fuzz)
         return ivl4
 
-    def _constrainedIvl(self, ivl, conf, prev, fuzz):
+    @staticmethod
+    def _constrainedIvl(ivl, conf, prev, fuzz):
         ivl = int(ivl * conf.get('ivlFct', 1))
         if fuzz:
             ivl = self._fuzzedIvl(ivl)
@@ -708,13 +714,15 @@ where id = ?
 """ % queue
         self.col.db.executemany(query, data)
 
-    def _removeFromFiltered(self, card):
+    @staticmethod
+    def _removeFromFiltered(card):
         if card.isFiltered():
             card.did = card.odid
             card.odue = 0
             card.odid = 0
 
-    def _restorePreviewCard(self, card):
+    @staticmethod
+    def _restorePreviewCard(card):
         assert card.isFiltered()
 
         card.due = card.odue
@@ -732,7 +740,8 @@ where id = ?
     # Leeches
     ##########################################################################
 
-    def _checkLeech(self, card, conf):
+    @staticmethod
+    def _checkLeech(card, conf):
         "Leech handler. True if card was a leech."
         lf = conf['leechFails']
         if not lf:
@@ -755,7 +764,8 @@ where id = ?
     # Tools
     ##########################################################################
 
-    def _delays(self, conf, oconf, type):
+    @staticmethod
+    def _delays(conf, oconf, type):
         return oconf[type]['delays']
 
     def _previewingCard(self, card):
@@ -853,7 +863,8 @@ where id = ?
                 return r
 
     # this isn't easily extracted from the learn code
-    def _nextLrnIvl(self, card, ease):
+    @staticmethod
+    def _nextLrnIvl(card, ease):
         if card.queue == QUEUE_NEW_CRAM:
             card.left = self._startingLeft(card)
         conf = self._lrnConf(card)

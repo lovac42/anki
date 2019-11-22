@@ -293,14 +293,16 @@ automatically."""),
             self.thread.fullSyncChoice = "cancel"
         self.mw.progress.start(immediate=True)
 
-    def _clockOff(self):
+    @staticmethod
+    def _clockOff():
         """Show a message stating that there is more than 5 minutes of
         difference between computer and server, thus sync can't be made."""
         showWarning(_("""\
 Syncing requires the clock on your computer to be set correctly. Please \
 fix the clock and try again."""))
 
-    def _checkFailed(self):
+    @staticmethod
+    def _checkFailed():
         """State to check database before syncing. (Actually, it's totally
 useless if the database is downloaded the current will be deleted.)"""
         showWarning(_("""\

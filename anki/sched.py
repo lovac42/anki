@@ -698,7 +698,8 @@ select id from cards where did in %s and queue = {QUEUE_REV} and due <= ? limit 
         # interval capped?
         return min(interval, conf['maxIvl'])
 
-    def _constrainedIvl(self, ivl, conf, prev):
+    @staticmethod
+    def _constrainedIvl(ivl, conf, prev):
         """A new interval. Ivl multiplie by the interval
         factor of this conf. Greater than prev.
         """
@@ -841,7 +842,8 @@ did = ?, queue = %s, due = ?, usn = ? where id = ?""" % queue, data)
     # Tools
     ##########################################################################
 
-    def _delays(self, conf, oconf, type):
+    @staticmethod
+    def _delays(conf, oconf, type):
         if conf['delays']:
             r = conf['delays']
         else:

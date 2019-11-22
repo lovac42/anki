@@ -458,7 +458,8 @@ crt=?, mod=?, scm=?, dty=?, usn=?, ls=?, conf=?""",
         avail = self.models.availOrds(model, joinFields(note.fields))
         return self._tmplsFromOrds(model, avail)
 
-    def _tmplsFromOrds(self, model, avail):
+    @staticmethod
+    def _tmplsFromOrds(model, avail):
         """Given a list of ordinals, returns a list of templates
         corresponding to those position/cloze"""
         ok = []

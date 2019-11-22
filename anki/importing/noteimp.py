@@ -75,7 +75,8 @@ class NoteImporter(Importer):
         card = self.foreignNotes()
         self.importNotes(card)
 
-    def fields(self):
+    @staticmethod
+    def fields():
         """The number of fields."""
 
         #This should be overrided by concrete class, and never called directly
@@ -100,11 +101,13 @@ class NoteImporter(Importer):
         """Whether something is mapped to the first field"""
         return self.model['flds'][0]['name'] in self.mapping
 
-    def foreignNotes(self):
+    @staticmethod
+    def foreignNotes():
         "Return a list of foreign notes for importing."
         return []
 
-    def open(self):
+    @staticmethod
+    def open():
         "Open file and ensure it's in the right format."
         return
 

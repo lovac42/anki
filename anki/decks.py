@@ -467,16 +467,18 @@ class DeckManager:
         else:
             return True
 
-    def _isParent(self, parent, child):
+    @staticmethod
+    def _isParent(parent, child):
         """Whether child is a direct child of parent."""
-        child = self..getName(child)
+        child = DeckManager.getName(child)
         return child == DeckManager.parentName(parent)
 
-    def _isAncestor(self, ancestorDeckName, descendantDeckName, includeSelf=False):
+    @staticmethod
+    def _isAncestor(ancestorDeckName, descendantDeckName, includeSelf=False):
         """Whether ancestorDeckName is an ancestor of
         descendantDeckName; or itself."""
-        parent = self.getName(parent)
-        descendant = self.getName(descendant)
+        parent = DeckManager.getName(parent)
+        descendant = DeckManager.getName(descendant)
         return (includeSelf and deckparent == descendant) or
                 descendant.startswith(parent+"::")
 

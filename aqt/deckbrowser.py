@@ -244,7 +244,8 @@ where id > ?""", (self.mw.col.sched.dayCutoff-86400)*1000)
     # children
 {self._renderDeckTree(children, depth+1)}"""
 
-    def _topLevelDragRow(self):
+    @staticmethod
+    def _topLevelDragRow():
         return """
     <tr class='top-level-drag-row'>
       <td colspan='6'>

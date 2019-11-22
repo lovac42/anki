@@ -144,7 +144,8 @@ class Editor:
     # Top buttons
     ######################################################################
 
-    def resourceToData(self, path):
+    @staticmethod
+    def resourceToData(path):
         """Convert a file (specified by a path) into a data URI."""
         if not os.path.exists(path):
             raise FileNotFoundError
@@ -664,7 +665,8 @@ to a cloze type first, via Edit>Change Note Type."""))
             return None
         return self.fnameToLink(fname)
 
-    def fnameToLink(self, fname):
+    @staticmethod
+    def fnameToLink(fname):
         ext = fname.split(".")[-1].lower()
         if ext in pics:
             name = urllib.parse.quote(fname.encode("utf8"))
@@ -682,7 +684,8 @@ to a cloze type first, via Edit>Change Note Type."""))
         # not a supported type
         return
 
-    def isURL(self, text):
+    @staticmethod
+    def isURL(text):
         text = text.lower()
         return (text.startswith("http://")
             or text.startswith("https://")
@@ -1028,7 +1031,8 @@ class EditorWebView(AnkiWebView):
 
         return txt
 
-    def _processHtml(self, mime):
+    @staticmethod
+    def _processHtml(mime):
         if not mime.hasHtml():
             return None, False
         html = mime.html()

@@ -277,7 +277,8 @@ create table meta (dirMod int, lastUsn int); insert into meta values (0, 0);
                         filesInStr.append(fname)
         return filesInStr
 
-    def _expandClozes(self, string):
+    @staticmethod
+    def _expandClozes(string):
         """The list of all strings, where the clozes are expanded.
 
         For each cloze number n, there is a string with cloze n replaced by [...] or by [hint], and every other clozes replaced by their text.
@@ -456,7 +457,8 @@ create table meta (dirMod int, lastUsn int); insert into meta values (0, 0);
 
         return fname
 
-    def _cleanWin32Filename(self, fname):
+    @staticmethod
+    def _cleanWin32Filename(fname):
         if not isWin:
             return fname
 
@@ -468,7 +470,8 @@ create table meta (dirMod int, lastUsn int); insert into meta values (0, 0);
 
         return fname
 
-    def _cleanLongFilename(self, fname):
+    @staticmethod
+    def _cleanLongFilename(fname):
         # a fairly safe limit that should work on typical windows
         # paths and on eCryptfs partitions, even with a duplicate
         # suffix appended
@@ -506,13 +509,15 @@ create table meta (dirMod int, lastUsn int); insert into meta values (0, 0);
         """Whether the database has at least one dirty element"""
         return self.db.scalar("select 1 from media where dirty=1 limit 1")
 
-    def _mtime(self, path):
+    @staticmethod
+    def _mtime(path):
         """Time of most recent content modification of file at path.
 
         Expressed in seconds."""
         return int(os.stat(path).st_mtime)
 
-    def _checksum(self, path):
+    @staticmethod
+    def _checksum(path):
         """Checksum of file at path"""
         with open(path, "rb") as file:
             return checksum(file.read())
