@@ -750,14 +750,27 @@ same id."""
         "All descendant of did, as (name, id)."
         return [(deck['name'], deck['id']) for deck in self.childrenDecks(includeSelf=includeSelf, sort=sort)]
 
-    def childrenDecks(self, did, includeSelf=False, sort=False):
-        "All decks descendant of did."
+    def childrenDecks(self, did, includeSelf=False, sort=False, grandChildren=True):
+        """All decks descendant of did.
+
+        grandChildren -- Whether to also include child of child.
+        """
         name = self.get(did)['name']
         actv = []
-        return [deck for deck in self.all(sort=sort) if self._isAncestor(name, deck['name'])]
+        for deck in self.all(sort=sort):
+            childName = deck['name']
+            if grandChildren:
+                if self._isAncestor(name, deck, includeSelf):
+                    actv.add(deck)
+            else:
+                if includeSelf and deck['name'] == name:
+                    actv.add(deck)
+                if self._isParent(name, deck):
+                    actv.add(deck)
+        return actv
     #todo, maybe sort only this smaller list, at least until all() memoize
 
-    def childDids(self, did, childMap=None, includeSelf=False, sort=False):
+    def childDids(self, did, childMap=None, includeSelf=False, sort=False, grandChildren=True):
         #childmap is useless. Keep for consistency with anki.
         #sort was True by default, but never used.
         """The list of all descendant of did, as deck ids, ordered alphabetically
@@ -767,9 +780,11 @@ same id."""
 
         Keyword arguments:
         did -- the id of the deck we consider
-        childMap -- dictionnary, associating to a deck id its node as returned by .childMap()"""
+        childMap -- dictionnary, associating to a deck id its node as returned by .childMap()
+        grandChildren -- Whether to also include child of child
+        """
         # get ancestors names
-        return [deck['id'] for deck in self.childrenDecks(did, includeSelf=includeSelf, sort=sort)]
+        return [deck['id'] for deck in self.childrenDecks(did, includeSelf=includeSelf, sort=sort, grandChildren=grandChildren)]
 
     def childMap(self):
         """A tree, containing for each pair parent/child, an entry of the form:
