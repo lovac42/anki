@@ -48,7 +48,7 @@ class DeckConf(QDialog):
         self.loadConfs()
 
     def loadConfs(self):
-        current = self.deck['conf']
+        current = self.deckgetConfId()
         self.confList = self.mw.col.decks.allConf()
         self.confList.sort(key=itemgetter('name'))
         startOn = 0
@@ -84,13 +84,13 @@ class DeckConf(QDialog):
         if self.conf:
             self.saveConf()
         conf = self.confList[idx]
-        self.deck['conf'] = conf['id']
+        self.deck.setConf(conf)
         self.loadConf()
         cnt = 0
         for deck in self.mw.col.decks.all():
             if deck.isDyn():
                 continue
-            if deck['conf'] == conf['id']:
+            if deck.getConfId() == conf.getId():
                 cnt += 1
         if cnt > 1:
             txt = _("Your changes will affect multiple decks. If you wish to "
@@ -108,7 +108,7 @@ class DeckConf(QDialog):
         # then clone the conf
         id = self.mw.col.decks.confId(name, cloneFrom=self.conf)
         # set the deck to the new conf
-        self.deck['conf'] = id
+        self.deck.setConfId(id)
         # then reload the conf list
         self.loadConfs()
 
@@ -117,7 +117,7 @@ class DeckConf(QDialog):
             showInfo(_("The default configuration can't be removed."), self)
         else:
             self.mw.col.decks.remConf(self.conf['id'])
-            self.deck['conf'] = 1
+            self.deck.setDefaultConf()
             self.loadConfs()
 
     def renameGroup(self):
@@ -137,7 +137,7 @@ class DeckConf(QDialog):
             deck = self.mw.col.decks.get(did)
             if deck.isDyn():
                 continue
-            deck['conf'] = self.deck['conf']
+            deck.setConfId(self.deck.getConfId)
             self.mw.col.decks.save(deck)
         tooltip(ngettext("%d deck updated.", "%d decks updated.", \
                         len(self.childDids)) % len(self.childDids))

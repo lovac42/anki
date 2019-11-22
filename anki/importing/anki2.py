@@ -297,12 +297,12 @@ class Anki2Importer(Importer):
         # create in local
         newid = self.dst.decks.id(name)
         # pull conf over
-        if 'conf' in importedDeck and importedDeck['conf'] != 1:
-            conf = self.src.decks.getConf(importedDeck['conf'])
+        if 'conf' in importedDeck and importedDeck.isDefaultConf():
+            conf = importedDeck.getConf()
             self.dst.decks.save(conf)
             self.dst.decks.updateConf(conf)
             localDeck = self.dst.decks.get(newid)
-            localDeck['conf'] = importedDeck['conf']
+            localDeck.setConfId(importedDeck.getConfId())
             self.dst.decks.save(localDeck)
         # save desc
         localDeck = self.dst.decks.get(newid)

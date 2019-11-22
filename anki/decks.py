@@ -529,7 +529,7 @@ class DeckManager:
         deck = self.get(did, default=False)
         assert deck
         if 'conf' in deck:
-            conf = self.getConf(deck['conf'])
+            conf = self.getConf(deck['conf'])#todo what
             conf.isDyn() = False
             return conf
         # dynamic decks have embedded conf
@@ -579,9 +579,10 @@ same id."""
             # ignore cram decks
             if 'conf' not in deck:
                 continue
-            if str(deck['conf']) == str(id):
-                deck['conf'] = 1
-                self.save(deck)
+            if str(confgetConfId()) == str(id):
+                conf.setDefaultConf()
+                self.save(conf)
+
 
     def setConf(self, deck, id):
         """Takes a deck objects, switch his id to id and save it as
@@ -595,7 +596,7 @@ same id."""
         """The dids of the decks using the configuration conf."""
         dids = []
         for deck in list(self.decks.values()):
-            if 'conf' in deck and deck['conf'] == conf['id']:
+            if 'conf' in deck and deck.getConfId() == conf.getId():
                 dids.append(deck.getId())
         return dids
 
@@ -1039,6 +1040,24 @@ class Deck(DictAugmented):
     def isDefault(self):
         return str(self.getId()) == "1"
 
+    def setDefaultConf(self):
+        self['conf'] = 1
+
+    def isDefaultConf(self):
+        return self.getConfId() == 1
+
+    def setConfId(self, confId):
+        self['conf'] = confId
+
+    def setConf(self, conf):
+        self['conf'] = confId.getId
+
+    def getConfId(self):
+        return self['conf']
+
+    def getConf(self):
+        self.manager.getConf(self.getConfId())
+
 class DConf(DictAugmented):
     """
     dic -- the JSON object associated to this conf.
@@ -1057,3 +1076,5 @@ class DConf(DictAugmented):
     def getName(self):
         return self['name']
 
+    def isDefault(self):
+        return str(self['id']) == "1"

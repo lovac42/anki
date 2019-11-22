@@ -310,7 +310,7 @@ def _getColVars(db):
     deck = copy.deepcopy(anki.decks.defaultDeck)
     deck['id'] = 1
     deck['name'] = _("Default")
-    deck['conf'] = 1
+    deck.setDefaultConf()
     deck['mod'] = intTime()
     gc = copy.deepcopy(anki.decks.defaultConf)
     gc['id'] = 1
