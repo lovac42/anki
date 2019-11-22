@@ -230,7 +230,7 @@ class AnkiExporter(Exporter):
                 continue
             if dids and deck['id'] not in dids:
                 continue
-            if not deck['dyn'] and deck['conf'] != 1:
+            if not deck.isDyn() and deck['conf'] != 1:
                 if self.includeSched:
                     dconfs[deck['conf']] = True
             if not self.includeSched:

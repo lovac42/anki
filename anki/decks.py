@@ -305,7 +305,7 @@ class DeckManager:
         if not str(did) in self.decks:
             return
         deck = self.get(did)
-        if deck['dyn']:
+        if deck.isDyn():
             # deleting a cramming deck returns cards to their previous deck
             # rather than deleting the cards
             self.col.sched.emptyDyn(did)
@@ -352,7 +352,7 @@ class DeckManager:
         """
         decks = list(self.decks.values())
         if dyn is not None:
-            decks = filter(lambda deck: deck['dyn']==dyn, decks)
+            decks = filter(lambda deck: deck.isDyn()==dyn, decks)
         if sort:
             decks.sort(key=operator.itemgetter("name"))
         return decks
@@ -415,7 +415,7 @@ class DeckManager:
             raise DeckRenameError(_("That deck already exists."))
         # make sure we're not nesting under a filtered deck
         for ancestor in self.parentsByName(newName):
-            if ancestor['dyn']:
+            if ancestor.isDyn():
                 raise DeckRenameError(_("A filtered deck cannot have subdecks."))
         deck.rename(newName)
         # ensure we have parents again, as we may have renamed parent->child
@@ -530,7 +530,7 @@ class DeckManager:
         assert deck
         if 'conf' in deck:
             conf = self.getConf(deck['conf'])
-            conf['dyn'] = False
+            conf.isDyn() = False
             return conf
         # dynamic decks have embedded conf
         return deck
@@ -853,7 +853,7 @@ same id."""
         return did
 
     def isDyn(self, did):
-        return self.get(did)['dyn']
+        return self.get(did).isDyn()
 
     @staticmethod
     def normalizeName(name):
@@ -898,6 +898,12 @@ class DictAugmented
 
     def __lt__(self, other):
         return self.get("name") < other.get("name")
+
+    def isDyn(self):
+        return self['dyn']
+
+    def isStd(self):
+        return not self.isDyn()
 
 class Deck(DictAugmented):
     """

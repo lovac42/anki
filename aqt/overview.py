@@ -74,7 +74,7 @@ class Overview:
         ]
 
     def _filteredDeck(self):
-        return self.mw.col.decks.current()['dyn']
+        return self.mw.col.decks.current().isDyn()
 
     def onRebuildKey(self):
         if self._filteredDeck():
@@ -142,7 +142,7 @@ class Overview:
 
     @staticmethod
     def _desc(deck):
-        if deck['dyn']:
+        if deck.isDyn():
             desc = _("""\
 This is a special deck for studying outside of the normal schedule.""")
             desc += " " + _("""\
@@ -155,7 +155,7 @@ to their original deck.""")
             desc = deck.get("desc", "")
         if not desc:
             return "<p>"
-        if deck['dyn']:
+        if deck.isDyn():
             dyn = "dyn"
         else:
             dyn = ""
@@ -218,7 +218,7 @@ to their original deck.""")
         links = [
             ["O", "opts", _("Options")],
         ]
-        if self.mw.col.decks.current()['dyn']:
+        if self.mw.col.decks.current().isDyn():
             links.append(["R", "refresh", _("Rebuild")])
             links.append(["E", "empty", _("Empty")])
         else:

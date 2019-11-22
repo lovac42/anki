@@ -166,7 +166,7 @@ update cards set left = left + left*1000 where queue = 1""")
     if ver < 11:
         col.modSchema(check=False)
         for deck in col.decks.all():
-            if deck['dyn']:
+            if deck.isDyn():
                 order = deck['order']
                 # failed order was removed
                 if order >= 5:
