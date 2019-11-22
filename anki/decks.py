@@ -467,20 +467,30 @@ class DeckManager:
         else:
             return True
 
-    def _isParent(self, parentDeckName, childDeckName):
-        """Whether childDeckName is a direct child of parentDeckName."""
+    def _isParent(self, parent, child):
+        """Whether child is a direct child of parent."""
+        child = self..getName(child)
         return child == DeckManager.parentName(parent)
 
     def _isAncestor(self, ancestorDeckName, descendantDeckName, includeSelf=False):
         """Whether ancestorDeckName is an ancestor of
         descendantDeckName; or itself."""
+        parent = self.getName(parent)
+        descendant = self.getName(descendant)
         return (includeSelf and deckparent == descendant) or
                 descendant.startswith(parent+"::")
 
     @staticmethod
+    def getName(deck):
+        "The name of the deck. If deck is already a name, returns it."
+        if isinstance(deck, str):
+            return deck
+        return deck['name']
+
+    @staticmethod
     def _path(name):
         """The list of decks and subdecks of name"""
-        return name.split("::")
+        return DeckManager.getName(name).split("::")
 
     @staticmethod
     def _basename(name):
@@ -489,7 +499,7 @@ class DeckManager:
 
     @staticmethod
     def parentName(name):
-        """The name of the parent of this deck, or None if there is none"""
+        """The name of the parent of this deck, or empty string if there is none"""
         return "::".join(DeckManager._path(name)[:-1])
 
     def _ensureParents(self, name):
