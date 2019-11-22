@@ -307,7 +307,7 @@ select count() from cards where did in %s and queue = {QUEUE_PREVIEW}
     @staticmethod
     def _updateRevIvlOnFail(card, conf):
         card.lastIvl = card.ivl
-        card.ivl = self._lapseIvl(card, conf)
+        card.ivl = Scheduler._lapseIvl(card, conf)
 
     def _moveToFirstStep(self, card, conf):
         card.left = self._startingLeft(card)
@@ -362,9 +362,9 @@ select count() from cards where did in %s and queue = {QUEUE_PREVIEW}
     @staticmethod
     def _delayForRepeatingGrade(conf, left):
         # halfway between last and next
-        delay1 = self._delayForGrade(conf, left)
+        delay1 = Scheduler._delayForGrade(conf, left)
         if len(conf['delays']) > 1:
-            delay2 = self._delayForGrade(conf, left-1)
+            delay2 = Scheduler._delayForGrade(conf, left-1)
         else:
             delay2 = delay1 * 2
         avg = (delay1+max(delay1, delay2))//2
@@ -413,7 +413,7 @@ select count() from cards where did in %s and queue = {QUEUE_PREVIEW}
             # early remove
             ideal = conf['ints'][1]
         if fuzz:
-            ideal = self._fuzzedIvl(ideal)
+            ideal = Scheduler._fuzzedIvl(ideal)
         return ideal
 
     def _rescheduleNew(self, card, conf, early):
@@ -866,22 +866,22 @@ where id = ?
     @staticmethod
     def _nextLrnIvl(card, ease):
         if card.queue == QUEUE_NEW_CRAM:
-            card.left = self._startingLeft(card)
-        conf = self._lrnConf(card)
+            card.left = Scheduler._startingLeft(card)
+        conf = Scheduler._lrnConf(card)
         if ease == BUTTON_ONE:
             # fail
-            return self._delayForGrade(conf, len(conf['delays']))
+            return Scheduler._delayForGrade(conf, len(conf['delays']))
         elif ease == BUTTON_TWO:
-            return self._delayForRepeatingGrade(conf, card.left)
+            return Scheduler._delayForRepeatingGrade(conf, card.left)
         elif ease == BUTTON_FOUR:
-            return self._graduatingIvl(card, conf, True, fuzz=False) * 86400
+            return Scheduler._graduatingIvl(card, conf, True, fuzz=False) * 86400
         else: # ease == BUTTON_THREE
             left = card.left%1000 - 1
             if left <= 0:
                 # graduate
-                return self._graduatingIvl(card, conf, False, fuzz=False) * 86400
+                return Scheduler._graduatingIvl(card, conf, False, fuzz=False) * 86400
             else:
-                return self._delayForGrade(conf, left)
+                return Scheduler._delayForGrade(conf, left)
 
     # Suspending & burying
     ##########################################################################
