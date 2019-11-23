@@ -418,9 +418,8 @@ class DataModel(QAbstractTableModel):
         """
         if card.isFiltered():
             # in a cram deck
-            return "%s (%s)" % (
-                card.col.decks.name(card.did),
-                card.col.decks.name(card.odid))
+            deckName = card.decks.getName()
+            return "%s (%s)" % (deckName, deckName)
         # normal deck
         return card.col.decks.name(card.did)
 

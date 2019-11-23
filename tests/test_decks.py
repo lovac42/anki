@@ -9,7 +9,7 @@ def test_basic():
     # we start with a standard deck
     assert len(deck.decks.decks) == 1
     # it should have an id of 1
-    assert deck.decks.name(1)
+    assert deck.decks.get(1).getName()
     # create a new deck
     parentId = deck.decks.id("new deck")
     assert parentId
@@ -60,7 +60,7 @@ def test_remove():
     c.load()
     assert c.did == g1
     # but if we try to get it, we get the default
-    assert deck.decks.name(c.did) == "[no deck]"
+    assert str(deck.decks.get(c.did).getId()) == "1"
     # let's create another deck and explicitly set the card to it
     g2 = deck.decks.id("g2")
     c.did = g2; c.flush()

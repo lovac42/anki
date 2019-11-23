@@ -470,17 +470,6 @@ same id."""
     # Deck utils
     #############################################################
 
-    def name(self, did, default=False):
-        """The name of the deck whose id is did.
-
-        If no such deck exists: if default is set to true, then return
-        default deck's name. Otherwise return "[no deck]".
-        """
-        deck = self.get(did, default=default)
-        if deck:
-            return deck['name']
-        return _("[no deck]")
-
     def nameOrNone(self, did):
         """The name of the deck whose id is did, if it exists. None
         otherwise."""
