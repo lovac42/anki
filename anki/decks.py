@@ -506,8 +506,7 @@ same id."""
         #It seems that nothing related to default happen in this code
         #nor in the function called by this code.
         #maybe is not appropriate, since no condition occurs
-        deck = self.current()
-        self.select(deck.getId())
+        self.current().select()
 
     def cids(self, did, children=False):
         """Return the list of id of cards whose deck's id is did.
@@ -543,19 +542,6 @@ same id."""
         """The currently selected deck object"""
         return self.get(self.selected())
 
-    def select(self, did):
-        """Change activeDecks to the list containing did and the did
-        of its children.
-
-        Also mark the manager as changed."""
-        # make sure arg is an int
-        did = int(did)
-        # current deck
-        self.col.conf['curDeck'] = did
-        # and active decks (current + all children)
-        self.col.conf['activeDecks'] = self.get(did).getDescendantsIds(True)
-        self.changed = True
-
     def parentsByName(self, name):
         "All existing parents of name"
         if "::" not in name:
@@ -587,8 +573,8 @@ same id."""
 
     def newDyn(self, name):
         "Return a new dynamic deck and set it as the current deck."
-        did = self.id(name, deckToCopy=defaultDynamicDeck)
-        self.select(did)
+        did = self.id(name, type=defaultDynamicDeck)
+        self.get(did).select()
         return did
 
     @staticmethod
@@ -894,7 +880,7 @@ class Deck(DictAugmented):
             del self.manager.decks[str(self.getId())]
             # ensure we have an active deck.
             if self.getId() in self.manager.active():
-                self.select(int(list(self.manager.decks.keys())[0]))
+                self.get(int(list(self.manager.decks.keys())[0])).select()
         self.manager.save()
 
     def uniquifyName(self):
@@ -909,7 +895,16 @@ class Deck(DictAugmented):
         if (onto.isParentOf(self) or self.isAncestorOf(onto, True)):
             return False
         return True
-        
+
+    def select():
+        """Change activeDecks to the list containing did and the did
+        of its children.
+
+        Also mark the manager as changed."""
+        self.manager.col.conf['curDeck'] = int(self.getId())
+        # and active decks (current + all children)
+        self.col.conf['activeDecks'] = self.getDescendantsIds(True)
+        self.manager.changed = True
                 
 class DConf(DictAugmented):
     """
