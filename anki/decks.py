@@ -556,17 +556,9 @@ same id."""
         self.col.conf['activeDecks'] = self.get(did).getDescendantsIds(True)
         self.changed = True
 
-    def children(self, did, includeSelf=False, sort=False):
+    def children(self, did, includeSelf=False):
         "All descendant of did, as (name, id)."
-        return [(deck['name'], deck.getId()) for deck in self.childrenDecks(includeSelf=includeSelf, sort=sort)]
-
-    def childrenDecks(self, did, includeSelf=False, sort=False, grandChildren=True):
-        """All decks descendant of did.
-
-        grandChildren -- Whether to also include child of child.
-        """
-        return self.get(did).childrenDecks(includeSelf, sort, grandChildren)
-    #todo, maybe sort only this smaller list, at least until all() memoize
+        return [(deck['name'], deck.getId()) for deck in self.get(did).getDescendantsIds(includeSelf)]
 
     def parentsByName(self, name):
         "All existing parents of name"
