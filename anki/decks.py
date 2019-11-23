@@ -404,21 +404,6 @@ class DeckManager:
         "A list of all deck config object."
         return list(self.dconf.values())
 
-    def confForDid(self, did):
-        """The dconf object of the deck whose id is did.
-
-        If did is the id of a dynamic deck, the deck is
-        returned. Indeed, it has embedded conf.
-        """
-        deck = self.get(did, default=False)
-        assert deck
-        if 'conf' in deck:
-            conf = self.getConf(deck['conf'])#todo what
-            conf.isDyn() = False
-            return conf
-        # dynamic decks have embedded conf
-        return deck
-
     def getConf(self, confId):
         """The dconf object whose id is confId."""
         return self.dconf[str(confId)]

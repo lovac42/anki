@@ -256,7 +256,7 @@ select count() from
         "Limit for deck without parent limits."
         if deck.isDyn():
             return self.reportLimit
-        conf = self.col.decks.confForDid(deck.getId())
+        conf = self.col.decks.get(deck.getId()).getConf()
         return max(0, conf['new']['perDay'] - deck['newToday'][1])
 
     def totalNewForCurrentDeck(self):
@@ -403,7 +403,7 @@ did = ? and queue = {QUEUE_DAY_LRN} and due <= ? limit ?""",
         # invalid deck selected?
         if deck.isDyn():
             return self.reportLimit
-        conf = self.col.decks.confForDid(deck.getId())
+        conf = self.col.decks.get(deck.getId()).getConf()
         return max(0, conf['rev']['perDay'] - deck['revToday'][1])
 
     def _resetRev(self):
@@ -517,7 +517,7 @@ select id from cards where did in %s and queue = {QUEUE_REV} and due <= ? limit 
     def _cardConf(self, card):
         """The configuration of this card's deck. See decks.py
         documentation to read more about them."""
-        return self.col.decks.confForDid(card.did)
+        return self.col.decks.get(card.did).getConf()
 
     def _newConf(self, card):
         """The configuration for "new" of this card's deck.See decks.py
@@ -529,7 +529,7 @@ select id from cards where did in %s and queue = {QUEUE_REV} and due <= ? limit 
         if not card.isFiltered():
             return conf['new']
         # dynamic deck; override some attributes, use original deck for others
-        oconf = self.col.decks.confForDid(card.odid)
+        oconf = self.col.decks.get(card.odid).getConf()
         return dict(
             # original deck
             ints=oconf['new']['ints'],
@@ -552,7 +552,7 @@ select id from cards where did in %s and queue = {QUEUE_REV} and due <= ? limit 
         if not card.isFiltered():
             return conf['lapse']
         # dynamic deck; override some attributes, use original deck for others
-        oconf = self.col.decks.confForDid(card.odid)
+        oconf = self.col.decks.get(card.odid).getConf()
         delays = self._delays(conf, oconf, "lapse")
         return dict(
             # original deck
@@ -575,7 +575,7 @@ select id from cards where did in %s and queue = {QUEUE_REV} and due <= ? limit 
         if not card.isFiltered():
             return conf['rev']
         # dynamic deck
-        return self.col.decks.confForDid(card.odid)['rev']
+        return self.col.decks.get(card.odid).getConf()['rev']
 
     def _deckLimit(self):
         """The list of active decks, as comma separated parenthesized
@@ -811,7 +811,7 @@ and due >= ? and queue = {QUEUE_NEW_CRAM}""" % (scids), now, self.col.usn(), shi
     def maybeRandomizeDeck(self, did=None):
         if not did:
             did = self.col.decks.selected()
-        conf = self.col.decks.confForDid(did)
+        conf = self.col.decks.get(did).getConf()
         # in order due?
         if conf['new']['order'] == NEW_CARDS_RANDOM:
             self.randomizeCards(did)
