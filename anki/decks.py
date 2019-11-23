@@ -220,11 +220,12 @@ class DeckManager:
         self.decks = dict()
         for deckDict in decks:
             name = deckDict["name"]
-            while parents[-1] != self.toplevel and not self._isParent(parents[-1], name):
+            while parents[-1] != self.toplevel and not self._isAncestor(parents[-1], name):
                 parents.pop(-1)
-            deck = Deck(self, parents[-1], deckDict)
+
+            deck = Deck(self, greatestAncestor, deckDict)
             self.decks[deck['key']] = deck
-            parents[-1].addChild(deck)
+            greatestAncestor.addChild(deck, loading=True)
         for key, dconf in json.loads(dconf):
             self.dconf[key] = DConf(dconf, self)
 
@@ -364,12 +365,14 @@ class DeckManager:
         return child == DeckManager.parentName(parent)
 
     @staticmethod
-    def _isAncestor(ancestorDeckName, descendantDeckName, includeSelf=False):
+    def _isAncestor(ancestor, descendant, includeSelf=False):
         """Whether ancestorDeckName is an ancestor of
         descendantDeckName; or itself."""
-        parent = DeckManager.getName(parent)
+        ancestor = DeckManager.getName(ancestor)
         descendant = DeckManager.getName(descendant)
-        return (includeSelf and deckparent == descendant) or
+        if ancestor == "":
+            return True
+        return (includeSelf and ancestor == descendant) or
                 descendant.startswith(parent+"::")
 
     @staticmethod
@@ -393,27 +396,6 @@ class DeckManager:
     def parentName(name):
         """The name of the parent of this deck, or empty string if there is none"""
         return "::".join(DeckManager._path(name)[:-1])
-
-    def _ensureParents(self, name):
-        """Ensure parents exist, and return name with case matching parents.
-
-        Parents are created if they do not already exists.
-        """
-        ancestorName = ""
-        path = self._path(name)
-        if len(path) < 2:
-            return name
-        for pathPiece in path[:-1]:
-            if not ancestorName:
-                ancestorName += pathPiece
-            else:
-                ancestorName += "::" + pathPiece
-            # fetch or create
-            did = self.id(ancestorName)
-            # get original case
-            ancestorName = self.name(did)
-        name = ancestorName + "::" + path[-1]
-        return name
 
     # Deck configurations
     #############################################################
@@ -576,36 +558,8 @@ same id."""
                             ids2str(dids))
         self.col.db.mod = mod
 
-    def _checkDeckTree(self):
-        decks = self.col.decks.all()
-        decks.sort(key=operator.itemgetter('name'))
-        names = set()
-
-        for deck in decks:
-            # two decks with the same name?
-            if self.normalizeName(deck['name']) in names:
-                self.col.log("fix duplicate deck name", deck['name'])
-                deck['name'] += "%d" % intTime(1000)
-                self.save(deck)
-
-            # ensure no sections are blank
-            if not all(deck['name'].split("::")):
-                self.col.log("fix deck with missing sections", deck['name'])
-                deck['name'] = "recovered%d" % intTime(1000)
-                self.save(deck)
-
-            # immediate parent must exist
-            immediateParent = self.parentName(deck['name'])
-            if immediateParent and immediateParent not in names:
-                self.col.log("fix deck with missing parent", deck['name'])
-                self._ensureParents(deck['name'])
-                names.add(self.normalizeName(immediateParent))
-
-            names.add(self.normalizeName(deck['name']))
-
     def checkIntegrity(self):
         self._recoverOrphans()
-        self._checkDeckTree()
 
     # Deck selection
     #############################################################
@@ -812,20 +766,48 @@ class Deck(DictAugmented):
     """
     dic -- the JSON object associated to this deck.
     """
-    def __init__(self, manager, parent=None, dict=None, name=None, type=None, basename=None, ):
+    def __init__(self, manager, parent=None, dict=None, name=None, baseName=None, type=None):
         """
         dict -- json dict encoding the deck. If None then there must be the following values
         name -- base name of the deck; it's parent is parent
         type -- the deck to copy
         
         """
-        super().__init__(manager, dict)
-        if basename is None:
-            self.baseName = dict.get("name").rpslit("::", 1)[-1]
-        else:
-            self.baseName = baseName
-        self.parent = parent
         self.children = []
+        if dict:
+            self.load(manager, dict, parent)
+        else:
+            self.create(manager, parent, basename, type)
+        self.parent.addChild(self)
+
+    def load(self, manager, dict, parent):
+        super().__init__(manager, dict)
+        assert parent.isAncestorOf(self)
+        #Adding potential missing ancestor
+        if self.parent.isTopLevel():
+            toAdd = self.name
+        else:
+            toAdd = self.name[len(self.parent.getName)+2:]
+        baseNames =  #useful if there is a missing parent
+        missingBaseNames = toAdd.split("::")[:-1]
+        for baseName in missingBaseNames:
+            deck = Deck(self.manager, parent=parent, baseName=baseName)
+            self.col.log("fix deck with missing parent", deck.getName())
+            parent = deck
+        self.parent = parent
+
+    def create(self, manager, parent, baseName, type=None):
+        self.parent = parent
+        self.baseName = baseName
+        assert("::" not in baseName)
+        if type=None:
+            type = defaultDeck
+        type = copy.deepcopy(type)
+        while 1:
+            type['id'] = intTime(1000)
+            if str(type['id']) not in self.manager.decks:
+                break
+        super().__init__(manager, type)
 
     def copy(self, baseName):
         """A copy of self saved in deckManager"""
@@ -871,9 +853,19 @@ class Deck(DictAugmented):
     def getChildrenNames(self):
         return map(operator.itemgetter('name'), self.getChildren())
 
-    def addChild(self, child):
+    def addChild(self, child, loading=False):
         if self.isDyn():
-            raise DeckRenameError(_("A filtered deck cannot have subdecks."))
+            if loading:
+                child.dragOnto(self.manager.topLevel)
+            else:
+                raise DeckRenameError(_("A filtered deck cannot have subdecks."))
+        if getChild(child.baseName):
+            if loading:
+                # two decks with the same name?
+                self.manager.col.log("fix duplicate deck name", deck['name'])
+                child.changeBaseName(child.getBaseName + "%d" % intTime(1000))
+            else:
+                raise DeckRenameError(_("We're trying to add twice the same child."))
         bisect.insort(self.children, child)
 
     def removeChild(self, child):
@@ -1026,7 +1018,8 @@ class Deck(DictAugmented):
             if sibling.getBaseName() == self.getBaseName() and sibling != self:
                 self.changeBaseName(self.getBaseName() + "%d" % intTime(1000))
 
-    
+    def isTopLevel(self):
+        return self.getName() == ""
                 
     def _canDragOnto(self, onto):
         if (onto.isParentOf(self) or self.isAncestorOf(onto, True)):
