@@ -434,15 +434,6 @@ same id."""
                 conf.setDefaultConf()
                 self.save(conf)
 
-
-    def setConf(self, deck, id):
-        """Takes a deck objects, switch his id to id and save it as
-        edited.
-
-        Currently used in tests only."""
-        deck['conf'] = id
-        self.save(deck)
-
     def restoreToDefault(self, conf):
         """Change the configuration to default.
 
@@ -791,9 +782,11 @@ class Deck(DictAugmented):
 
     def setConfId(self, confId):
         self['conf'] = confId
+        self.save(True)
 
     def setConf(self, conf):
         self['conf'] = confId.getId
+        self.save(True)
 
     def getConfId(self):
         return self['conf']

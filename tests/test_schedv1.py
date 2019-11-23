@@ -81,7 +81,7 @@ def test_newLimits():
         d.addNote(f)
     # give the child deck a different configuration
     c2 = DConf(d.decks, "new conf")
-    d.decks.setConf(d.decks.get(g2), c2)
+    d.decks.get(g2).setConf(c2)
     d.reset()
     # both confs have defaulted to a limit of 20
     assert d.sched.newCount == 20
