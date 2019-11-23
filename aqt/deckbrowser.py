@@ -310,7 +310,7 @@ where id > ?""", (self.mw.col.sched.dayCutoff-86400)*1000)
         self.mw.checkpoint(_("Delete Deck"))
         deck = self.mw.col.decks.get(did)
         if deck.isStd():
-            dids = self.mw.col.decks.childDids(did, includeSelf=True)
+            dids = self.mw.col.decks.get(did).getDescendantsIds(True)
             cnt = self.mw.col.db.scalar(
                 "select count() from cards where did in {0} or "
                 "odid in {0}".format(ids2str(dids)))

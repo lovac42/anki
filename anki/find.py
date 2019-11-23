@@ -460,7 +460,7 @@ class Finder:
         def dids(did):
             if not did:
                 return None
-            return self.col.decks.childDids(did, includeSelf=True)
+            return self.col.decks.get(did).getDescendantsIds(True)
         # current deck?
         ids = None
         if val.lower() == "current":

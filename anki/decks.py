@@ -553,7 +553,7 @@ same id."""
         # current deck
         self.col.conf['curDeck'] = did
         # and active decks (current + all children)
-        self.col.conf['activeDecks'] = self.childDids(did, sort=True, includeSelf=True)
+        self.col.conf['activeDecks'] = self.get(did).getDescendantsIds(True)
         self.changed = True
 
     def children(self, did, includeSelf=False, sort=False):
@@ -567,21 +567,6 @@ same id."""
         """
         return self.get(did).childrenDecks(includeSelf, sort, grandChildren)
     #todo, maybe sort only this smaller list, at least until all() memoize
-
-    def childDids(self, did, includeSelf=False, sort=False, grandChildren=True):
-        #childmap is useless. Keep for consistency with anki.
-        #sort was True by default, but never used.
-        """The list of all descendant of did, as deck ids, ordered alphabetically
-
-        The list starts with the toplevel ancestors of did and its
-        i-th element is the ancestor with i times ::.
-
-        Keyword arguments:
-        did -- the id of the deck we consider
-        grandChildren -- Whether to also include child of child
-        """
-        # get ancestors names
-        return self.get(did).childDids(includeSelf, sort, grandChildren)
 
     def parentsByName(self, name):
         "All existing parents of name"
@@ -812,7 +797,7 @@ class Deck(DictAugmented):
         of the descendant."""
         if not children:
             return self.manager.col.db.list("select id from cards where did=?", self['did'])
-        dids = self.childDids(did, includeSelf=True)
+        dids = self.get(did).getDescendantsIds(True)
         return self.manager.col.db.list("select id from cards where did in "+
                                 ids2str(dids))
 
