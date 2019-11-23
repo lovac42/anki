@@ -117,7 +117,7 @@ class DeckConf(QDialog):
         if int(self.conf['id']) == 1:
             showInfo(_("The default configuration can't be removed."), self)
         else:
-            self.mw.col.decks.remConf(self.conf['id'])
+            self.conf.rem()
             self.deck.setDefaultConf()
             self.loadConfs()
 

@@ -414,26 +414,6 @@ same id."""
         self.dconf[str(conf['id'])] = conf
         self.save()
 
-    def remConf(self, id):
-        """Remove a configuration and update all decks using it.
-
-        The new conf of the deck using this configuation is the
-        default one.
-
-        Keyword arguments:
-        id -- The id of the configuration to remove. Should not be the
-        default conf."""
-        assert int(id) != 1
-        self.col.modSchema(check=True)
-        del self.dconf[str(id)]
-        for deck in self.all():
-            # ignore cram decks
-            if 'conf' not in deck:
-                continue
-            if str(confgetConfId()) == str(id):
-                conf.setDefaultConf()
-                self.save(conf)
-
     def restoreToDefault(self, conf):
         """Change the configuration to default.
 
@@ -905,4 +885,26 @@ class DConf(DictAugmented):
             if 'conf' in deck and deck.getConfId() == conf.getId():
                 dids.append(deck.getId())
         return dids
+
+    def remConf(self):
+        """Remove a configuration and update all decks using it.
+
+        The new conf of the deck using this configuation is the
+        default one.
+
+        Keyword arguments:
+        id -- The id of the configuration to remove. Should not be the
+        default conf."""
+        id = self.getId()
+        assert id != 1
+        self.manager.col.modSchema(check=True)
+        del self.manager.dconf[str(id)]
+        for deck in self.all():
+            # ignore cram decks
+            if 'conf' not in deck:
+                continue
+            if str(confgetConfId()) == str(id):
+                deck.setDefaultConf()
+                deck.save()
+        self.manager.save()
 
