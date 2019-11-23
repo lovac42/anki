@@ -309,11 +309,6 @@ class DeckManager:
         sort -- whether to sort by name"""
         return map(operator.itemgetter("id"), self.all(sort=sort, dyn=dyn))
 
-    def collapseBrowser(self, did):
-        """Change the browserCollapsed state of deck whose id is did. Then
-        save the change."""
-        self.get(did).collapseBrowser()
-
     def count(self):
         """The number of decks."""
         return len(self.decks)

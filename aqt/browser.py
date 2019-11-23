@@ -1083,7 +1083,7 @@ by clicking on one on the left."""))
                 item = self.CallbackItem(
                     root, grp[0],
                     lambda grp=grp: self.setFilter("deck", head+grp[0]),
-                    lambda grp=grp: self.mw.col.decks.collapseBrowser(grp[1]),
+                    lambda grp=grp: self.mw.col.decks.get(grp[1]).collapseBrowser(),
                     not self.mw.col.decks.get(grp[1]).get('browserCollapsed', False))
                 item.setIcon(0, QIcon(":/icons/deck.svg"))
                 newhead = head + grp[0]+"::"
