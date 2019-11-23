@@ -414,24 +414,6 @@ same id."""
         self.dconf[str(conf['id'])] = conf
         self.save()
 
-    def confId(self, name, cloneFrom=None):
-        """Create a new configuration and return its id.
-
-        Keyword arguments
-        cloneFrom -- The configuration copied by the new one."""
-        if cloneFrom is None:
-            cloneFrom = defaultConf
-        conf = copy.deepcopy(cloneFrom)
-        while 1:
-            id = intTime(1000)
-            if str(id) not in self.dconf:
-                break
-        conf['id'] = id
-        conf['name'] = name
-        self.dconf[str(id)] = conf
-        self.save(conf)
-        return id
-
     def remConf(self, id):
         """Remove a configuration and update all decks using it.
 
@@ -1017,7 +999,26 @@ class DConf(DictAugmented):
     dic -- the JSON object associated to this conf.
     """
     
-    def __init__(self, manager, dict):
+    def __init__(self, manager, dict=None, cloneFrom=None):
+        if dict:
+            self.load(manager, dict)
+        else:
+            self.create(cloneFrom)
+
+    def create(self, manager, cloneFrom):
+        if cloneFrom is None:
+            cloneFrom = defaultConf
+        conf = copy.deepcopy(cloneFrom)
+        while 1:
+            id = intTime(1000)
+            if str(id) not in self.manager.dconf:
+                break
+        conf['id'] = id
+        conf['name'] = name
+        self.manager.dconf[str(id)] = self
+        self.save(True)
+        
+    def load(self, manager, dict):
         super.__init__(manager, dict)
         # set limits to within bounds
         for type in ('rev', 'new'):

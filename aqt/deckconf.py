@@ -5,6 +5,7 @@ from operator import itemgetter
 
 import aqt
 from anki.consts import NEW_CARDS_RANDOM
+from anki.decks import DConf
 from anki.lang import _, ngettext
 from aqt.qt import *
 from aqt.utils import (askUser, getOnlyText, openHelp, restoreGeom, saveGeom,
@@ -106,7 +107,7 @@ class DeckConf(QDialog):
         # first, save currently entered data to current conf
         self.saveConf()
         # then clone the conf
-        id = self.mw.col.decks.confId(name, cloneFrom=self.conf)
+        id = DConf(self.mw.col.decks, name, cloneFrom=self.conf)
         # set the deck to the new conf
         self.deck.setConfId(id)
         # then reload the conf list

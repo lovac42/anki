@@ -5,6 +5,7 @@ import time
 
 from anki.consts import *
 from anki.consts import STARTING_FACTOR
+from anki.decks import DConf
 from anki.hooks import addHook
 from anki.utils import intTime
 from tests.shared import getEmptyCol
@@ -79,7 +80,7 @@ def test_newLimits():
             f.model()['did'] = g2
         d.addNote(f)
     # give the child deck a different configuration
-    c2 = d.decks.confId("new conf")
+    c2 = DConf(d.decks, "new conf")
     d.decks.setConf(d.decks.get(g2), c2)
     d.reset()
     # both confs have defaulted to a limit of 20
