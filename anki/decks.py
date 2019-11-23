@@ -357,38 +357,6 @@ class DeckManager:
         # mark registry changed, but don't bump mod time
         self.save()
 
-    def renameForDragAndDrop(self, draggedDeckDid, ontoDeckDid):
-        """Rename the deck whose id is draggedDeckDid as a children of
-        the deck whose id is ontoDeckDid."""
-        draggedDeck = self.get(draggedDeckDid)
-        draggedDeckName = draggedDeck['name']
-        ontoDeckName = self.get(ontoDeckDid)['name']
-
-        if ontoDeckDid is None or ontoDeckDid == '':
-            #if the deck is dragged to toplevel
-            if len(self._path(draggedDeckName)) > 1:
-                #And is not already at top level
-                self.rename(draggedDeck, self._basename(draggedDeckName))
-        elif self._canDragAndDrop(draggedDeckName, ontoDeckName):
-            assert ontoDeckName.strip()
-            self.rename(draggedDeck, ontoDeckName + "::" + self._basename(draggedDeckName))
-
-    def _canDragAndDrop(self, draggedDeckName, ontoDeckName):
-        """Whether draggedDeckName can be moved as a children of
-        ontoDeckName.
-
-        draggedDeckName should not be dragged onto a descendant of
-        itself (nor itself).
-        It should not either be dragged to its parent because the
-        action would be useless.
-        """
-        if draggedDeckName == ontoDeckName \
-            or self._isParent(ontoDeckName, draggedDeckName) \
-            or self._isAncestor(draggedDeckName, ontoDeckName):
-            return False
-        else:
-            return True
-
     @staticmethod
     def _isParent(parent, child):
         """Whether child is a direct child of parent."""
@@ -968,13 +936,15 @@ class Deck(DictAugmented):
 
     def isDescendantOf(self, ancestor, includeSelf=False):
         return ancestor.isAncestorOf(self, includeSelf)
-
-    def moveTo(self, newParent):
-        if self.parent:
-            self.parent.removeChild(self)
+    
+    def dragOnto(self, newParent):
+        if newParent is None:
+            newParent = self.manager.topLevel
+        if not self._canDragOnto(newParent):
+            return
+        self.parent.removeChild(self)
         self.parent = newParent
-        if newParent:
-            newParent.addChild(self)
+        newParent.addChild(self)
 
     def changeBaseName(self, newBaseName):
         self.baseName = newBaseName
@@ -987,7 +957,7 @@ class Deck(DictAugmented):
         if newParentName.getChild(newBaseName):
             raise DeckRenameError(_("That deck already exists."))
         self.changeBaseName(newBaseName)
-        self.moveTo(newParent)
+        self.dragOnto(newParent)
         self.manager.maybeAddToActive()
 
     def __getitem__(self, key, value=None):
@@ -1042,7 +1012,7 @@ class Deck(DictAugmented):
                 self.manager.col.remCards(cids)
         # delete the deck and add a grave (it seems no grave is added)
         if str(self.getId()) == '1':
-            self.moveTo(self.manager.topLevel)
+            self.dragOnto(self.manager.topLevel)
             self.uniquifyName()
         else:
             del self.manager.decks[str(self.getId())]
@@ -1056,6 +1026,14 @@ class Deck(DictAugmented):
             if sibling.getBaseName() == self.getBaseName() and sibling != self:
                 self.changeBaseName(self.getBaseName() + "%d" % intTime(1000))
 
+    
+                
+    def _canDragOnto(self, onto):
+        if (onto.isParentOf(self) or self.isAncestorOf(onto, True)):
+            return False
+        return True
+        
+                
 class DConf(DictAugmented):
     """
     dic -- the JSON object associated to this conf.
