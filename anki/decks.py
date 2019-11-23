@@ -443,14 +443,6 @@ same id."""
         deck['conf'] = id
         self.save(deck)
 
-    def didsForConf(self, conf):
-        """The dids of the decks using the configuration conf."""
-        dids = []
-        for deck in list(self.decks.values()):
-            if 'conf' in deck and deck.getConfId() == conf.getId():
-                dids.append(deck.getId())
-        return dids
-
     def restoreToDefault(self, conf):
         """Change the configuration to default.
 
@@ -912,3 +904,12 @@ class DConf(DictAugmented):
 
     def isDefault(self):
         return str(self['id']) == "1"
+
+    def dids(self, conf):
+        """The dids of the decks using the configuration conf."""
+        dids = []
+        for deck in list(self.manager.all()):
+            if 'conf' in deck and deck.getConfId() == conf.getId():
+                dids.append(deck.getId())
+        return dids
+
