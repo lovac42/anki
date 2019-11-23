@@ -213,9 +213,18 @@ class DeckManager:
         decks -- json dic associating to each id (as string) its deck
         dconf -- json dic associating to each id (as string) its configuration(option)
         """
+        decks = list(json.loads(decks).values())
+        list.sort(operator.itemgetter("name"))
+        self.toplevel = Deck(self, None, {"name": "", "id":"-1"})
+        parents = [self.toplevel]
         self.decks = dict()
-        for key, deck in json.loads(decks):
-            self.decks[key] = Deck(deck, self)
+        for deckDict in decks:
+            name = deckDict["name"]
+            while parents[-1] != self.toplevel and not self._isParent(parents[-1], name):
+                parents.pop(-1)
+            deck = Deck(self, parents[-1], deckDict)
+            self.decks[deck['key']] = deck
+            parents[-1].addChild(deck)
         for key, dconf in json.loads(dconf):
             self.dconf[key] = DConf(dconf, self)
 
@@ -246,30 +255,7 @@ class DeckManager:
         not exists. Default true, otherwise return None
         deckToCopy -- A deck to copy in order to create this deck
         """
-        if deckToCopy is None:
-            deckToCopy = defaultDeck
-        name = name.replace('"', '')
-        name = unicodedata.normalize("NFC", name)
-        deck = self.byName(name)
-        if deck:
-            return int(deck["id"])
-        if not create:
-            return None
-        deck = copy.deepcopy(deckToCopy)
-        if "::" in name:
-            # not top level; ensure all parents exist
-            name = self._ensureParents(name)
-        deck['name'] = name
-        while 1:
-            id = intTime(1000)
-            if str(id) not in self.decks:
-                break
-        deck.getId() = id
-        self.decks[str(id)] = deck
-        self.save(deck)
-        self.maybeAddToActive()
-        runHook("newDeck")
-        return int(id)
+        return self.byName(name, create, type).getId()
 
     def rem(self, did, cardsToo=False, childrenToo=True):
         """Remove the deck whose id is did.
@@ -283,53 +269,13 @@ class DeckManager:
         cardsToo -- if set to true, delete its card.
         ChildrenToo -- if set to false,
         """
-        if str(did) == '1':
-            # we won't allow the default deck to be deleted, but if it's a
-            # child of an existing deck then it needs to be renamed
-            deck = self.get(did)
-            if '::' in deck['name']:
-                base = self._basename(deck['name'])
-                suffix = ""
-                while True:
-                    # find an unused name
-                    name = base + suffix
-                    if not self.byName(name):
-                        deck['name'] = name
-                        self.save(deck)
-                        break
-                    suffix += "1"
-            return
-        # log the removal regardless of whether we have the deck or not
-        self.col._logRem([did], REM_DECK)
-        # do nothing else if doesn't exist
         if not str(did) in self.decks:
+            # log the removal regardless of whether we have the deck or not
+            self.col._logRem([did], REM_DECK)
+            # do nothing else if doesn't exist
             return
-        deck = self.get(did)
-        if deck.isDyn():
-            # deleting a cramming deck returns cards to their previous deck
-            # rather than deleting the cards
-            self.col.sched.emptyDyn(did)
-            if childrenToo:
-                for id in self.childDids(did):
-                    self.rem(id, cardsToo)
         else:
-            # delete children first
-            if childrenToo:
-                # we don't want to delete children when syncing
-                for id in self.childDids(did):
-                    self.rem(id, cardsToo)
-            # delete cards too?
-            if cardsToo:
-                # don't use cids(), as we want cards in cram decks too
-                cids = self.col.db.list(
-                    "select id from cards where did=? or odid=?", did, did)
-                self.col.remCards(cids)
-        # delete the deck and add a grave (it seems no grave is added)
-        del self.decks[str(did)]
-        # ensure we have an active deck.
-        if did in self.active():
-            self.select(int(list(self.decks.keys())[0]))
-        self.save()
+            self.get(did).rem(cardsToo, childrenToo)
 
     def allNames(self, dyn=None, sort=False):
         """A list of all deck names.
@@ -392,14 +338,27 @@ class DeckManager:
         elif default:
             return self.decks['1']
 
-    def byName(self, name, create=False):
-        """Get deck with NAME, ignoring case."""
-        for deck in list(self.decks.values()):
-            if self.equalName(deck['name'], name):
-                return deck
-        if create:
-            id = self.id(name)
-            return self.get(id)
+    def byName(self, name, create=False, type=None):
+        if type is None:
+            type = defaultDeck
+        name = name.replace('"', '')
+        name = unicodedata.normalize("NFC", name)
+        path = self._path(name)
+        current = self.toplevel
+        create = False
+        for baseName in path:
+            child = current.byName(baseName)
+            if (child is None) and create:
+                child = type.copy(baseName)
+                self.decks[str(child.getId())] = child
+                created = True
+            else:
+                return None
+            current = child
+        if created:
+            runHook("newDeck")
+            self.maybeAddToActive()
+        return current
 
     def update(self, deck):
         "Add or update an existing deck. Used for syncing and merging."
@@ -845,9 +804,9 @@ same id."""
 
     def beforeUpload(self):
         for deck in self.all():
-            deck['usn'] = 0
+            deck.beforeUpload()
         for conf in self.allConf():
-            conf['usn'] = 0
+            conf.beforeUpload()
         self.save()
 
     # Dynamic decks
@@ -869,15 +828,15 @@ same id."""
 
 @functools.total_ordering
 class DictAugmented
+    def __init__(self, manager, dic):
+        self.manager = manager
+        self.dic = dic
+
     def __getitem__(self, key, value=None):
         return self.dic.get(key, value)
 
     def __setitem(self, key, value):
         self.dic[key] = value
-
-    def __init__(self, dic, manager):
-        self.manager = manager
-        self.dic = dic
 
     def save(self, saveManager=False):
         """State that the DeckManager has been changed. Changes the
@@ -890,6 +849,9 @@ class DictAugmented
         self['usn'] = self.col.usn()
         if saveManager:
             self.manager.save()
+            
+    def beforeUpload(self):
+        self['usn'] = 0
 
     def dumps(self):
         return json.dumps(self.dic)
@@ -913,12 +875,31 @@ class Deck(DictAugmented):
     """
     dic -- the JSON object associated to this deck.
     """
-    def __init__(self, dict, manager):
-        super().__init__(dict, manager)
-        self.parent = None
+    def __init__(self, manager, parent=None, dict=None, name=None, type=None, basename=None, ):
+        """
+        dict -- json dict encoding the deck. If None then there must be the following values
+        name -- base name of the deck; it's parent is parent
+        type -- the deck to copy
+        
+        """
+        super().__init__(manager, dict)
+        if basename is None:
+            self.baseName = dict.get("name").rpslit("::", 1)[-1]
+        else:
+            self.baseName = baseName
+        self.parent = parent
         self.children = []
-        self.baseName = dict.get("name").rpslit("::", 1)[-1]
-        self.topLevel = False
+
+    def copy(self, baseName):
+        """A copy of self saved in deckManager"""
+        dic = copy.deepcopy(self.dic)
+        while 1:
+            dic['id'] = intTime(1000)
+            if str(dic['id']) not in self.manager.decks:
+                break
+        copy = Deck(self.manager, self.parent, dic, baseName=baseName)
+        self.save(True)
+        
 
     def getBaseName(self):
         return self.baseName
@@ -1007,6 +988,13 @@ class Deck(DictAugmented):
     def isChildOf(self, parent):
         return self.parent == parent
 
+    def getChild(self, name):
+        name = self.manager.normalizeName(name)
+        for child in self.children:
+            if name == self.manager.normalizeName(child.getBaseName):
+                return child
+        return None
+
     def isDescendantOf(self, ancestor, includeSelf=False):
         return ancestor.isAncestorOf(self, includeSelf)
 
@@ -1059,13 +1047,47 @@ class Deck(DictAugmented):
     def getConf(self):
         self.manager.getConf(self.getConfId())
 
+    def rem(cardsToo=False, childrenToo=True):
+        self.col._logRem([self.getId()], REM_DECK)
+        if self.isDyn():
+            # deleting a cramming self returns cards to their previous self
+            # rather than deleting the cards
+            self.manager.col.sched.emptyDyn(did)
+        else:
+            # delete children first
+            if childrenToo:
+                # we don't want to delete children when syncing
+                for child in self.getChildren()
+                    child.rem(cardsToo, childrenToo)
+            # delete cards too?
+            if cardsToo:
+                # don't use cids(), as we want cards in cram selfs too
+                cids = self.manager.col.db.list(
+                    "select id from cards where did=? or odid=?", did, did)
+                self.manager.col.remCards(cids)
+        # delete the deck and add a grave (it seems no grave is added)
+        if str(self.getId()) == '1':
+            self.moveTo(self.manager.topLevel)
+            self.uniquifyName()
+        else:
+            del self.manager.decks[str(self.getId())]
+            # ensure we have an active deck.
+            if self.getId() in self.manager.active():
+                self.select(int(list(self.manager.decks.keys())[0]))
+        self.manager.save()
+
+    def uniquifyName(self):
+        for sibling in self.parent.getChildren():
+            if sibling.getBaseName() == self.getBaseName() and sibling != self:
+                self.changeBaseName(self.getBaseName() + "%d" % intTime(1000))
+
 class DConf(DictAugmented):
     """
     dic -- the JSON object associated to this conf.
     """
-
-    def __init__(self, dict, manager):
-        super.__init__(dict, manager)
+    
+    def __init__(self, manager, dict):
+        super.__init__(manager, dict)
         # set limits to within bounds
         for type in ('rev', 'new'):
             pd = 'perDay'

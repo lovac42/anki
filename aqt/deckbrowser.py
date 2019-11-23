@@ -322,7 +322,7 @@ where id > ?""", (self.mw.col.sched.dayCutoff-86400)*1000)
             (_("Are you sure you wish to delete %s?") % deck['name']) +
             extra):
             self.mw.progress.start(immediate=True)
-            self.mw.col.decks.rem(did, True)
+            deck.rem(True)
             self.mw.progress.finish()
             self.show()
 
