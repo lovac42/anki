@@ -357,27 +357,6 @@ class DeckManager:
         # mark registry changed, but don't bump mod time
         self.save()
 
-    def rename(self, deck, newName):
-        """Rename the deck object g to newName. Updates
-        children. Creates parents of newName if required.
-
-        If newName already exists or if it a descendant of a filtered
-        deck, the operation is aborted."""
-        # ensure we have parents
-        newName = self._ensureParents(newName)
-        # make sure target node doesn't already exist
-        if self.byName(newName):
-            raise DeckRenameError(_("That deck already exists."))
-        # make sure we're not nesting under a filtered deck
-        for ancestor in self.parentsByName(newName):
-            if ancestor.isDyn():
-                raise DeckRenameError(_("A filtered deck cannot have subdecks."))
-        deck.rename(newName)
-        # ensure we have parents again, as we may have renamed parent->child
-        newName = self._ensureParents(newName)
-        # renaming may have altered active did order
-        self.maybeAddToActive()
-
     def renameForDragAndDrop(self, draggedDeckDid, ontoDeckDid):
         """Rename the deck whose id is draggedDeckDid as a children of
         the deck whose id is ontoDeckDid."""
@@ -925,6 +904,8 @@ class Deck(DictAugmented):
         return map(operator.itemgetter('name'), self.getChildren())
 
     def addChild(self, child):
+        if self.isDyn():
+            raise DeckRenameError(_("A filtered deck cannot have subdecks."))
         bisect.insort(self.children, child)
 
     def removeChild(self, child):
@@ -999,11 +980,15 @@ class Deck(DictAugmented):
         self.baseName = newBaseName
 
     def rename(self, newName):
+        """Whether it did occur"""
         newBaseName = self.manager._basename(newBaseName)
         newParentName = self.manager._parentName(newName)
         newParent = self.manager.get(self.manager.id(newParentName))
+        if newParentName.getChild(newBaseName):
+            raise DeckRenameError(_("That deck already exists."))
         self.changeBaseName(newBaseName)
         self.moveTo(newParent)
+        self.manager.maybeAddToActive()
 
     def __getitem__(self, key, value=None):
         if key == "name":

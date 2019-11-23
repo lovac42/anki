@@ -82,11 +82,11 @@ def test_rename():
     id = d.decks.id("tmp")
     # we can't rename it if it conflicts
     assertException(
-        Exception, lambda: d.decks.rename(d.decks.get(id), "foo"))
+        Exception, lambda: d.decks.get(id).rename("foo"))
     # when renaming, the children should be renamed too
     d.decks.id("one::two::three")
     id = d.decks.id("one")
-    d.decks.rename(d.decks.get(id), "yo")
+    d.decks.get(id).rename(, "yo")
     for n in "yo", "yo::two", "yo::two::three":
         assert n in d.decks.allNames()
     # over filtered
@@ -94,13 +94,13 @@ def test_rename():
     filtered = d.decks.get(filteredId)
     childId = d.decks.id("child")
     child = d.decks.get(childId)
-    assertException(DeckRenameError, lambda: d.decks.rename(child, "filtered::child"))
-    assertException(DeckRenameError, lambda: d.decks.rename(child, "FILTERED::child"))
+    assertException(DeckRenameError, lambda: child.rename("filtered::child"))
+    assertException(DeckRenameError, lambda: child.rename("FILTERED::child"))
     # changing case
     parentId = d.decks.id("PARENT")
     d.decks.id("PARENT::CHILD")
-    assertException(DeckRenameError, lambda: d.decks.rename(child, "PARENT::CHILD"))
-    assertException(DeckRenameError, lambda: d.decks.rename(child, "PARENT::child"))
+    assertException(DeckRenameError, lambda: child.rename("PARENT::CHILD"))
+    assertException(DeckRenameError, lambda: child.rename("PARENT::child"))
 
 
 
