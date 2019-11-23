@@ -607,34 +607,6 @@ same id."""
 
         return childMap
 
-    def parents(self, did, nameMap=None, includeSelf=False):
-        """The list of all ancestors of did, as deck objects.
-
-        The list starts with the toplevel ancestors of did and its
-        i-th element is the ancestor with i times ::.
-
-        Keyword arguments:
-        did -- the id of the deck
-        nameMap -- dictionnary: deck id-> Node
-        """
-        ancestorsNames = []
-        last = ""
-        parts = self.get(did)['name'].split("::")
-        if not includeSelf:
-            parts = parts[:-1]
-        for part in parts:
-            current = last + part
-            ancestorsNames.append(current)
-            last = current + "::"
-        # convert to objects
-        for index, ancestor in enumerate(ancestorsNames):
-            if nameMap:
-                deck = nameMap[ancestor]
-            else:
-                deck = self.get(self.id(ancestor))
-            ancestorsNames[index] = deck
-        return ancestorsNames
-
     def parentsByName(self, name):
         "All existing parents of name"
         if "::" not in name:
@@ -790,10 +762,12 @@ class Deck(DictAugmented):
     def getBaseName(self):
         return self.baseName
 
-    def ancestors(self):
+    def ancestors(self, includeSelf=False):
         current = self
+        if not includeSelf:
+            current = current.parent
         l = []
-        while not current.topLevel:
+        while not current.isTopLevel():
             l.append(current)
             current = current.parent
         l.reverse()
