@@ -118,7 +118,6 @@ class Scheduler(BothScheduler):
         decks = self.col.decks.all(sort=True)
         lims = {}
         data = []
-        childMap = self.col.decks.childMap()
         for deck in decks:
             parentName = self.col.decks.parentName(deck['name'])
             # new
@@ -134,7 +133,7 @@ class Scheduler(BothScheduler):
             else:
                 plim = None
             rlim = self._deckRevLimitSingle(deck, parentLimit=plim)
-            rev = self._revForDeck(deck.getId(), rlim, childMap)
+            rev = self._revForDeck(deck.getId(), rlim)
             # save to list
             data.append([deck['name'], deck.getId(), rev, lrn, new])
             # add deck as a parent
@@ -467,8 +466,8 @@ and due <= ? limit ?)""",
                 lim = min(lim, self._deckRevLimitSingle(parent, parentLimit=lim))
             return lim
 
-    def _revForDeck(self, did, lim, sort=True, childMap=None):
-        dids = self.col.decks.childDids(did, childMap=childMap, includeSelf=True)
+    def _revForDeck(self, did, lim, sort=True):
+        dids = self.col.decks.childDids(did, includeSelf=True)
         lim = min(lim, self.reportLimit)
         return self.col.db.scalar(
             f"""

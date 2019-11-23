@@ -568,7 +568,7 @@ same id."""
         return self.get(did).childrenDecks(includeSelf, sort, grandChildren)
     #todo, maybe sort only this smaller list, at least until all() memoize
 
-    def childDids(self, did, childMap=None, includeSelf=False, sort=False, grandChildren=True):
+    def childDids(self, did, includeSelf=False, sort=False, grandChildren=True):
         #childmap is useless. Keep for consistency with anki.
         #sort was True by default, but never used.
         """The list of all descendant of did, as deck ids, ordered alphabetically
@@ -578,34 +578,10 @@ same id."""
 
         Keyword arguments:
         did -- the id of the deck we consider
-        childMap -- dictionnary, associating to a deck id its node as returned by .childMap()
         grandChildren -- Whether to also include child of child
         """
         # get ancestors names
-        return self.get(did).childDids(childMap, includeSelf, sort, grandChildren)
-
-    def childMap(self):
-        """A tree, containing for each pair parent/child, an entry of the form:
-        *  childMap[parent id][child id] = node of child.
-
-        Elements are entered in alphabetical order in each node. Thus
-        iterating over a node give children in alphabetical order.
-
-        """
-        nameMap = self.nameMap()
-        childMap = {}
-
-        # go through all decks, sorted by name
-        for deck in self.all(sort=True):
-            childMap[deck.getId()] = {}
-
-            # add note to immediate parent
-            immediateParent = self.parentName(deck['name'])
-            if immediateParent:
-                pid = nameMap[immediateParent]['id']
-                childMap[pid][deck.getId()] = childMap[deck.getId()]
-
-        return childMap
+        return self.get(did).childDids(includeSelf, sort, grandChildren)
 
     def parentsByName(self, name):
         "All existing parents of name"
@@ -622,12 +598,6 @@ same id."""
                 ancestorsNames.append(deck)
 
         return ancestorsNames
-
-    def nameMap(self):
-        """
-        Dictionnary from deck name to deck object.
-        """
-        return dict((deck['name'], deck) for deck in self.decks.values())
 
     # Sync handling
     ##########################################################################
