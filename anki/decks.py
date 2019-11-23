@@ -556,10 +556,6 @@ same id."""
         self.col.conf['activeDecks'] = self.get(did).getDescendantsIds(True)
         self.changed = True
 
-    def children(self, did, includeSelf=False):
-        "All descendant of did, as (name, id)."
-        return [(deck['name'], deck.getId()) for deck in self.get(did).getDescendantsIds(includeSelf)]
-
     def parentsByName(self, name):
         "All existing parents of name"
         if "::" not in name:

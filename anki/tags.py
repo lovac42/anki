@@ -81,8 +81,8 @@ class TagManager:
             res = self.col.db.list(query, did)
             return list(set(self.split(" ".join(res))))
         dids = [did]
-        for name, id in self.col.decks.children(did):
-            dids.append(id)
+        for deck in self.col.decks.get(did).getDescendants:
+            dids.append(deck.getId())
         query = basequery + " AND card.did IN " + ids2str(dids)
         res = self.col.db.list(query)
         return list(set(self.split(" ".join(res))))
