@@ -489,17 +489,6 @@ same id."""
             return deck['name']
         return None
 
-    def setDeck(self, cids, did):
-        """Change the deck of the cards of cids to did.
-
-        Keyword arguments:
-        did -- the id of the new deck
-        cids -- a list of ids of cards
-        """
-        self.col.db.execute(
-            "update cards set did=?,usn=?,mod=? where id in "+
-            ids2str(cids), did, self.col.usn(), intTime())
-
     def maybeAddToActive(self):
         """reselect current deck, or default if current has
         disappeared."""
@@ -882,6 +871,18 @@ class Deck(DictAugmented):
         # and active decks (current + all children)
         self.col.conf['activeDecks'] = self.getDescendantsIds(True)
         self.manager.changed = True
+
+    def moveCards(self, cids):
+        """Change the deck of the cards of cids to did.
+
+        Keyword arguments:
+        did -- the id of the new deck
+        cids -- a list of ids of cards
+        """
+        self.col.db.execute(
+            "update cards set did=?,usn=?,mod=? where id in "+
+            ids2str(cids), self.getId(), self.col.usn(), intTime())
+
                 
 class DConf(DictAugmented):
     """
