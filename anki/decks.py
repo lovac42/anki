@@ -314,7 +314,7 @@ class DeckManager:
         return len(self.decks)
 
     def getDefaultDeck(self):
-        return self.get(1)
+        return self.decks['1']
 
     def get(self, did, default=True):
         """Returns the deck objects whose id is did.
@@ -326,7 +326,7 @@ class DeckManager:
         if id in self.decks:
             return self.decks[id]
         elif default:
-            return self.decks['1']
+            return getDefaultDeck()
 
     def byName(self, name, create=False, type=None):
         if type is None:
