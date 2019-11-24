@@ -218,7 +218,7 @@ class AnkiExporter(Exporter):
         self.dst.models.models = {}
         for model in self.src.models.all():
             if int(model['id']) in mids:
-                self.dst.models.update(model)
+                model.update()
         # decks
         if not self.deck:
             descendants = []

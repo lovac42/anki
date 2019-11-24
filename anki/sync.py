@@ -457,7 +457,7 @@ from notes where %s""" % (self.maxUsn, lim))
                         raise UnexpectedSchemaChange()
                     if len(localModel['tmpls']) != len(serverModel['tmpls']):
                         raise UnexpectedSchemaChange()
-                self.col.models.update(serverModel)
+                serverModel.update()
 
     # Decks
     ##########################################################################
@@ -486,7 +486,7 @@ from notes where %s""" % (self.maxUsn, lim))
 
             # if missing locally or server is newer, update
             if not localDeck or serverDeck['mod'] > localDeck['mod']:
-                self.col.decks.update(serverDeck)
+                serverDeck.update()
         for serverDeckOption in serverChanges[1]:
             try:
                 localDeckOption = self.col.decks.getConf(serverDeckOption['id'])

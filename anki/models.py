@@ -238,22 +238,15 @@ class ModelManager:
     def add(self, model):
         """Add a new model model in the database of models"""
         self._setID(model)
-        self.update(model)
+        model.update()
         model.setCurrent()
         self.save(model)
-
-    def update(self, model):
-        "Add or update an existing model. Used for syncing and merging."
-        model.ensureNameUnique()
-        self.models[str(model['id'])] = model
-        # mark registry changed, but don't bump mod time
-        self.save()
 
     def _setID(self, model):
         """Set the id of model to a new unique value."""
         while 1:
             id = str(intTime(1000))
-            if id not in self.models:
+            if id not in self.manager.models:
                 break
         model['id'] = id
 
@@ -883,3 +876,10 @@ select id from cards where nid in (select id from notes where mid = ?)""",
                 self['name'] += "-" + checksum(str(time.time()))[:5]
                 break
 
+
+    def update(self):
+        "Add or update an existing model. Used for syncing and merging."
+        self.ensureNameUnique()
+        self.models[str(model['id'])] = self
+        # mark registry changed, but don't bump mod time
+        self.manager.save()
