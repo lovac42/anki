@@ -242,22 +242,9 @@ class ModelManager:
         model.setCurrent()
         self.save(model)
 
-    def ensureNameUnique(self, model):
-        """Transform the name of model into a new name.
-
-        If a model with this name but a distinct id exists in the
-        manager, the name of this object is appended by - and by a
-        5 random digits generated using the current time.
-        Keyword arguments
-        model -- a model object"""
-        for mcur in self.all():
-            if (mcur['name'] == model['name'] and mcur['id'] != model['id']):
-                model['name'] += "-" + checksum(str(time.time()))[:5]
-                break
-
     def update(self, model):
         "Add or update an existing model. Used for syncing and merging."
-        self.ensureNameUnique(model)
+        model.ensureNameUnique()
         self.models[str(model['id'])] = model
         # mark registry changed, but don't bump mod time
         self.save()
@@ -883,4 +870,16 @@ select id from cards where nid in (select id from notes where mid = ?)""",
         # GUI should ensure last model is not deleted
         if current:
             list(self.models.values())[0].setCurrent()
+
+    def ensureNameUnique(self):
+        """Transform the name of model into a new name.
+
+        If a model with this name but a distinct id exists in the
+        manager, the name of this object is appended by - and by a
+        5 random digits generated using the current time.
+        Keyword arguments"""
+        for mcur in self.manager.all():
+            if (mcur['name'] == self['name'] and mcur['id'] != self['id']):
+                self['name'] += "-" + checksum(str(time.time()))[:5]
+                break
 
