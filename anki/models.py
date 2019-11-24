@@ -242,14 +242,6 @@ class ModelManager:
         model.setCurrent()
         self.save(model)
 
-    def _setID(self, model):
-        """Set the id of model to a new unique value."""
-        while 1:
-            id = str(intTime(1000))
-            if id not in self.manager.models:
-                break
-        model['id'] = id
-
     def have(self, id):
         """Whether there exists a model whose id is did."""
         return str(id) in self.models
@@ -883,3 +875,12 @@ select id from cards where nid in (select id from notes where mid = ?)""",
         self.models[str(model['id'])] = self
         # mark registry changed, but don't bump mod time
         self.manager.save()
+
+    def _setID(self):
+        """Set the id of model to a new unique value."""
+        while 1:
+            id = str(intTime(1000))
+            if id not in self.manager.models:
+                break
+        self['id'] = id
+
