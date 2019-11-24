@@ -156,12 +156,8 @@ class ModelManager:
         model -- A Model
         templates -- whether to check for cards not generated in this model
         """
-        if model and model['id']:
-            model['mod'] = intTime()
-            model['usn'] = self.col.usn()
-            self._updateRequired(model)
-            if templates:
-                self._syncTemplates(model)
+        if model:
+            model.save(template=template, saveManager=False)
         self.changed = True
         runHook("newModel") # By default, only refresh side bar of browser
 
@@ -199,11 +195,6 @@ class ModelManager:
         if not forDeck or not model:
             model = self.get(self.col.conf['curModel'])
         return model or list(self.models.values())[0]
-
-    def setCurrent(self, model):
-        """Change curModel value and marks the collection as modified."""
-        self.col.conf['curModel'] = model['id']
-        self.col.setMod()
 
     def get(self, id):
         "Get model object with ID, or None."
@@ -257,13 +248,13 @@ select id from cards where nid in (select id from notes where mid = ?)""",
         self.save()
         # GUI should ensure last model is not deleted
         if current:
-            self.setCurrent(list(self.models.values())[0])
+            list(self.models.values())[0].setCurrent()
 
     def add(self, model):
         """Add a new model model in the database of models"""
         self._setID(model)
         self.update(model)
-        self.setCurrent(model)
+        model.setCurrent()
         self.save(model)
 
     def ensureNameUnique(self, model):
@@ -854,4 +845,27 @@ select id from notes where mid = ?)""" % " ".join(map),
             model['usn'] = 0
         self.save()
 
-class Model():
+class Model(DictAugmented):
+    #def __init__(self, manager, dict):
+
+    def save(self, template=False, saveManager=False):
+        """
+        * Mark model modified.
+        * Schedule registry flush if saveManager
+
+        Keyword arguments:
+        model -- A Model
+        templates -- whether to check for cards not generated in this model
+        """
+        if self.getId():
+            model['mod'] = intTime()
+            model['usn'] = self.col.usn()
+            self._updateRequired(model)
+            if templates:
+                self._syncTemplates(model)
+
+    def setCurrent(self, model):
+        """Change curModel value and marks the collection as modified."""
+        self.manager.col.conf['curModel'] = model['id']
+        self.manager.col.setMod()
+

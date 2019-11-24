@@ -413,8 +413,13 @@ crt=?, mod=?, scm=?, dty=?, usn=?, ls=?, conf=?""",
         return self.db.scalar("select count() from notes")
 
     def newNote(self, forDeck=True):
-        "Return a new note with the current model."
-        return anki.notes.Note(self, self.models.current(forDeck))
+        """Return a new note with the current model.
+
+        forDeck -- whether we take current deck into consideration to
+        create note's model.
+
+        """
+        return for anki.notes.Note(self, self.models.current(forDeck))
 
     def addNote(self, note):
         """Add a note to the collection unless it generates no card. Return

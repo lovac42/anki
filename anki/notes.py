@@ -79,6 +79,34 @@ from notes where id = ?""", self.id)
         self._fmap = self.col.models.fieldMap(self._model)
         self.scm = self.col.scm
 
+    @property
+    def mid(self):
+        if self._model:
+            return self._model['id']
+        return 0
+
+    @property
+    def model(self):
+        return self._model
+
+    @model.setter
+    def model(self, model):
+        self._model = model
+
+    @mid.setter
+    def mid(self, mid):
+        if mid == 0:
+            self._model = None
+        self._model = self.col.models.get(mid)
+        
+    @model.delete
+    def model(self, model):
+        del self._model
+    
+    @mid.delete
+    def mid(self, model):
+        del self._model
+
     def flush(self, mod=None):
         """If fields or tags have changed, write changes to disk.
 
