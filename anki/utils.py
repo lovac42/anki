@@ -457,5 +457,29 @@ def identity(x):
 def negation(x):
     return not x
 
-# Classes to extend dicts
-#############################################################################
+@functools.total_ordering
+class DictAugmented:
+    def __init__(self, manager, dic):
+        self.manager = manager
+        self.dic = dic
+
+    def __getitem__(self, key, value=None):
+        return self.dic.get(key, value)
+
+    def __setitem(self, key, value):
+        self.dic[key] = value
+
+    def beforeUpload(self):
+        self['usn'] = 0
+
+    def dumps(self):
+        return json.dumps(self.dic)
+
+    def __eq__(self, other):
+        return self.get("id") == other.get("id")
+
+    def __lt__(self, other):
+        return self.get("name") < other.get("name")
+
+    def getId(self):
+        return self["id"]

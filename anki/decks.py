@@ -110,7 +110,7 @@ from anki.consts import *
 from anki.errors import DeckRenameError
 from anki.hooks import runHook
 from anki.lang import _
-from anki.utils import ids2str, intTime, json
+from anki.utils import ids2str, intTime, json, DictAugmented
 
 # fixmes:
 # - make sure users can't set grad interval < 1
@@ -503,18 +503,7 @@ same id."""
     def equalName(name1, name2):
         return DeckManager.normalizeName(name1) == DeckManager.normalizeName(name2)
 
-@functools.total_ordering
-class DictAugmented
-    def __init__(self, manager, dic):
-        self.manager = manager
-        self.dic = dic
-
-    def __getitem__(self, key, value=None):
-        return self.dic.get(key, value)
-
-    def __setitem(self, key, value):
-        self.dic[key] = value
-
+class DeckConf(DictAugmented):
     def save(self, saveManager=False):
         """State that the DeckManager has been changed. Changes the
         mod and usn of the potential argument.
@@ -526,27 +515,6 @@ class DictAugmented
         self['usn'] = self.col.usn()
         if saveManager:
             self.manager.save()
-            
-    def beforeUpload(self):
-        self['usn'] = 0
-
-    def dumps(self):
-        return json.dumps(self.dic)
-
-    def __eq__(self, other):
-        return self.get("id") == other.get("id")
-
-    def __lt__(self, other):
-        return self.get("name") < other.get("name")
-
-    def isDyn(self):
-        return self['dyn']
-
-    def isStd(self):
-        return not self.isDyn()
-
-    def getId(self):
-        return self["id"]
 
 class Deck(DictAugmented):
     """
@@ -565,6 +533,12 @@ class Deck(DictAugmented):
         else:
             self.create(manager, parent, basename, type)
         self.parent.addChild(self)
+
+    def isDyn(self):
+        return self['dyn']
+
+    def isStd(self):
+        return not self.isDyn()
 
     def load(self, manager, dict, parent):
         super().__init__(manager, dict)
@@ -624,7 +598,7 @@ class Deck(DictAugmented):
         "::".join(self.path())
 
     def dumps(self):
-        self.name
+        self['name'] = self.getName()
 
     def path(self):
         return map (lambda deck: deck.getBaseName(), self.ancestors())
