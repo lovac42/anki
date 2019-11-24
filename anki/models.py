@@ -250,34 +250,6 @@ class ModelManager:
         """The list of id of models"""
         return list(self.models.keys())
 
-    # Templates
-    ##################################################
-
-    def moveTemplate(self, model, template, idx):
-        """Move input template to position idx in model.
-
-        Move also every other template to make this consistent.
-
-        Comment again after that TODODODO
-        """
-        oldidx = model['tmpls'].index(template)
-        if oldidx == idx:
-            return
-        oldidxs = dict((id(template), template['ord']) for template in model['tmpls'])
-        model['tmpls'].remove(template)
-        model['tmpls'].insert(idx, template)
-        model._updateTemplOrds()
-        # generate change map
-        map = []
-        for template in model['tmpls']:
-            map.append("when ord = %d then %d" % (oldidxs[id(template)], template['ord']))
-        # apply
-        self.save(model)
-        self.col.db.execute("""
-update cards set ord = (case %s end),usn=?,mod=? where nid in (
-select id from notes where mid = ?)""" % " ".join(map),
-                             self.col.usn(), intTime(), model['id'])
-
     # Model changing
     ##########################################################################
     # - maps are ord->ord, and there should not be duplicate targets
@@ -834,6 +806,31 @@ and notes.mid = ? and cards.ord = ?""", self.model['id'], self['ord'])
         self.model['tmpls'].append(self)
         self.model._updateTemplOrds()
         self.model.save(saveManager=True)
+
+    def move(self, idx):
+        """Move input self to position idx in model.
+
+        Move also every other self to make this consistent.
+
+        Comment again after that TODODODO
+        """
+        oldidx = self.model['tmpls'].index(self)
+        if oldidx == idx:
+            return
+        oldidxs = dict((id(self), self['ord']) for self in self.model['tmpls'])
+        self.model['tmpls'].remove(self)
+        self.model['tmpls'].insert(idx, self)
+        self.model._updateTemplOrds()
+        # generate change map
+        map = []
+        for self in self.model['tmpls']:
+            map.append("when ord = %d then %d" % (oldidxs[id(self)], self['ord']))
+        # apply
+        self.model.save(saveManager=True)
+        self.model.manager.col.db.execute("""
+update cards set ord = (case %s end),usn=?,mod=? where nid in (
+select id from notes where mid = ?)""" % " ".join(map),
+                             self.model.manager.col.usn(), intTime(), self.model['id'])
 
 class Field(DictAugmented):
     """Field may not be in model, and will be added later by add method"""
