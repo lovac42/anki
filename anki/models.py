@@ -728,11 +728,15 @@ select id from notes where mid = ?)""" % " ".join(map),
         self.save()
 
 class Model(DictAugmented):
-    def __init__(self, manager, dict=None, name=None):
+    def __init__(self, manager, dic=None, name=None):
         if dict:
-            super.__init__(manager, dict)
+            self.load(manager, dic)
         else:
             self.new(manager, name)
+
+    def load(self, manager, dic):
+        super.__init__(manager, dic)
+        self['tmpls'] = map(Template, self['tmpls'])
 
     def new(self, manager, name):
         "Create a new model, save it in the registry, and return it."
@@ -886,3 +890,7 @@ select id from cards where nid in (select id from notes where mid = ?)""",
             avail.append(ord)
         return avail
 
+class Template(DictAugmented):
+    def __init__(self, model, dic):
+        self.model = model
+        self.dic = dic
