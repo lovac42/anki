@@ -342,7 +342,7 @@ and notes.mid = ? and cards.ord = ?""", model['id'], ord)
         def add(fieldsContents):
             fieldsContents.append("")
             return fieldsContents
-        self._transformFields(model, add)
+        model._transformFields(add)
 
     def remField(self, model, fieldTypeToRemove):
         """Remove a field from a model.
@@ -368,7 +368,7 @@ and notes.mid = ? and cards.ord = ?""", model['id'], ord)
         def delete(fieldsContents):
             del fieldsContents[idx]
             return fieldsContents
-        self._transformFields(model, delete)
+        model._transformFields(delete)
         if model['flds'][model['sortf']]['name'] != sortFldName:
             # need to rebuild sort field
             self.col.updateFieldCache(model.nids())
@@ -399,7 +399,7 @@ and notes.mid = ? and cards.ord = ?""", model['id'], ord)
             del fields[oldidx]
             fields.insert(idx, val)
             return fields
-        self._transformFields(model, move)
+        model._transformFields(move)
 
     def renameField(self, model, fieldType, newName):
         """Rename the field. In each template, find the mustache related to
@@ -438,22 +438,6 @@ and notes.mid = ? and cards.ord = ?""", model['id'], ord)
         model -- a model"""
         for index, fieldType in enumerate(model['flds']):
             fieldType['ord'] = index
-
-    def _transformFields(self, model, fn):
-        """For each note of the model model, apply model to the set of field's value,
-        and save the note modified.
-
-        fn -- a function taking and returning a list of field."""
-        # model hasn't been added yet?
-        if not model['id']:
-            return
-        notesUpdates = []
-        for (id, flds) in self.col.db.execute(
-            "select id, flds from notes where mid = ?", model['id']):
-            notesUpdates.append((joinFields(fn(splitFields(flds))),
-                      intTime(), self.col.usn(), id))
-        self.col.db.executemany(
-            "update notes set flds=?,mod=?,usn=? where id = ?", notesUpdates)
 
     # Templates
     ##################################################
@@ -807,6 +791,22 @@ select id from cards where nid in (select id from notes where mid = ?)""",
         """Change the value of 'ord' in each template of this model to reflect its new position"""
         for index, template in enumerate(self['tmpls']):
             template['ord'] = index
+
+    def _transformFields(self, fn):
+        """For each note of the model model, apply model to the set of field's value,
+        and save the note modified.
+
+        fn -- a function taking and returning a list of field."""
+        # model hasn't been added yet?
+        if not self.getId():
+            return
+        notesUpdates = []
+        for (id, flds) in self.manager.col.db.execute(
+            "select id, flds from notes where mid = ?", self.getId()):
+            notesUpdates.append((joinFields(fn(splitFields(flds))),
+                      intTime(), self.manager.col.usn(), id))
+        self.manager.col.db.executemany(
+            "update notes set flds=?,mod=?,usn=? where id = ?", notesUpdates)
 
 class Template(DictAugmented):
 
