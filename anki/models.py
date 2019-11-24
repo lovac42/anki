@@ -809,6 +809,23 @@ select id from cards where nid in (select id from notes where mid = ?)""",
         return self.manager.col.db.scalar(
             "select count() from notes where mid = ?", self.getId())
 
+    def getTemplate(self, which):
+        if isinstance(which, int):
+            return self._getTemplateByOrd(which)
+        elif isinstance(which, str):
+            return self._getTemplateByName(which)
+        assert (False)
+
+    def _getTemplateByOrd(self, ord):
+        return self['tmpls'].get(ord)
+
+    def _getTemplateByName(self, name):
+        for tmpl in self['tmpls']:
+            if tmpl['name'] == name:
+                return tmpl
+        return None
+
+
 class Template(DictAugmented):
     def __init__(self, model, dic):
         self.model = model
