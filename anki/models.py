@@ -424,8 +424,8 @@ and notes.mid = ? and cards.ord = ?""", model['id'], ord)
                         pat % re.escape(fieldType['name']), wrap(newName), template[fmt])
                 else:
                     template[fmt] = re.sub(
-                        pat  % re.escape(fieldType['name']), "", template[fmt])
-        fieldType['name'] = newName
+                        pat  % re.escape(fieldType['name']), "", template[fmt]) 
+       fieldType['name'] = newName
         self.save(model)
 
     # Templates
@@ -592,17 +592,19 @@ class Model(DictAugmented):
     def load(self, manager, dic):
         super.__init__(manager, dic)
         self['tmpls'] = map(Template, self['tmpls'])
+        self['flds'] = map(Field, self['flds'])
 
     def new(self, manager, name):
         "Create a new model, save it in the registry, and return it."
         # caller should call save() after modifying
-        super.__init__(manager, defaultModel)
-        self['name'] = name
-        self['mod'] = intTime()
-        self['flds'] = []
-        self['tmpls'] = []
-        self['tags'] = []
-        self['id'] = None
+        new = copy.deepcopy(defaultModel)
+        new['name'] = name
+        new['mod'] = intTime()
+        new['flds'] = []
+        new['tmpls'] = []
+        new['tags'] = []
+        new['id'] = None
+        self.load(manager, new)
 
     def save(self, template=False, saveManager=False):
         """
@@ -808,7 +810,6 @@ select id from cards where nid in (select id from notes where mid = ?)""",
             fieldType['ord'] = index
 
 class Template(DictAugmented):
-
     def __init__(self, model, dic):
         self.model = model
         self.dic = dic
@@ -893,3 +894,7 @@ update cards set ord = ord - 1, usn = ?, mod = ?
         self.model.save(True)
         return True
 
+class Field(DictAugmented):
+    def __init__(self, model, dic):
+        self.model = model
+        self.dic = dic
