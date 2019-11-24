@@ -260,20 +260,6 @@ class ModelManager:
         fieldType['name'] = name
         return fieldType
 
-    def setSortIdx(self, model, idx):
-        """State that the id of the sorting field of the model is idx.
-
-        Mark the model as modified, change the cache.
-        Keyword arguments
-        model -- a model
-        idx -- the identifier of a field
-        """
-        assert 0 <= idx < len(model['flds'])
-        self.col.modSchema(check=True)
-        model['sortf'] = idx
-        self.col.updateFieldCache(model.nids())
-        self.save(model)
-
     def addField(self, model, fieldType):
         """Append the field field as last element of the model model.
 
@@ -818,6 +804,38 @@ select id from cards where nid in (select id from notes where mid = ?)""",
         self.manager.add(model)
         return model
 
+    # Fields
+    ##################################################
+
+    def fieldMap(self):
+        """Mapping of (field name) -> (ord, field object).
+
+        keyword arguments:
+        model : a model
+        """
+        return dict((fieldType['name'], (fieldType['ord'], fieldType)) for fieldType in self['flds'])
+
+    def fieldNames(self):
+        """The list of names of fields of this model."""
+        return [fieldType['name'] for fieldType in self['flds']]
+
+    def sortIdx(self):
+        """The index of the field used for sorting."""
+        return self['sortf']
+
+    def setSortIdx(self, idx):
+        """State that the id of the sorting field of the model is idx.
+
+        Mark the model as modified, change the cache.
+        Keyword arguments
+        idx -- the identifier of a field
+        """
+        assert 0 <= idx < len(self['flds'])
+        self.manager.col.modSchema(check=True)
+        self['sortf'] = idx
+        self.manager.col.updateFieldCache(self.nids())
+        self.save(saveManager=True)
+
 class Template(DictAugmented):
     def __init__(self, model, dic):
         self.model = model
@@ -918,25 +936,6 @@ and notes.mid = ? and cards.ord = ?""", self.model['id'], self['ord'])
 
     def copy(self, model):
         return Template(model, copy.deepcopy(self.dic))
-
-    # Fields
-    ##################################################
-
-    def fieldMap(self):
-        """Mapping of (field name) -> (ord, field object).
-
-        keyword arguments:
-        model : a model
-        """
-        return dict((fieldType['name'], (fieldType['ord'], fieldType)) for fieldType in self['flds'])
-
-    def fieldNames(self):
-        """The list of names of fields of this model."""
-        return [fieldType['name'] for fieldType in self['flds']]
-
-    def sortIdx(self):
-        """The index of the field used for sorting."""
-        return self['sortf']
 
 class Field(DictAugmented):
     def __init__(self, model, dic):
