@@ -599,6 +599,7 @@ class Deck(DictAugmented):
 
     def dumps(self):
         self['name'] = self.getName()
+        return super.dumps()
 
     def path(self):
         return map (lambda deck: deck.getBaseName(), self.ancestors())

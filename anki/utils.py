@@ -483,3 +483,7 @@ class DictAugmented:
 
     def getId(self):
         return self["id"]
+
+    def dumps(self):
+        return self.dic
+
