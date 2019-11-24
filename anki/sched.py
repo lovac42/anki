@@ -379,7 +379,7 @@ and due <= ? limit %d""" % (self._deckLimit(),  self.reportLimit),
         # if we were dynamic, graduating means moving back to the old deck
         resched = self._resched(card)
         if card.isFiltered():
-            card.did = card.odid
+            card.deck = card.odeck
             card.odue = 0
             card.odid = 0
             # if rescheduling is off, it needs to be set back to a new card
@@ -651,7 +651,7 @@ select id from cards where did in %s and queue = {QUEUE_REV} and due <= ? limit 
         else:#Filtered without rescheduling
             card.due = card.odue
         if card.isFiltered():
-            card.did = card.odid
+            card.deck = card.odeck
             card.odid = 0
             card.odue = 0
 
@@ -832,7 +832,7 @@ did = ?, queue = %s, due = ?, usn = ? where id = ?""" % queue, data)
                 if card.odue:
                     card.due = card.odue
                 if card.isFiltered():
-                    card.did = card.odid
+                    card.deck = card.odeck
                 card.odue = card.odid = 0
                 card.queue = QUEUE_SUSPENDED
             # notify UI

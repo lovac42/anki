@@ -716,7 +716,7 @@ where id = ?
     @staticmethod
     def _removeFromFiltered(card):
         if card.isFiltered():
-            card.did = card.odid
+            card.deck = card.odeck
             card.odue = 0
             card.odid = 0
 

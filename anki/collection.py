@@ -595,12 +595,12 @@ insert into cards values (?,?,?,?,?,?,0,0,?,0,0,0,0,0,0,0,0,"")""",
             else:
                 card.did = note.model()['did']
         # if invalid did, use default instead
-        deck = self.decks.get(card.did)
+        deck = card.deck
         if deck.isDyn():
             # must not be a filtered deck
             card.did = 1
         else:
-            card.did = deck.getId()
+            card.deck = deck
         card.due = self._dueForDid(card.did, due)
         if flush:
             card.flush()

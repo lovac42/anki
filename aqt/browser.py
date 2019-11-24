@@ -421,7 +421,7 @@ class DataModel(QAbstractTableModel):
             deckName = card.decks.getName()
             return "%s (%s)" % (deckName, deckName)
         # normal deck
-        return card.col.decks.name(card.did)
+        return card.deck.getName()
 
     @staticmethod
     def question(card, *args):
