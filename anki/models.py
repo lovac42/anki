@@ -203,14 +203,20 @@ class ModelManager:
             return self.models[id]
 
     def all(self, type=None):
-        "Get all model objects."
+        """Get all model objects.
+
+        type -- standard or cloze. Restrcit to those models
+        """
         models = self.models.values()
         if type is not None:
             models = filter(lambda model: model['type'] == type, models)
         return models
 
     def allNames(self, type=None):
-        "Get all model names."
+        """Get all model names.
+
+        type -- standard or cloze. Restrcit to those models
+        """
         return map(lambda model:model['name'], self.all(type=type))
 
     def byName(self, name):
