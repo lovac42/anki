@@ -460,7 +460,7 @@ crt=?, mod=?, scm=?, dty=?, usn=?, ls=?, conf=?""",
     def findTemplates(self, note):
         "Return templates generating contents from this note."
         model = note.model()
-        avail = self.models.availOrds(model, joinFields(note.fields))
+        avail = model.availOrds(joinFields(note.fields))
         return self._tmplsFromOrds(model, avail)
 
     @staticmethod
@@ -523,7 +523,7 @@ crt=?, mod=?, scm=?, dty=?, usn=?, ls=?, conf=?""",
         for nid, mid, flds in self.db.execute(
             "select id, mid, flds from notes where id in "+snids):
             model = self.models.get(mid)
-            avail = self.models.availOrds(model, flds)
+            avail = model.availOrds(flds)
             did = dids.get(nid) or model['did']
             due = dues.get(nid)
             # add any missing cards
