@@ -250,35 +250,6 @@ class ModelManager:
         """The list of id of models"""
         return list(self.models.keys())
 
-    # Fields
-    ##################################################
-
-    def moveField(self, model, fieldType, idx):
-        """Move the field to position idx
-
-        idx -- new position, integer
-        field -- a field object
-        """
-        self.col.modSchema(check=True)
-        oldidx = model['flds'].index(fieldType)
-        if oldidx == idx:
-            return
-        # remember old sort fieldType
-        sortf = model['flds'][model['sortf']]
-        # move
-        model['flds'].remove(fieldType)
-        model['flds'].insert(idx, fieldType)
-        # restore sort fieldType
-        model['sortf'] = model['flds'].index(sortf)
-        model._updateFieldOrds()
-        self.save(model)
-        def move(fields, oldidx=oldidx):
-            val = fields[oldidx]
-            del fields[oldidx]
-            fields.insert(idx, val)
-            return fields
-        model._transformFields(move)
-
     # Templates
     ##################################################
 
@@ -961,3 +932,28 @@ class Field(DictAugmented):
        self['name'] = newName
        self.model.save(saveManager=True)
 
+    def move(self, idx):
+        """Move the field to position idx
+
+        idx -- new position, integer
+        field -- a field object
+        """
+        self.model.manager.col.modSchema(check=True)
+        oldidx = self.model['flds'].index(self)
+        if oldidx == idx:
+            return
+        # remember old sort self
+        sortf = self.model['flds'][self.model['sortf']]
+        # move
+        self.model['flds'].remove(self)
+        self.model['flds'].insert(idx, self)
+        # restore sort self
+        self.model['sortf'] = self.model['flds'].index(sortf)
+        self.model._updateFieldOrds()
+        self.model(saveManager=True)
+        def move(fields, oldidx=oldidx):
+            val = fields[oldidx]
+            del fields[oldidx]
+            fields.insert(idx, val)
+            return fields
+        self.model._transformFields(move)
