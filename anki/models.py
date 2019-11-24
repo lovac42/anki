@@ -253,14 +253,6 @@ class ModelManager:
     # Tools
     ##################################################
 
-    def nids(self, model):
-        """The ids of notes whose model is model.
-
-        Keyword arguments
-        model -- a model object."""
-        return self.col.db.list(
-            "select id from notes where mid = ?", model['id'])
-
     def useCount(self, model):
         """Number of note using the model model.
 
@@ -883,4 +875,12 @@ select id from cards where nid in (select id from notes where mid = ?)""",
             if id not in self.manager.models:
                 break
         self['id'] = id
+
+    def nids(self):
+        """The ids of notes whose model is model.
+
+        Keyword arguments
+        model -- a model object."""
+        return self.manager.col.db.list(
+            "select id from notes where mid = ?", self.getId())
 
