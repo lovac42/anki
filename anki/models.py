@@ -791,7 +791,7 @@ select id from notes where mid = ?)""" % " ".join(map),
 
     def beforeUpload(self):
         for model in self.all():
-            model['usn'] = 0
+            model.beforeUpload()
         self.save()
 
 class Model(DictAugmented):
@@ -884,3 +884,5 @@ select id from cards where nid in (select id from notes where mid = ?)""",
         return self.manager.col.db.list(
             "select id from notes where mid = ?", self.getId())
 
+    def beforeUpload(self):
+        self['usn'] = 0
