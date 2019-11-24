@@ -144,7 +144,9 @@ class ModelManager:
     def load(self, json_):
         "Load registry from JSON."
         self.changed = False
-        self.models = json.loads(json_)
+        self.models = dict()
+        for id, dic in json.loads(json_):
+            self.models[id] = Model(self, dic)
 
     def save(self, model=None, templates=False):
         """
