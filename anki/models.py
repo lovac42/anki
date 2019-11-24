@@ -477,7 +477,7 @@ and notes.mid = ? and cards.ord = ?""", model['id'], ord)
         if model['id']:
             self.col.modSchema(check=True)
         model['tmpls'].append(template)
-        self._updateTemplOrds(model)
+        model._updateTemplOrds()
         self.save(model)
 
     def remTemplate(self, model, template):
@@ -510,15 +510,9 @@ update cards set ord = ord - 1, usn = ?, mod = ?
  where nid in (select id from notes where mid = ?) and ord > ?""",
                              self.col.usn(), intTime(), model['id'], ord)
         model['tmpls'].remove(template)
-        self._updateTemplOrds(model)
+        model._updateTemplOrds()
         self.save(model)
         return True
-
-    @staticmethod
-    def _updateTemplOrds(model):
-        """Change the value of 'ord' in each template of this model to reflect its new position"""
-        for index, template in enumerate(model['tmpls']):
-            template['ord'] = index
 
     def moveTemplate(self, model, template, idx):
         """Move input template to position idx in model.
@@ -533,7 +527,7 @@ update cards set ord = ord - 1, usn = ?, mod = ?
         oldidxs = dict((id(template), template['ord']) for template in model['tmpls'])
         model['tmpls'].remove(template)
         model['tmpls'].insert(idx, template)
-        self._updateTemplOrds(model)
+        model._updateTemplOrds()
         # generate change map
         map = []
         for template in model['tmpls']:
@@ -842,6 +836,11 @@ select id from cards where nid in (select id from notes where mid = ?)""",
 
         It's called only when model is saved, a new model is given and template is asked to be computed"""
         self.col.genCards(self.nids())
+
+    def _updateTemplOrds(self):
+        """Change the value of 'ord' in each template of this model to reflect its new position"""
+        for index, template in enumerate(self['tmpls']):
+            template['ord'] = index
 
 class Template(DictAugmented):
 
