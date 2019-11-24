@@ -825,6 +825,22 @@ select id from cards where nid in (select id from notes where mid = ?)""",
                 return tmpl
         return None
 
+    def getField(self, which):
+        if isinstance(which, int):
+            return self._getFieldByOrd(which)
+        elif isinstance(which, str):
+            return self._getFieldByName(which)
+        assert (False)
+
+    def _getFieldByOrd(self, ord):
+        return self['tmpls'].get(ord)
+
+    def _getFieldByName(self, name):
+        for tmpl in self['tmpls']:
+            if tmpl['name'] == name:
+                return tmpl
+        return None
+
 
 class Template(DictAugmented):
     def __init__(self, model, dic):
