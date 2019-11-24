@@ -235,21 +235,6 @@ class ModelManager:
         # caller should call save() after modifying
         return Model(self, name=name)
 
-    def rem(self, model):
-        "Delete model, and all its cards/notes."
-        self.col.modSchema(check=True)
-        current = self.current()['id'] == model['id']
-        # delete notes/cards
-        self.col.remCards(self.col.db.list("""
-select id from cards where nid in (select id from notes where mid = ?)""",
-                                      model['id']))
-        # then the model
-        del self.models[str(model['id'])]
-        self.save()
-        # GUI should ensure last model is not deleted
-        if current:
-            list(self.models.values())[0].setCurrent()
-
     def add(self, model):
         """Add a new model model in the database of models"""
         self._setID(model)
@@ -883,4 +868,19 @@ class Model(DictAugmented):
         """Change curModel value and marks the collection as modified."""
         self.manager.col.conf['curModel'] = model['id']
         self.manager.col.setMod()
+
+    def rem(self):
+        "Delete model, and all its cards/notes."
+        self.manager.col.modSchema(check=True)
+        current = self.manager.current().getId() == self.getId()
+        # delete notes/cards
+        self.manager.col.remCards(self.manager.col.db.list("""
+select id from cards where nid in (select id from notes where mid = ?)""",
+                                      self.getId()))
+        # then the model
+        del self.manager.models[str(self.getId())]
+        self.manager.save()
+        # GUI should ensure last model is not deleted
+        if current:
+            list(self.models.values())[0].setCurrent()
 
