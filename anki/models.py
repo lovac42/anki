@@ -260,11 +260,6 @@ class ModelManager:
         fieldType['name'] = name
         return fieldType
 
-    @staticmethod
-    def sortIdx(model):
-        """The index of the field used for sorting."""
-        return model['sortf']
-
     def setSortIdx(self, model, idx):
         """State that the id of the sorting field of the model is idx.
 
@@ -939,6 +934,9 @@ and notes.mid = ? and cards.ord = ?""", self.model['id'], self['ord'])
         """The list of names of fields of this model."""
         return [fieldType['name'] for fieldType in self['flds']]
 
+    def sortIdx(self):
+        """The index of the field used for sorting."""
+        return self['sortf']
 
 class Field(DictAugmented):
     def __init__(self, model, dic):
