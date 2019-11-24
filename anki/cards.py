@@ -126,6 +126,58 @@ class Card:
         self._qa = None
         self._note = None
 
+    @property
+    def did(self):
+        return self._deck['id']
+
+    @property
+    def deck(self):
+        return self._deck
+
+    @deck.setter
+    def deck(self, deck):
+        self._deck = deck
+
+    @did.setter
+    def did(self, did):
+        if did == 0:
+            self._deck = None
+        self._deck = self.col.decks.get(did)
+        
+    @deck.delete
+    def deck(self, deck):
+        del self._deck
+    
+    @did.delete
+    def did(self, deck):
+        del self._deck
+
+    @property
+    def odid(self):
+        return self._odeck['id']
+
+    @property
+    def odeck(self):
+        return self._odeck
+
+    @odeck.setter
+    def odeck(self, odeck):
+        self._odeck = odeck
+    
+    @odid.setter
+    def odid(self, odid):
+        if odid == 0:
+            self._odeck = None
+        self._odeck = self.col.odecks.get(odid)
+        
+    @odeck.delete
+    def odeck(self, odeck):
+        del self._odeck
+    
+    @odid.delete
+    def odid(self, odeck):
+        del self._odeck
+
     def flush(self):
         """Insert the card into the database.
 
@@ -311,3 +363,6 @@ lapses=?, left=?, odue=?, odid=?, did=? where id = ?""",
     def originalDeckId(self):
         """Independantly of whether the card is filtered or not."""
         return self.originalDeckId().getId()
+
+
+    
