@@ -261,11 +261,6 @@ class ModelManager:
         return fieldType
 
     @staticmethod
-    def fieldNames(model):
-        """The list of names of fields of this model."""
-        return [fieldType['name'] for fieldType in model['flds']]
-
-    @staticmethod
     def sortIdx(model):
         """The index of the field used for sorting."""
         return model['sortf']
@@ -939,6 +934,10 @@ and notes.mid = ? and cards.ord = ?""", self.model['id'], self['ord'])
         model : a model
         """
         return dict((fieldType['name'], (fieldType['ord'], fieldType)) for fieldType in self['flds'])
+
+    def fieldNames(self):
+        """The list of names of fields of this model."""
+        return [fieldType['name'] for fieldType in self['flds']]
 
 
 class Field(DictAugmented):
