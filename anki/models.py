@@ -230,18 +230,10 @@ class ModelManager:
             if model['name'] == name:
                 return model
 
-    @staticmethod
     def new(name):
         "Create a new model, save it in the registry, and return it."
         # caller should call save() after modifying
-        model = defaultModel.copy()
-        model['name'] = name
-        model['mod'] = intTime()
-        model['flds'] = []
-        model['tmpls'] = []
-        model['tags'] = []
-        model['id'] = None
-        return model
+        return Model(self, name=name)
 
     def rem(self, model):
         "Delete model, and all its cards/notes."
@@ -854,7 +846,22 @@ select id from notes where mid = ?)""" % " ".join(map),
         self.save()
 
 class Model(DictAugmented):
-    #def __init__(self, manager, dict):
+    def __init__(self, manager, dict=None, name=None):
+        if dict:
+            super.__init__(manager, dict)
+        else:
+            self.new(manager, name)
+
+    def new(self, manager, name):
+        "Create a new model, save it in the registry, and return it."
+        # caller should call save() after modifying
+        super.__init__(manager, defaultModel)
+        self['name'] = name
+        self['mod'] = intTime()
+        self['flds'] = []
+        self['tmpls'] = []
+        self['tags'] = []
+        self['id'] = None
 
     def save(self, template=False, saveManager=False):
         """
