@@ -647,23 +647,6 @@ select id from notes where mid = ?)""" % " ".join(map),
             cardData)
         self.col.remCards(deleted)
 
-    # Schema hash
-    ##########################################################################
-
-    @staticmethod
-    def scmhash(model):
-        """Return a hash of the schema, to see if models are
-        compatible. Consider only name of fields and of card type, and
-        not the card type itself.
-
-        """
-        scm = ""
-        for fieldType in model['flds']:
-            scm += fieldType['name']
-        for template in model['tmpls']:
-            scm += template['name']
-        return checksum(scm)
-
     # Required field/text cache
     ##########################################################################
 
@@ -886,3 +869,20 @@ select id from cards where nid in (select id from notes where mid = ?)""",
 
     def beforeUpload(self):
         self['usn'] = 0
+
+    # Schema hash
+    ##########################################################################
+
+    def scmhash(self):
+        """Return a hash of the schema, to see if models are
+        compatible. Consider only name of fields and of card type, and
+        not the card type itself.
+
+        """
+        scm = ""
+        for fieldType in self['flds']:
+            scm += fieldType['name']
+        for template in self['tmpls']:
+            scm += template['name']
+        return checksum(scm)
+
