@@ -253,14 +253,6 @@ class ModelManager:
     # Tools
     ##################################################
 
-    def useCount(self, model):
-        """Number of note using the model model.
-
-        Keyword arguments
-        model -- a model object."""
-        return self.col.db.scalar(
-            "select count() from notes where mid = ?", model['id'])
-
     def tmplUseCount(self, model, ord):
         """The number of cards which used template number ord of the
         model obj.
@@ -808,6 +800,14 @@ select id from cards where nid in (select id from notes where mid = ?)""",
         model -- a model"""
         for index, fieldType in enumerate(self['flds']):
             fieldType['ord'] = index
+
+    def useCount(self):
+        """Number of note using the model model.
+
+        Keyword arguments
+        model -- a model object."""
+        return self.manager.col.db.scalar(
+            "select count() from notes where mid = ?", self.getId())
 
 class Template(DictAugmented):
     def __init__(self, model, dic):
