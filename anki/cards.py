@@ -79,6 +79,8 @@ class Card:
         self.timerStarted = None
         self._qa = None
         self._note = None
+        self._deck = None
+        self._odeck = None
         if id:
             self.id = id
             self.load()
@@ -128,7 +130,9 @@ class Card:
 
     @property
     def did(self):
-        return self._deck['id']
+        if self._deck:
+            return self._deck['id']
+        return 0
 
     @property
     def deck(self):
@@ -154,7 +158,9 @@ class Card:
 
     @property
     def odid(self):
-        return self._odeck['id']
+        if self._odeck:
+            return self._odeck['id']
+        return 0
 
     @property
     def odeck(self):

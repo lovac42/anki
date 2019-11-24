@@ -853,3 +853,5 @@ select id from notes where mid = ?)""" % " ".join(map),
         for model in self.all():
             model['usn'] = 0
         self.save()
+
+class Model():
