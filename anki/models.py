@@ -545,12 +545,6 @@ update cards set ord = (case %s end),usn=?,mod=? where nid in (
 select id from notes where mid = ?)""" % " ".join(map),
                              self.col.usn(), intTime(), model['id'])
 
-    def _syncTemplates(self, model):
-        """Generate all cards not yet generated, whose note's model is model.
-
-        It's called only when model is saved, a new model is given and template is asked to be computed"""
-        self.col.genCards(model.nids())
-
     # Model changing
     ##########################################################################
     # - maps are ord->ord, and there should not be duplicate targets
@@ -691,7 +685,7 @@ class Model(DictAugmented):
             model['usn'] = self.col.usn()
             model._updateRequired(model)
             if templates:
-                self._syncTemplates(model)
+                model._syncTemplates()
 
     def setCurrent(self, model):
         """Change curModel value and marks the collection as modified."""
@@ -842,6 +836,12 @@ select id from cards where nid in (select id from notes where mid = ?)""",
             # empty clozes use first ord
             return [0]
         return list(ords)
+
+    def _syncTemplates(self):
+        """Generate all cards not yet generated, whose note's model is model.
+
+        It's called only when model is saved, a new model is given and template is asked to be computed"""
+        self.col.genCards(self.nids())
 
 class Template(DictAugmented):
 
