@@ -347,18 +347,6 @@ class ModelManager:
     # Templates
     ##################################################
 
-    @staticmethod
-    def newTemplate(name):
-        """A new template, whose content is the one of
-        defaultTemplate, and name is name.
-
-        It's used in order to import mnemosyn, and create the standard
-        model during anki's first initialization. It's not used in day to day anki.
-        """
-        template = defaultTemplate.copy()
-        template['name'] = name
-        return template
-
     def moveTemplate(self, model, template, idx):
         """Move input template to position idx in model.
 
@@ -806,10 +794,31 @@ select id from cards where nid in (select id from notes where mid = ?)""",
         self.manager.col.updateFieldCache(self.nids())
         self.save(saveManager=True)
 
+    def newTemplate(self, name):
+        Template(self, name=name)
+
 class Template(DictAugmented):
-    def __init__(self, model, dic):
+    def __init__(self, model, dic=None, name=None):
+        if dic:
+            self.load(model, dic)
+        else:
+            assert (name is not None)
+            self.new(model, name)
+
+    self load(self, model, dic):
         self.model = model
         self.dic = dic
+
+    def new(model, name):
+        """A new template, whose content is the one of
+        defaultTemplate, and name is name.
+
+        It's used in order to import mnemosyn, and create the standard
+        model during anki's first initialization. It's not used in day to day anki.
+        """
+        template = defaultTemplate.copy()
+        template['name'] = name
+        self.load(model, template)
 
     # Required field/text cache
     ##########################################################################
