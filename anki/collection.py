@@ -475,7 +475,7 @@ crt=?, mod=?, scm=?, dty=?, usn=?, ls=?, conf=?""",
         else:
             # cloze - generate temporary templates from first
             for ord in avail:
-                template = copy.copy(model['tmpls'][0])
+                template = model['tmpls'][0].copy(model)
                 template['ord'] = ord
                 ok.append(template)
         return ok

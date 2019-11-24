@@ -250,16 +250,6 @@ class ModelManager:
         """The list of id of models"""
         return list(self.models.keys())
 
-    # Copying
-    ##################################################
-
-    def copy(self, model):
-        "A copy of model, already in the collection."
-        m2 = copy.deepcopy(model)
-        m2['name'] = _("%s copy") % m2['name']
-        self.add(m2)
-        return m2
-
     # Fields
     ##################################################
 
@@ -834,6 +824,19 @@ select id from cards where nid in (select id from notes where mid = ?)""",
     def isCloze(self):
         return self['type'] == MODEL_CLOZE:
 
+    # Copying
+    ##################################################
+
+    def copy(self):
+        "A copy of model, already in the collection."
+        m2Dict = copy.deepcopy(self.dic)
+        m2Dict['name'] = _("%s copy") % m2['name']
+        model = Model(self.manager, m2Dict)
+        m2Dict['tmpls'] = map(lambda template: template.copy(model), m2Dict['tmpls'])
+        m2Dict['flds'] = map(lambda field: field.copy(model), m2Dict['tmpls'])
+        self.manager.add(model)
+        return model
+
 class Template(DictAugmented):
     def __init__(self, model, dic):
         self.model = model
@@ -932,7 +935,13 @@ update cards set ord = ord - 1, usn = ?, mod = ?
 select count() from cards, notes where cards.nid = notes.id
 and notes.mid = ? and cards.ord = ?""", self.model['id'], self['ord'])
 
+    def copy(self, model):
+        return Template(model, copy.deepcopy(self.dic))
+
 class Field(DictAugmented):
     def __init__(self, model, dic):
         self.model = model
         self.dic = dic
+
+    def copy(self, model):
+        return Field(model, copy.deepcopy(self.dic))
