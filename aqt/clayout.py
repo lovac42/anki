@@ -244,7 +244,7 @@ class CardLayout(QDialog):
             dict(modelName=self.model['tmpls'][idx]['name'], cards=cards))
         if not askUser(msg):
             return
-        if not self.mm.remTemplate(self.model, self.cards[idx].template()):
+        if not self.cards[idx].template().rem():
             return showWarning(_("""\
 Removing this card type would cause one or more notes to be deleted. \
 Please create a new card type first."""))

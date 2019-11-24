@@ -480,40 +480,6 @@ and notes.mid = ? and cards.ord = ?""", model['id'], ord)
         model._updateTemplOrds()
         self.save(model)
 
-    def remTemplate(self, model, template):
-        """Remove the input template from the model model.
-
-        Return False if removing template would leave orphan
-        notes. Otherwise True
-        """
-        assert len(model['tmpls']) > 1
-        # find cards using this template
-        ord = model['tmpls'].index(template)
-        cids = self.col.db.list("""
-select card.id from cards card, notes note where card.nid=note.id and mid = ? and ord = ?""",
-                                 model['id'], ord)
-        # all notes with this template must have at least two cards, or we
-        # could end up creating orphaned notes
-        if self.col.db.scalar("""
-select nid, count() from cards where
-nid in (select nid from cards where id in %s)
-group by nid
-having count() < 2
-limit 1""" % ids2str(cids)):
-            return False
-        # ok to proceed; remove cards
-        self.col.modSchema(check=True)
-        self.col.remCards(cids)
-        # shift ordinals
-        self.col.db.execute("""
-update cards set ord = ord - 1, usn = ?, mod = ?
- where nid in (select id from notes where mid = ?) and ord > ?""",
-                             self.col.usn(), intTime(), model['id'], ord)
-        model['tmpls'].remove(template)
-        model._updateTemplOrds()
-        self.save(model)
-        return True
-
     def moveTemplate(self, model, template, idx):
         """Move input template to position idx in model.
 
@@ -860,10 +826,10 @@ class Template(DictAugmented):
         """
         ankiflagFlds = ["ankiflag"] * len(flds)
         emptyFlds = [""] * len(flds)
-        data = [1, 1, self.model['id'], 1, self['ord'], "", joinFields(ankiflagFlds), 0]
+        data = [1, 1, self.self.getId(), 1, self['ord'], "", joinFields(ankiflagFlds), 0]
         # The html of the card at position ord where each field's content is "ankiflag"
         full = self.model.manager.col._renderQA(data)['q']
-        data = [1, 1, self.model['id'], 1, self['ord'], "", joinFields(emptyFlds), 0]
+        data = [1, 1, self.self.getId(), 1, self['ord'], "", joinFields(emptyFlds), 0]
         # The html of the card at position ord where each field's content is the empty string ""
         empty = self.model.manager.col._renderQA(data)['q']
 
@@ -893,3 +859,38 @@ class Template(DictAugmented):
             if self.model.manager.col._renderQA(data)['q'] != empty:
                 req.append(i)
         return type, req
+
+    def rem(self):
+        """Remove the input template from the model model.
+
+        Return False if removing template would leave orphan
+        notes. Otherwise True
+        """
+        assert len(self.model['tmpls']) > 1
+        # find cards using this template
+        ord = self.model['tmpls'].index(template)
+        cids = self.model.manager.col.db.list("""
+select card.id from cards card, notes note where card.nid=note.id and mid = ? and ord = ?""",
+                                 self.self.getId(), ord)
+        # all notes with this template must have at least two cards, or we
+        # could end up creating orphaned notes
+        if self.model.manager.col.db.scalar("""
+select nid, count() from cards where
+nid in (select nid from cards where id in %s)
+group by nid
+having count() < 2
+limit 1""" % ids2str(cids)):
+            return False
+        # ok to proceed; remove cards
+        self.model.manager.col.modSchema(check=True)
+        self.model.manager.col.remCards(cids)
+        # shift ordinals
+        self.model.manager.col.db.execute("""
+update cards set ord = ord - 1, usn = ?, mod = ?
+ where nid in (select id from notes where mid = ?) and ord > ?""",
+                             self.model.manager.col.usn(), intTime(), self.self.getId(), ord)
+        self.model['tmpls'].remove(template)
+        self.model._updateTemplOrds()
+        self.model.save(True)
+        return True
+
