@@ -240,7 +240,7 @@ class ModelManager:
         model._setID()
         model.update()
         model.setCurrent()
-        self.save(model)
+        model.save(saveManager=True)
 
     def have(self, id):
         """Whether there exists a model whose id is did."""
