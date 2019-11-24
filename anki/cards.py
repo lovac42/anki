@@ -129,6 +129,37 @@ class Card:
         self._note = None
 
     @property
+    def ord(self):
+        return self._ord
+
+    @ord.setter
+    def ord(self, ord):
+        model = self.model()
+        if model.isStd():
+            self._template = model.getTemplate(ord)
+        else:
+            self._template = model.getTemplate(0)
+        self._ord = _ord
+
+    @ord.delete
+    def ord(self):
+        del self._template
+
+    @property
+    def template(self):
+        return self._template
+
+    @ord.setter
+    def template(self, template):
+        if template.model.isStd():
+            self.ord = template['ord']
+        self._template = template
+
+    @ord.delete
+    def ord(self):
+        del self._template
+
+    @property
     def did(self):
         if self._deck:
             return self._deck['id']
@@ -302,16 +333,12 @@ lapses=?, left=?, odue=?, odid=?, did=? where id = ?""",
     def model(self):
         """The card's note's model (note type) object. This object is
         described in models.py."""
-        return self.col.models.get(self.note().mid)
+        return self.note().model()
 
     def template(self):
         """The card's template object. See models.py for a comment of this
         object."""
-        model = self.model()
-        if model['type'] == MODEL_STD:
-            return self.model()['tmpls'][self.ord]
-        else: #In case of cloze
-            return self.model()['tmpls'][0]
+        return self._template
 
     def startTimer(self):
         """Start the timer of the card"""

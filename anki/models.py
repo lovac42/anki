@@ -250,19 +250,6 @@ class ModelManager:
         """The list of id of models"""
         return list(self.models.keys())
 
-    # Tools
-    ##################################################
-
-    def tmplUseCount(self, model, ord):
-        """The number of cards which used template number ord of the
-        model obj.
-
-        Keyword arguments
-        model -- a model object."""
-        return self.col.db.scalar("""
-select count() from cards, notes where cards.nid = notes.id
-and notes.mid = ? and cards.ord = ?""", model['id'], ord)
-
     # Copying
     ##################################################
 
@@ -841,6 +828,11 @@ select id from cards where nid in (select id from notes where mid = ?)""",
                 return tmpl
         return None
 
+    def isStd(self):
+        return self['type'] == MODEL_STD:
+
+    def isCloze(self):
+        return self['type'] == MODEL_CLOZE:
 
 class Template(DictAugmented):
     def __init__(self, model, dic):
@@ -926,6 +918,19 @@ update cards set ord = ord - 1, usn = ?, mod = ?
         self.model._updateTemplOrds()
         self.model.save(True)
         return True
+
+    # Tools
+    ##################################################
+
+    def tmplUseCount(self):
+        """The number of cards which used template number ord of the
+        model obj.
+
+        Keyword arguments
+        model -- a model object."""
+        return self.col.db.scalar("""
+select count() from cards, notes where cards.nid = notes.id
+and notes.mid = ? and cards.ord = ?""", self.model['id'], self['ord'])
 
 class Field(DictAugmented):
     def __init__(self, model, dic):
