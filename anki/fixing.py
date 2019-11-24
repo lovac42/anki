@@ -105,7 +105,7 @@ class FixingManager:
         problems = []
         for model in self.col.models.all(MODEL_STD):
             if 'req' not in model:
-                self.col.models._updateRequired(model)
+                model._updateRequired()
                 problems.append(_("Fixed note type: %s") % model['name'])
         return problems
 

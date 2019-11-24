@@ -650,18 +650,6 @@ select id from notes where mid = ?)""" % " ".join(map),
     # Required field/text cache
     ##########################################################################
 
-    def _updateRequired(self, model):
-        """Entirely recompute the model's req value"""
-        if model['type'] == MODEL_CLOZE:
-            # nothing to do
-            return
-        req = []
-        flds = [fieldType['name'] for fieldType in model['flds']]
-        for template in model['tmpls']:
-            ret = self._reqForTemplate(model, flds, template)
-            req.append((template['ord'], ret[0], ret[1]))
-        model['req'] = req
-
     def _reqForTemplate(self, model, flds, template):
         """A rule which is supposed to determine whether a card should be
         generated or not according to its fields.
@@ -807,7 +795,7 @@ class Model(DictAugmented):
         if self.getId():
             model['mod'] = intTime()
             model['usn'] = self.col.usn()
-            self._updateRequired(model)
+            model._updateRequired(model)
             if templates:
                 self._syncTemplates(model)
 
@@ -885,4 +873,16 @@ select id from cards where nid in (select id from notes where mid = ?)""",
         for template in self['tmpls']:
             scm += template['name']
         return checksum(scm)
+
+    def _updateRequired(self):
+        """Entirely recompute the model's req value"""
+        if self['type'] == MODEL_CLOZE:
+            # nothing to do
+            return
+        req = []
+        flds = [fieldType['name'] for fieldType in self['flds']]
+        for template in self['tmpls']:
+            ret = self.manager._reqForTemplate(self, flds, template)
+            req.append((template['ord'], ret[0], ret[1]))
+        self['req'] = req
 
