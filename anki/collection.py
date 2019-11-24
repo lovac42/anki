@@ -665,7 +665,7 @@ select id from notes where id in %s and id not in (select nid from cards)""" %
         """The card id of empty cards of the collection"""
         rem = []
         for model in self.models.all():
-            rem += self.genCards(self.models.nids(model))
+            rem += self.genCards(model.nids())
         return rem
 
     def emptyCardReport(self, cids):

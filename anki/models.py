@@ -321,7 +321,7 @@ and notes.mid = ? and cards.ord = ?""", model['id'], ord)
         assert 0 <= idx < len(model['flds'])
         self.col.modSchema(check=True)
         model['sortf'] = idx
-        self.col.updateFieldCache(self.nids(model))
+        self.col.updateFieldCache(model.nids())
         self.save(model)
 
     def addField(self, model, fieldType):
@@ -371,7 +371,7 @@ and notes.mid = ? and cards.ord = ?""", model['id'], ord)
         self._transformFields(model, delete)
         if model['flds'][model['sortf']]['name'] != sortFldName:
             # need to rebuild sort field
-            self.col.updateFieldCache(self.nids(model))
+            self.col.updateFieldCache(model.nids())
         # saves
         self.renameField(model, fieldTypeToRemove, None)
 
@@ -549,7 +549,7 @@ select id from notes where mid = ?)""" % " ".join(map),
         """Generate all cards not yet generated, whose note's model is model.
 
         It's called only when model is saved, a new model is given and template is asked to be computed"""
-        self.col.genCards(self.nids(model))
+        self.col.genCards(model.nids())
 
     # Model changing
     ##########################################################################

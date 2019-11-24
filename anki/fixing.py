@@ -181,7 +181,7 @@ class FixingManager:
     def fieldCache(self):
         # field cache
         for model in self.col.models.all():
-            self.col.updateFieldCache(self.col.models.nids(model))
+            self.col.updateFieldCache(model.nids())
 
     def atMost1000000Due(self):
         # new cards can't have a due position > 32 bits, so wrap items over
