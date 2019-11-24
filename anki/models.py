@@ -253,37 +253,6 @@ class ModelManager:
     # Fields
     ##################################################
 
-    def remField(self, model, fieldTypeToRemove):
-        """Remove a field from a model.
-        Also remove it from each note of this model
-        Move the position of the sortfield. Update the position of each field.
-
-        Modify the template
-
-        model -- the model
-        field -- the field object"""
-        self.col.modSchema(check=True)
-        # save old sort field
-        sortFldName = model['flds'][model['sortf']]['name']
-        idx = model['flds'].index(fieldTypeToRemove)
-        model['flds'].remove(fieldTypeToRemove)
-        # restore old sort field if possible, or revert to first field
-        model['sortf'] = 0
-        for index, fieldType in enumerate(model['flds']):
-            if fieldType['name'] == sortFldName:
-                model['sortf'] = index
-                break
-        model._updateFieldOrds()
-        def delete(fieldsContents):
-            del fieldsContents[idx]
-            return fieldsContents
-        model._transformFields(delete)
-        if model['flds'][model['sortf']]['name'] != sortFldName:
-            # need to rebuild sort field
-            self.col.updateFieldCache(model.nids())
-        # saves
-        self.renameField(model, fieldTypeToRemove, None)
-
     def moveField(self, model, fieldType, idx):
         """Move the field to position idx
 
@@ -961,3 +930,35 @@ class Field(DictAugmented):
         fieldType = defaultField.copy()
         fieldType['name'] = name
         self.load(model, fieldType)
+
+    def rem(self):
+        """Remove a field from a model.
+        Also remove it from each note of this model
+        Move the position of the sortfield. Update the position of each field.
+
+        Modify the template
+
+        model -- the model
+        field -- the field object"""
+        self.model.manager.col.modSchema(check=True)
+        # save old sort field
+        sortFldName = self.model['flds'][self.model['sortf']]['name']
+        idx = self.model['flds'].index(self)
+        self.model['flds'].remove(self)
+        # restore old sort field if possible, or revert to first field
+        self.model['sortf'] = 0
+        for index, fieldType in enumerate(self.model['flds']):
+            if fieldType['name'] == sortFldName:
+                self.model['sortf'] = index
+                break
+        self.model._updateFieldOrds()
+        def delete(fieldsContents):
+            del fieldsContents[idx]
+            return fieldsContents
+        self.model._transformFields(delete)
+        if self.model['flds'][self.model['sortf']]['name'] != sortFldName:
+            # need to rebuild sort field
+            self.model.manager.col.updateFieldCache(self.model.nids())
+        # saves
+        self.model.manager.renameField(self.model, self, None)
+
