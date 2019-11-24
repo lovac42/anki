@@ -52,7 +52,7 @@ def test_noteAddDelete():
     t = mm.newTemplate("Reverse")
     t['qfmt'] = "{{Back}}"
     t['afmt'] = "{{Front}}"
-    mm.addTemplate(m, t)
+    t.add()
     mm.save(m)
     # the default save doesn't generate cards
     assert deck.cardCount() == 1

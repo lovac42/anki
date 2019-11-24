@@ -62,7 +62,7 @@ def test_genrem():
     t = mm.newTemplate("rev")
     t['qfmt'] = '{{Front}}'
     t['afmt'] = ""
-    mm.addTemplate(m, t)
+    t.add()
     mm.save(m, templates=True)
     assert len(f.cards()) == 2
     # if the template is changed to remove cards, they'll be removed

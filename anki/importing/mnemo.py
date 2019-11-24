@@ -143,7 +143,7 @@ acq_reps+ret_reps, lapses, card_type_id from cards"""):
         template = mm.newTemplate("Back")
         template['qfmt'] = "{{Back}}"
         template['afmt'] = template['qfmt'] + "\n\n<hr id=answer>\n\n{{Front}}"
-        mm.addTemplate(model, template)
+        template.add()
         self._addFronts(notes, model)
 
     def _addVocabulary(self, notes):
@@ -151,17 +151,17 @@ acq_reps+ret_reps, lapses, card_type_id from cards"""):
         model = mm.new("Mnemosyne-Vocabulary")
         for fieldName in "Expression", "Pronunciation", "Meaning", "Notes":
             fm = mm.newField(fieldName)
-            mm.addField(model, fm)
+            fm.add()
         template = mm.newTemplate("Recognition")
         template['qfmt'] = "{{Expression}}"
         template['afmt'] = template['qfmt'] + """\n\n<hr id=answer>\n\n\
 {{Pronunciation}}<br>\n{{Meaning}}<br>\n{{Notes}}"""
-        mm.addTemplate(model, template)
+        template.add()
         template = mm.newTemplate("Production")
         template['qfmt'] = "{{Meaning}}"
         template['afmt'] = template['qfmt'] + """\n\n<hr id=answer>\n\n\
 {{Expression}}<br>\n{{Pronunciation}}<br>\n{{Notes}}"""
-        mm.addTemplate(model, template)
+        template.add()
         mm.add(model)
         self._addFronts(notes, model, fields=("f", "p_1", "m_1", "n"))
 

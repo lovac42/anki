@@ -260,26 +260,6 @@ class ModelManager:
         fieldType['name'] = name
         return fieldType
 
-    def addField(self, model, fieldType):
-        """Append the field field as last element of the model model.
-
-        todo
-
-        Keyword arguments
-        model -- a model
-        field -- a field object
-        """
-        # only mod schema if model isn't new
-        if model['id']:
-            self.col.modSchema(check=True)
-        model['flds'].append(fieldType)
-        model._updateFieldOrds()
-        self.save(model)
-        def add(fieldsContents):
-            fieldsContents.append("")
-            return fieldsContents
-        model._transformFields(add)
-
     def remField(self, model, fieldTypeToRemove):
         """Remove a field from a model.
         Also remove it from each note of this model
@@ -378,16 +358,6 @@ class ModelManager:
         template = defaultTemplate.copy()
         template['name'] = name
         return template
-
-    def addTemplate(self, model, template):
-        """Add a new template in model, as last element. This template is a copy
-        of the input template
-        """
-        if model['id']:
-            self.col.modSchema(check=True)
-        model['tmpls'].append(template)
-        model._updateTemplOrds()
-        self.save(model)
 
     def moveTemplate(self, model, template, idx):
         """Move input template to position idx in model.
@@ -937,10 +907,40 @@ and notes.mid = ? and cards.ord = ?""", self.model['id'], self['ord'])
     def copy(self, model):
         return Template(model, copy.deepcopy(self.dic))
 
+    def add(self):
+        """Add a new template in model, as last element. This template is a copy
+        of the input template
+        """
+        if self.model['id']:
+            self.model.manager.col.modSchema(check=True)
+        self.model['tmpls'].append(self)
+        self.model._updateTemplOrds()
+        self.model.save(saveManager=True)
+
 class Field(DictAugmented):
+    """Field may not be in model, and will be added later by add method"""
     def __init__(self, model, dic):
         self.model = model
         self.dic = dic
 
     def copy(self, model):
         return Field(model, copy.deepcopy(self.dic))
+
+    def add(self):
+        """Append the field field as last element of the model model.
+
+        todo
+
+        Keyword arguments
+        """
+        # only mod schema if model isn't new
+        if self.model['id']:
+            self.model.manager.col.modSchema(check=True)
+        self.model['flds'].append(self)
+        self.model._updateFieldOrds()
+        self.model.save(saveManager=True)
+        def add(fieldsContents):
+            fieldsContents.append("")
+            return fieldsContents
+        self.model._transformFields(add)
+

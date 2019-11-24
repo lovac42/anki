@@ -42,7 +42,7 @@ def test_fields():
     # add a field
     f = d.models.newField(m)
     f['name'] = "foo"
-    d.models.addField(m, f)
+    f.add()
     assert d.getNote(m.nids()[0]).fields == ["1", "2", ""]
     assert m.scmhash() != h
     # rename it
@@ -60,7 +60,7 @@ def test_fields():
     # add another and put in middle
     f = d.models.newField(m)
     f['name'] = "baz"
-    d.models.addField(m, f)
+    f.add()
     f = d.getNote(m.nids()[0])
     f['baz'] = "2"
     f.flush()
@@ -81,7 +81,7 @@ def test_templates():
     t = mm.newTemplate("Reverse")
     t['qfmt'] = "{{Back}}"
     t['afmt'] = "{{Front}}"
-    mm.addTemplate(m, t)
+    t.add()
     mm.save(m)
     f = d.newNote()
     f['Front'] = '1'
@@ -106,7 +106,7 @@ def test_templates():
     assert stripHTML(c.q()) == "1"
     # it shouldn't be possible to orphan notes by removing templates
     t = mm.newTemplate(m)
-    mm.addTemplate(m, t)
+    t.add()
     assert not m['tmpls'][0].rem()
 
 def test_cloze_ordinals():
@@ -118,7 +118,7 @@ def test_cloze_ordinals():
     t = mm.newTemplate("ChainedCloze")
     t['qfmt'] = "{{text:cloze:Text}}"
     t['afmt'] = "{{text:cloze:Text}}"
-    mm.addTemplate(m, t)
+    t.add()
     mm.save(m)
     m['tmpls'][0].rem()
     
@@ -210,7 +210,7 @@ def test_chained_mods():
     t = mm.newTemplate("ChainedCloze")
     t['qfmt'] = "{{cloze:text:Text}}"
     t['afmt'] = "{{cloze:text:Text}}"
-    mm.addTemplate(m, t)
+    t.add()
     mm.save(m)
     m['tmpls'][0].rem()
     
@@ -233,7 +233,7 @@ def test_modelChange():
     t = mm.newTemplate("Reverse")
     t['qfmt'] = "{{Back}}"
     t['afmt'] = "{{Front}}"
-    mm.addTemplate(m, t)
+    t.add()
     mm.save(m)
     f = deck.newNote()
     f['Front'] = 'f'
