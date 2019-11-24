@@ -237,7 +237,7 @@ class ModelManager:
 
     def add(self, model):
         """Add a new model model in the database of models"""
-        self._setID(model)
+        model._setID()
         model.update()
         model.setCurrent()
         self.save(model)
