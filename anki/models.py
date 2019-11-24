@@ -261,15 +261,6 @@ class ModelManager:
         return fieldType
 
     @staticmethod
-    def fieldMap(model):
-        """Mapping of (field name) -> (ord, field object).
-
-        keyword arguments:
-        model : a model
-        """
-        return dict((fieldType['name'], (fieldType['ord'], fieldType)) for fieldType in model['flds'])
-
-    @staticmethod
     def fieldNames(model):
         """The list of names of fields of this model."""
         return [fieldType['name'] for fieldType in model['flds']]
@@ -724,7 +715,7 @@ select id from cards where nid in (select id from notes where mid = ?)""",
         allowEmpty: allows to treat a note without cloze field as a note with a cloze number 1
         """
         sflds = splitFields(flds)
-        map = self.manager.fieldMap(self)
+        map = self.fieldMap()
         ords = set()
         matches = re.findall("{{[^}]*?cloze:(?:[^}]?:)*(.+?)}}", self['tmpls'][0]['qfmt'])
         matches += re.findall("<%cloze:(.+?)%>", self['tmpls'][0]['qfmt'])
@@ -937,6 +928,18 @@ and notes.mid = ? and cards.ord = ?""", self.model['id'], self['ord'])
 
     def copy(self, model):
         return Template(model, copy.deepcopy(self.dic))
+
+    # Fields
+    ##################################################
+
+    def fieldMap(self):
+        """Mapping of (field name) -> (ord, field object).
+
+        keyword arguments:
+        model : a model
+        """
+        return dict((fieldType['name'], (fieldType['ord'], fieldType)) for fieldType in self['flds'])
+
 
 class Field(DictAugmented):
     def __init__(self, model, dic):
