@@ -80,7 +80,7 @@ class FieldDialog(QDialog):
         name = self._uniqueName(_("New name:"), self.currentIdx, fldType['name'])
         if not name:
             return
-        self.mm.renameField(self.model, fldType, name)
+        fldType.rename(name)
         self.saveField()
         self.fillFields()
         self.form.fieldList.setCurrentRow(idx)

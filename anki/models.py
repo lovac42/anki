@@ -279,33 +279,6 @@ class ModelManager:
             return fields
         model._transformFields(move)
 
-    def renameField(self, model, fieldType, newName):
-        """Rename the field. In each template, find the mustache related to
-        this field and change them.
-
-        model -- the model dictionnary
-        field -- the field dictionnary
-        newName -- either a name. Or None if the field is deleted.
-
-        """
-        self.col.modSchema(check=True)
-        #Regexp associating to a mustache the name of its field
-        pat = r'{{([^{}]*)([:#^/]|[^:#/^}][^:}]*?:|)%s}}'
-        def wrap(txt):
-            def repl(match):
-                return '{{' + match.group(1) + match.group(2) + txt +  '}}'
-            return repl
-        for template in model['tmpls']:
-            for fmt in ('qfmt', 'afmt'):
-                if newName:
-                    template[fmt] = re.sub(
-                        pat % re.escape(fieldType['name']), wrap(newName), template[fmt])
-                else:
-                    template[fmt] = re.sub(
-                        pat  % re.escape(fieldType['name']), "", template[fmt]) 
-       fieldType['name'] = newName
-        self.save(model)
-
     # Templates
     ##################################################
 
@@ -960,5 +933,31 @@ class Field(DictAugmented):
             # need to rebuild sort field
             self.model.manager.col.updateFieldCache(self.model.nids())
         # saves
-        self.model.manager.renameField(self.model, self, None)
+        self.rename(None)
+
+    def rename(self, newName):
+        """Rename the field. In each template, find the mustache related to
+        this field and change them.
+
+        field -- the field dictionnary
+        newName -- either a name. Or None if the field is deleted.
+
+        """
+        self.model.manager.col.modSchema(check=True)
+        #Regexp associating to a mustache the name of its field
+        pat = r'{{([^{}]*)([:#^/]|[^:#/^}][^:}]*?:|)%s}}'
+        def wrap(txt):
+            def repl(match):
+                return '{{' + match.group(1) + match.group(2) + txt +  '}}'
+            return repl
+        for template in self.model['tmpls']:
+            for fmt in ('qfmt', 'afmt'):
+                if newName:
+                    template[fmt] = re.sub(
+                        pat % re.escape(self['name']), wrap(newName), template[fmt])
+                else:
+                    template[fmt] = re.sub(
+                        pat  % re.escape(self['name']), "", template[fmt])
+       self['name'] = newName
+       self.model.save(saveManager=True)
 
