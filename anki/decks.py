@@ -811,6 +811,8 @@ class Deck(DictAugmented):
             "update cards set did=?,usn=?,mod=? where id in "+
             ids2str(cids), self.getId(), self.col.usn(), intTime())
 
+    def getModel(self):
+        self.manager.col.models.get(self['mid'])
                 
 class DConf(DictAugmented):
     """
