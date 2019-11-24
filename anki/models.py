@@ -337,7 +337,7 @@ and notes.mid = ? and cards.ord = ?""", model['id'], ord)
         if model['id']:
             self.col.modSchema(check=True)
         model['flds'].append(fieldType)
-        self._updateFieldOrds(model)
+        model._updateFieldOrds()
         self.save(model)
         def add(fieldsContents):
             fieldsContents.append("")
@@ -364,7 +364,7 @@ and notes.mid = ? and cards.ord = ?""", model['id'], ord)
             if fieldType['name'] == sortFldName:
                 model['sortf'] = index
                 break
-        self._updateFieldOrds(model)
+        model._updateFieldOrds()
         def delete(fieldsContents):
             del fieldsContents[idx]
             return fieldsContents
@@ -392,7 +392,7 @@ and notes.mid = ? and cards.ord = ?""", model['id'], ord)
         model['flds'].insert(idx, fieldType)
         # restore sort fieldType
         model['sortf'] = model['flds'].index(sortf)
-        self._updateFieldOrds(model)
+        model._updateFieldOrds()
         self.save(model)
         def move(fields, oldidx=oldidx):
             val = fields[oldidx]
@@ -427,17 +427,6 @@ and notes.mid = ? and cards.ord = ?""", model['id'], ord)
                         pat  % re.escape(fieldType['name']), "", template[fmt])
         fieldType['name'] = newName
         self.save(model)
-
-    @staticmethod
-    def _updateFieldOrds(model):
-        """
-        Change the order of the field of the model in order to copy
-        the order in model['flds'].
-
-        Keyword arguments
-        model -- a model"""
-        for index, fieldType in enumerate(model['flds']):
-            fieldType['ord'] = index
 
     # Templates
     ##################################################
@@ -807,6 +796,16 @@ select id from cards where nid in (select id from notes where mid = ?)""",
                       intTime(), self.manager.col.usn(), id))
         self.manager.col.db.executemany(
             "update notes set flds=?,mod=?,usn=? where id = ?", notesUpdates)
+
+    def _updateFieldOrds(self):
+        """
+        Change the order of the field of the model in order to copy
+        the order in model['flds'].
+
+        Keyword arguments
+        model -- a model"""
+        for index, fieldType in enumerate(self['flds']):
+            fieldType['ord'] = index
 
 class Template(DictAugmented):
 
