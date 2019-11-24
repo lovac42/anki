@@ -91,7 +91,7 @@ class FieldDialog(QDialog):
             return
         self.saveField()
         self.mw.progress.start()
-        fldType = self.mm.newField(name)
+        fldType = self.model.newField(name)
         fldType.add()
         self.mw.progress.finish()
         self.fillFields()

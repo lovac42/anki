@@ -13,9 +13,9 @@ models = []
 def _newBasicModel(col, name=None):
     mm = col.models
     model = mm.new(name or _("Basic"))
-    fm = mm.newField(_("Front"))
+    fm = model.newField(_("Front"))
     fm.add()
-    fm = mm.newField(_("Back"))
+    fm = model.newField(_("Back"))
     fm.add()
     template = model.newTemplate(_("Card 1"))
     template['qfmt'] = "{{"+_("Front")+"}}"
@@ -70,7 +70,7 @@ def addForwardOptionalReverse(col):
     mm = col.models
     model = _newForwardReverse(col, _("Basic (optional reversed card)"))
     av = _("Add Reverse")
-    fm = mm.newField(av)
+    fm = model.newField(av)
     fm.add()
     template = model['tmpls'][1]
     template['qfmt'] = "{{#%s}}%s{{/%s}}" % (av, template['qfmt'], av)
@@ -88,9 +88,9 @@ def addClozeModel(col):
     model = mm.new(_("Cloze"))
     model['type'] = MODEL_CLOZE
     txt = _("Text")
-    fm = mm.newField(txt)
+    fm = model.newField(txt)
     fm.add()
-    fm = mm.newField(_("Extra"))
+    fm = model.newField(_("Extra"))
     fm.add()
     template = model.newTemplate(_("Cloze"))
     fmt = "{{cloze:%s}}" % txt

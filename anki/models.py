@@ -253,13 +253,6 @@ class ModelManager:
     # Fields
     ##################################################
 
-    @staticmethod
-    def newField(name):
-        """A new field, similar to the default one, whose name is name."""
-        fieldType = defaultField.copy()
-        fieldType['name'] = name
-        return fieldType
-
     def remField(self, model, fieldTypeToRemove):
         """Remove a field from a model.
         Also remove it from each note of this model
@@ -795,7 +788,10 @@ select id from cards where nid in (select id from notes where mid = ?)""",
         self.save(saveManager=True)
 
     def newTemplate(self, name):
-        Template(self, name=name)
+        return Template(self, name=name)
+
+    def newField(self, name):
+        return Field(self, name=name)
 
 class Template(DictAugmented):
     def __init__(self, model, dic=None, name=None):
@@ -928,7 +924,14 @@ and notes.mid = ? and cards.ord = ?""", self.model['id'], self['ord'])
 
 class Field(DictAugmented):
     """Field may not be in model, and will be added later by add method"""
-    def __init__(self, model, dic):
+    def __init__(self, model, dic=None, name=None):
+        if dic is not None:
+            self.load(model, dic)
+        else:
+            assert (name is not None)
+            self.new(model, name)
+
+    def load(self, model, dic):
         self.model = model
         self.dic = dic
 
@@ -953,3 +956,8 @@ class Field(DictAugmented):
             return fieldsContents
         self.model._transformFields(add)
 
+    def new(self, name):
+        """A new field, similar to the default one, whose name is name."""
+        fieldType = defaultField.copy()
+        fieldType['name'] = name
+        self.load(model, fieldType)

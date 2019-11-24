@@ -167,7 +167,7 @@ def test_csv2():
     deck = getEmptyCol()
     mm = deck.models
     m = mm.current()
-    f = mm.newField("Three")
+    f = m.newField("Three")
     f.add()
     mm.save(m)
     n = deck.newNote()
