@@ -3,6 +3,7 @@
 # License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
 
 # some add-ons expect json to be in the utils module
+import copy
 import functools
 import json  # pylint: disable=unused-import
 import locale
@@ -486,3 +487,27 @@ class DictAugmented(dict):
         for key in self:
             dict[key] = copy.deepcopy(self[key])
         return self.__class__(self.manager, dict=dict)
+
+class DictAugmentedIdUsn(DictAugmented):
+    def __eq__(self, other):
+        return self.getId() == other.getId()
+
+    def save(self):
+        """State that the DeckManager has been changed. Changes the
+        mod and usn of the potential argument.
+        The potential argument can be either a deck or a deck
+        configuration.
+        """
+        self['mod'] = intTime()
+        self['usn'] = self.manager.col.usn()
+        self.manager.save()
+
+class DictAugmentedInModel(DictAugmented):
+    def load(self, model, dict):
+        self.model = model
+        super().load(model, dict)
+
+    def new(self, name, default):
+        fieldType = default.copy()
+        fieldType['name'] = name
+        self.load(model, fieldType)
