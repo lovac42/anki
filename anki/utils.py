@@ -456,3 +456,6 @@ def identity(x):
 
 def negation(x):
     return not x
+
+# Classes to extend dicts
+#############################################################################
