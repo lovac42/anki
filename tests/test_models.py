@@ -239,7 +239,7 @@ def test_modelChange():
     deck.addNote(f)
     # switch fields
     map = {0: 1, 1: 0}
-    deck.models.change(basic, [f.id], basic, map, None)
+    basic.models.change(basic, [f.id], map, None)
     f.load()
     assert f['Front'] == 'b123'
     assert f['Back'] == 'f'
@@ -250,7 +250,7 @@ def test_modelChange():
     assert "f" in c1.q()
     assert c0.ord == 0
     assert c1.ord == 1
-    deck.models.change(basic, [f.id], basic, None, map)
+    basic.change(basic, [f.id], None, map)
     f.load(); c0.load(); c1.load()
     assert "f" in c0.q()
     assert "b123" in c1.q()
@@ -260,7 +260,7 @@ def test_modelChange():
     assert f.cards()[0].id == c1.id
     # delete first card
     map = {0: None, 1: 1}
-    deck.models.change(basic, [f.id], basic, None, map)
+    basic.change(basic, [f.id], None, map)
     f.load()
     c0.load()
     # the card was deleted
@@ -274,7 +274,7 @@ def test_modelChange():
     # an unmapped field becomes blank
     assert f['Front'] == 'b123'
     assert f['Back'] == 'f'
-    deck.models.change(basic, [f.id], basic, map, None)
+    basic.change(basic, [f.id], map, None)
     f.load()
     assert f['Front'] == ''
     assert f['Back'] == 'f'
@@ -286,14 +286,14 @@ def test_modelChange():
     assert basic.useCount() == 2
     assert cloze.useCount() == 0
     map = {0: 0, 1: 1}
-    deck.models.change(basic, [f.id], cloze, map, map)
+    cloze.change(basic, [f.id], map, map)
     f.load()
     assert f['Text'] == "f2"
     assert len(f.cards()) == 2
     # back the other way, with deletion of second ord
     basic['tmpls'][1].rem()
     assert deck.db.scalar("select count() from cards where nid = ?", f.id) == 2
-    deck.models.change(cloze, [f.id], basic, map, map)
+    basic.change(cloze, [f.id], map, map)
     assert deck.db.scalar("select count() from cards where nid = ?", f.id) == 1
 
 def test_templates():
