@@ -96,7 +96,7 @@ from notes where id = ?""", self.id)
         mod -- A modification timestamp"""
         assert self.scm == self.col.scm
         self._preFlush()
-        sfld = stripHTMLMedia(self.fields[self.col.models.sortIdx(self._model)])
+        sfld = stripHTMLMedia(self.fields[self._model.sortIdx()])
         tags = self.stringTags()
         fields = self.joinedFields()
         if not mod and self.col.db.scalar(
@@ -241,7 +241,7 @@ space, with an initial and a final white space."""
     ######################################################################
 
     def fldBrowserColumn(self):
-        return htmlToTextLine(self.fields[self.col.models.sortIdx(self.model())])
+        return htmlToTextLine(self.fields[self.model().sortIdx()])
 
     def crtBrowserColumn(self):
         return time.strftime("%Y-%m-%d", time.localtime(self.id/1000))
