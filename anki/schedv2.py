@@ -386,7 +386,7 @@ select count() from cards where did in %s and queue = {QUEUE_PREVIEW}
         if '::' not in deck['name']:
             return lim
         else:
-            for ancestor in self.col.decks.parents(deck['id']):
+            for ancestor in self.col.decks.parents(deck.getId()):
                 # pass in dummy parentLimit so we don't do parent lookup again
                 lim = min(lim, self._deckRevLimitSingle(ancestor))
             return lim
@@ -585,8 +585,8 @@ limit ?""" % ids2str(self.col.decks.active()),
             except:
                 return total
             # move the cards over
-            self.col.log(deck['id'], ids)
-            self._moveToDyn(deck['id'], ids, start=start+total)
+            self.col.log(deck.getId(), ids)
+            self._moveToDyn(deck.getId(), ids, start=start+total)
             total += len(ids)
         return total
 
