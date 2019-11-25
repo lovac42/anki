@@ -655,8 +655,8 @@ did = ? and queue = {QUEUE_REV} and due <= ? limit ?""",
             ids = []
             return ids
         # move the cards over
-        self.col.log(deck['id'], ids)
-        self._moveToDyn(deck['id'], ids)
+        self.col.log(deck.getId(), ids)
+        self._moveToDyn(deck.getId(), ids)
         return ids
 
     def emptyDyn(self, did, lim=None):
