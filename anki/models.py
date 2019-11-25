@@ -158,7 +158,7 @@ class ModelManager:
     def createModel(self, model):
         return Model(self, model)
 
-    def save(self, model=None, templates=False, updateReqs=True):
+    def save(self):
         """
         * Mark model modified if provided.
         * Schedule registry flush.
@@ -168,13 +168,6 @@ class ModelManager:
         model -- A Model
         templates -- whether to check for cards not generated in this model
         """
-        if model and model.getId():
-            model['mod'] = intTime()
-            model['usn'] = self.col.usn()
-            if updateReqs:
-                model._updateRequired()
-            if templates:
-                model._syncTemplates()
         self.changed = True
         runHook("newModel") # By default, only refresh side bar of browser
 
@@ -277,7 +270,7 @@ select id from cards where nid in (select id from notes where mid = ?)""",
         self._setID(model)
         self.update(model)
         self.setCurrent(model)
-        self.save(model)
+        model.save()
 
     def ensureNameUnique(self, model):
         """Transform the name of model into a new name.
@@ -385,7 +378,7 @@ and notes.mid = ? and cards.ord = ?""", model.getId(), ord)
         self.col.modSchema(check=True)
         model['sortf'] = idx
         self.col.updateFieldCache(model.nids())
-        self.save(model, updateReqs=False)
+        model.save(updateReqs=False)
 
     def addField(self, model, fieldType):
         """Append the field field as last element of the model model.
@@ -401,7 +394,7 @@ and notes.mid = ? and cards.ord = ?""", model.getId(), ord)
             self.col.modSchema(check=True)
         model['flds'].append(fieldType)
         self._updateFieldOrds(model)
-        self.save(model)
+        model.save()
         def add(fieldsContents):
             fieldsContents.append("")
             return fieldsContents
@@ -456,7 +449,7 @@ and notes.mid = ? and cards.ord = ?""", model.getId(), ord)
         # restore sort fieldType
         model['sortf'] = model['flds'].index(sortf)
         self._updateFieldOrds(model)
-        self.save(model, updateReqs=False)
+        model.save(updateReqs=False)
         def move(fields, oldidx=oldidx):
             val = fields[oldidx]
             del fields[oldidx]
@@ -489,7 +482,7 @@ and notes.mid = ? and cards.ord = ?""", model.getId(), ord)
                     template[fmt] = re.sub(
                         pat  % re.escape(fieldType.getName()), "", template[fmt])
         fieldType.setName(newName)
-        self.save(model)
+        model.save()
 
     def _updateFieldOrds(self, model):
         """
@@ -540,7 +533,7 @@ and notes.mid = ? and cards.ord = ?""", model.getId(), ord)
             self.col.modSchema(check=True)
         model['tmpls'].append(template)
         self._updateTemplOrds(model)
-        self.save(model)
+        model.save()
 
     def remTemplate(self, model, template):
         """Remove the input template from the model model.
@@ -573,7 +566,7 @@ update cards set ord = ord - 1, usn = ?, mod = ?
                              self.col.usn(), intTime(), model.getId(), ord)
         model['tmpls'].remove(template)
         self._updateTemplOrds(model)
-        self.save(model)
+        model.save()
         return True
 
     def _updateTemplOrds(self, model):
@@ -600,7 +593,7 @@ update cards set ord = ord - 1, usn = ?, mod = ?
         for template in model['tmpls']:
             map.append("when ord = %d then %d" % (oldidxs[id(template)], template['ord']))
         # apply
-        self.save(model, updateReqs=False)
+        model.save(updateReqs=False)
         self.col.db.execute("""
 update cards set ord = (case %s end),usn=?,mod=? where nid in (
 select id from notes where mid = ?)""" % " ".join(map),
