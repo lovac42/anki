@@ -68,6 +68,31 @@ class Field(DictAugmentedInModel):
         self.setName(newName)
         self.model.save()
 
+    def move(self, newIdx):
+        """Move the field to position newIdx
+        newIdx -- new position, integer
+        field -- a field object
+        """
+        self.model.manager.col.modSchema(check=True)
+        oldidx = self.model['flds'].index(self)
+        if oldidx == newIdx:
+            return
+        # remember old sort self
+        sortf = self.model['flds'][self.model['sortf']]
+        # move
+        self.model['flds'].remove(self)
+        self.model['flds'].insert(newIdx, self)
+        # restore sort self
+        self.model['sortf'] = self.model['flds'].index(sortf)
+        self.model._updateFieldOrds()
+        self.model.save(updateReqs=False)
+        def move(fields, oldidx=oldidx):
+            val = fields[oldidx]
+            del fields[oldidx]
+            fields.insert(newIdx, val)
+            return fields
+        self.model._transformFields(move)
+
     def rem(self):
         """Remove a field from a model.
         Also remove it from each note of this model
