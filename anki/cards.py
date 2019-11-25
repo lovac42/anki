@@ -222,7 +222,7 @@ lapses=?, left=?, odue=?, odid=?, did=? where id = ?""",
             note = self.note(reload)
             model = self.model()
             template = self.template()
-            data = [self.id, note.id, model['id'], self.originalDeck(), self.ord,
+            data = [self.id, note.id, model.getId(), self.originalDeck(), self.ord,
                     note.stringTags(), note.joinedFields(), self.flags]
             if browser:
                 args = (template.get('bqfmt'), template.get('bafmt'))
