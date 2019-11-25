@@ -76,9 +76,9 @@ class BothScheduler:
 
     def extendLimits(self, new, rev):
         cur = self.col.decks.current()
-        ancestors = self.col.decks.parents(cur['id'])
+        ancestors = self.col.decks.parents(cur.getId())
         children = [self.col.decks.get(did) for (name, did) in
-                    self.col.decks.children(cur['id'])]
+                    self.col.decks.children(cur.getId())]
         for deck in [cur] + ancestors + children:
             # add
             deck['newToday'][1] -= new
@@ -101,15 +101,15 @@ class BothScheduler:
             ancestors = self.col.decks.parents(did, nameMap)
             for ancestor in ancestors:
                 # add if missing
-                if ancestor['id'] not in pcounts:
-                    pcounts[ancestor['id']] = limFn(ancestor)
+                if ancestor.getId() not in pcounts:
+                    pcounts[ancestor.getId()] = limFn(ancestor)
                 # take minimum of child and parent
-                lim = min(pcounts[ancestor['id']], lim)
+                lim = min(pcounts[ancestor.getId()], lim)
             # see how many cards we actually have
             cnt = cntFn(did, lim)
             # if non-zero, decrement from parent counts
             for ancestor in ancestors:
-                pcounts[ancestor['id']] -= cnt
+                pcounts[ancestor.getId()] -= cnt
             # we may also be a parent
             pcounts[did] = lim - cnt
             # and add to running total
@@ -144,17 +144,17 @@ class BothScheduler:
             nlim = self._deckNewLimitSingle(deck)
             if parentName:
                 nlim = min(nlim, lims[parentName][0])
-            new = self._newForDeck(deck['id'], nlim)
+            new = self._newForDeck(deck.getId(), nlim)
             # learning
-            lrn = self._lrnForDeck(deck['id'])
+            lrn = self._lrnForDeck(deck.getId())
             # reviews
             #rlim -- maximal number of review, taking parent into account
             rlim = self._deckRevLimitSingle(deck)
             if parentName:
                 rlim = min(rlim, lims[parentName][1])
-            rev = self._revForDeck(deck['id'], rlim, childMap)
+            rev = self._revForDeck(deck.getId(), rlim, childMap)
             # save to list
-            data.append([self.col.decks._path(deck['name']), deck['id'], rev, lrn, new])
+            data.append([self.col.decks._path(deck['name']), deck.getId(), rev, lrn, new])
             # add deck as a parent
             lims[deck['name']] = [nlim, rlim]
         return data
@@ -163,7 +163,7 @@ class BothScheduler:
         "Limit for deck without parent limits."
         if deck['dyn']:
             return self.reportLimit
-        conf = self.col.decks.confForDid(deck['id'])
+        conf = self.col.decks.confForDid(deck.getId())
         return max(0, conf[kind]['perDay'] - deck[kind+'Today'][1])
 
     # New cards
