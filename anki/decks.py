@@ -283,7 +283,7 @@ class DeckManager:
             assert isinstance(deckToCopy, Deck)
             deck = deckToCopy.deepcopy()
         deck['name'] = name
-        deck['id'] = id
+        deck.setId(id)
         deck.addInManager()
         self.save(deck)
         self.maybeAddToActive()
