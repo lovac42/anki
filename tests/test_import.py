@@ -1,5 +1,5 @@
 import aqt
-from anki import (__init__, cards, collection, consts, db, decks, errors,
+from anki import (__init__, cards, collection, consts, db, deck, decks, errors,
                   exporting, find, hooks, lang, latex, media, model, models,
                   mpv, notes, sched, schedv2, sound, stats, statsbg, stdmodels,
                   storage, sync, tags, template, utils)
@@ -17,6 +17,7 @@ from aqt import (__init__, about, addcards, addons, browser, clayout,
 
 if isWin:
     from aqt import winpaths
+
 
 
 
