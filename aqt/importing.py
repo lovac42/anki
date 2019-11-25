@@ -161,7 +161,7 @@ you can enter it here. Use \\t to represent tab."""),
         did = self.deck.selectedId()
         if did != self.importer.model['did']:
             self.importer.model['did'] = did
-            self.mw.col.models.save(self.importer.model, updateReqs=False)
+            self.importer.model.save(updateReqs=False)
         self.mw.col.decks.select(did)
         self.mw.progress.start(immediate=True)
         self.mw.checkpoint(_("Import"))
