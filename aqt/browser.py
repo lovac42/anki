@@ -318,7 +318,7 @@ class DataModel(QAbstractTableModel):
         row = index.row()
         card = self.getCard(index)
         nt = card.note().model()
-        return nt['flds'][self.col.models.sortIdx(nt)]['rtl']
+        return nt['flds'][nt.sortIdx()]['rtl']
 
 # Line painter
 ######################################################################
