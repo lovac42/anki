@@ -2,13 +2,20 @@
 # Copyright: Ankitects Pty Ltd and contributors
 # License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
 
-import re, os, zipfile, shutil, unicodedata
-import json, typing
+import json
+import os
+import re
+import shutil
+import typing
+import unicodedata
+import zipfile
 
-from anki.lang import _
-from anki.utils import ids2str, splitFields, namedtmp, stripHTML
+from anki import Collection
 from anki.hooks import runHook
+from anki.lang import _
 from anki.storage import Collection
+from anki.utils import ids2str, namedtmp, splitFields, stripHTML
+
 
 class Exporter:
     includeHTML: typing.Union[bool, None] = None

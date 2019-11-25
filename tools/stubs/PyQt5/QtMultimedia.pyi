@@ -20,15 +20,13 @@
 # WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 
 
-import typing
-import sip
-
-from PyQt5 import QtNetwork
-from PyQt5 import QtGui
-from PyQt5 import QtCore
-
 # Support for QDate, QDateTime and QTime.
 import datetime
+import typing
+
+from PyQt5 import QtCore, QtGui, QtNetwork
+
+import sip
 
 # Convenient type aliases.
 PYQT_SIGNAL = typing.Union[QtCore.pyqtSignal, QtCore.pyqtBoundSignal]
