@@ -1,12 +1,13 @@
 # coding: utf-8
 
-import time
 import copy
+import time
 
 from anki.consts import *
-from tests.shared import getEmptyCol
-from anki.utils import  intTime
 from anki.hooks import addHook
+from anki.utils import intTime
+from tests.shared import getEmptyCol
+
 
 def test_clock():
     d = getEmptyCol()
@@ -1206,4 +1207,3 @@ def test_negativeDueFilter():
 
     c.load()
     assert c.due == -5
-

@@ -20,11 +20,11 @@
 # WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 
 
-import typing
-import sip
-
 # Support for QDate, QDateTime and QTime.
 import datetime
+import typing
+
+import sip
 
 # Support for new-style signals and slots.
 class pyqtSignal:
