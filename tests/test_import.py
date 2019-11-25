@@ -1,7 +1,7 @@
 import aqt
 from anki import (__init__, cards, collection, consts, db, decks, errors,
-                  exporting, find, hooks, lang, latex, media, models, mpv,
-                  notes, sched, schedv2, sound, stats, statsbg, stdmodels,
+                  exporting, find, hooks, lang, latex, media, model, models,
+                  mpv, notes, sched, schedv2, sound, stats, statsbg, stdmodels,
                   storage, sync, tags, template, utils)
 from anki.importing import (__init__, anki2, apkg, base, csvfile, mnemo,
                             noteimp, pauker, supermemo_xml)
