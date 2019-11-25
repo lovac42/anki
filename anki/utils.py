@@ -526,3 +526,8 @@ class DictAugmentedInModel(DictAugmented):
         fieldType = default.copy()
         fieldType.setName(name)
         self.load(model, fieldType)
+
+    def copy(self, model=None):
+        if model is None:
+            model = self.model
+        return self.__class__(model, dict(self))
