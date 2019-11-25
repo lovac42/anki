@@ -2,7 +2,7 @@ import aqt
 from anki import (__init__, cards, collection, consts, db, deck, decks, errors,
                   exporting, find, hooks, lang, latex, media, model, models,
                   mpv, notes, sched, schedv2, sound, stats, statsbg, stdmodels,
-                  storage, sync, tags, template, utils)
+                  storage, sync, tags, template, templates, utils)
 from anki.importing import (__init__, anki2, apkg, base, csvfile, mnemo,
                             noteimp, pauker, supermemo_xml)
 from anki.template import __init__, furigana, hint, template, view
@@ -17,11 +17,6 @@ from aqt import (__init__, about, addcards, addons, browser, clayout,
 
 if isWin:
     from aqt import winpaths
-
-
-
-
-
 
 
 
