@@ -1018,7 +1018,8 @@ select id from notes where mid not in """ + ids2str(self.models.ids()))
                 if template['did'] == "None":
                     template['did'] = None
                     problems.append(_("Fixed AnkiDroid deck override bug."))
-                    self.models.save(model, updateReqs=False)
+                    model.save(updateReqs=False)
+
             if model['type'] == MODEL_STD:
                 # model with missing req specification
                 if 'req' not in model:

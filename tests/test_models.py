@@ -81,7 +81,7 @@ def test_templates():
     t['qfmt'] = "{{Back}}"
     t['afmt'] = "{{Front}}"
     mm.addTemplate(m, t)
-    mm.save(m)
+    m.save()
     f = d.newNote()
     f['Front'] = '1'
     f['Back'] = '2'
@@ -117,7 +117,7 @@ def test_cloze_ordinals():
     t = m['tmpls'][0]
     t['qfmt'] = "{{text:cloze:Text}}"
     t['afmt'] = "{{text:cloze:Text}}"
-    mm.save(m)
+    m.save()
     
     f = d.newNote()
     f['Text'] = '{{c1::firstQ::firstA}}{{c2::secondQ::secondA}}'
@@ -133,7 +133,7 @@ def test_text():
     d = getEmptyCol()
     m = d.models.current()
     m['tmpls'][0]['qfmt'] = "{{text:Front}}"
-    d.models.save(m)
+    m.save()
     f = d.newNote()
     f['Front'] = 'hello<b>world'
     d.addNote(f)
@@ -207,7 +207,7 @@ def test_chained_mods():
     t = m['tmpls'][0]
     t['qfmt'] = "{{cloze:text:Text}}"
     t['afmt'] = "{{cloze:text:Text}}"
-    mm.save(m)
+    m.save()
     
     f = d.newNote()
     q1 = '<span style=\"color:red\">phrase</span>'
@@ -229,7 +229,7 @@ def test_modelChange():
     t['qfmt'] = "{{Back}}"
     t['afmt'] = "{{Front}}"
     mm.addTemplate(m, t)
-    mm.save(m)
+    m.save()
     f = deck.newNote()
     f['Front'] = 'f'
     f['Back'] = 'b123'
@@ -318,18 +318,18 @@ def test_availOrds():
     # simple templates
     assert mm.availOrds(m, joinFields(f.fields)) == [0]
     t['qfmt'] = "{{Back}}"
-    mm.save(m, templates=True)
+    m.save(templates=True)
     assert not mm.availOrds(m, joinFields(f.fields))
     # AND
     t['qfmt'] = "{{#Front}}{{#Back}}{{Front}}{{/Back}}{{/Front}}"
-    mm.save(m, templates=True)
+    m.save(templates=True)
     assert not mm.availOrds(m, joinFields(f.fields))
     t['qfmt'] = "{{#Front}}\n{{#Back}}\n{{Front}}\n{{/Back}}\n{{/Front}}"
-    mm.save(m, templates=True)
+    m.save(templates=True)
     assert not mm.availOrds(m, joinFields(f.fields))
     # OR
     t['qfmt'] = "{{Front}}\n{{Back}}"
-    mm.save(m, templates=True)
+    m.save(templates=True)
     assert mm.availOrds(m, joinFields(f.fields)) == [0]
     t['Front'] = ""
     t['Back'] = "1"
@@ -353,9 +353,9 @@ def test_req():
     assert opt['req'][1] == [1, 'all', [1, 2]]
     #testing any
     opt['tmpls'][1]['qfmt'] = "{{Back}}{{Add Reverse}}"
-    mm.save(opt, templates=True)
+    opt.save(templates=True)
     assert opt['req'][1] == [1, 'any', [1, 2]]
     #testing None
     opt['tmpls'][1]['qfmt'] = "{{^Add Reverse}}{{Back}}{{/Add Reverse}}"
-    mm.save(opt, templates=True)
+    opt.save(templates=True)
     assert opt['req'][1] == [1, 'none', []]
