@@ -110,7 +110,7 @@ def test_templates():
 
 def test_cloze_ordinals():
     d = getEmptyCol()
-    d.models.setCurrent(d.models.byName("Cloze"))
+    d.models.byName("Cloze").setCurrent()
     m = d.models.current(); mm = d.models
     
     #We replace the default Cloze template
@@ -141,7 +141,7 @@ def test_text():
 
 def test_cloze():
     d = getEmptyCol()
-    d.models.setCurrent(d.models.byName("Cloze"))
+    d.models.byName("Cloze").setCurrent()
     f = d.newNote()
     assert f.model().getName() == "Cloze"
     # a cloze model with no clozes is not empty
@@ -187,7 +187,7 @@ def test_cloze():
 
 def test_cloze_mathjax():
     d = getEmptyCol()
-    d.models.setCurrent(d.models.byName("Cloze"))
+    d.models.byName("Cloze").setCurrent()
     f = d.newNote()
     f['Text'] = r'{{c1::ok}} \(2^2\) {{c2::not ok}} \(2^{{c3::2}}\) \(x^3\) {{c4::blah}} {{c5::text with \(x^2\) jax}}'
     assert d.addNote(f)
@@ -200,7 +200,7 @@ def test_cloze_mathjax():
 
 def test_chained_mods():
     d = getEmptyCol()
-    d.models.setCurrent(d.models.byName("Cloze"))
+    d.models.byName("Cloze").setCurrent()
     m = d.models.current(); mm = d.models
     
     #We replace the default Cloze template
