@@ -80,7 +80,7 @@ def test_templates():
     t['qfmt'] = "{{Back}}"
     t['afmt'] = "{{Front}}"
     t.add()
-    mm.save(m)
+    m.save()
     f = d.newNote()
     f['Front'] = '1'
     f['Back'] = '2'
@@ -117,7 +117,7 @@ def test_cloze_ordinals():
     t['qfmt'] = "{{text:cloze:Text}}"
     t['afmt'] = "{{text:cloze:Text}}"
     t.add()
-    mm.save(m)
+    m.save()
     m['tmpls'][0].rem()
     
     f = d.newNote()
@@ -134,7 +134,7 @@ def test_text():
     d = getEmptyCol()
     m = d.models.current()
     m['tmpls'][0]['qfmt'] = "{{text:Front}}"
-    d.models.save(m)
+    m.save()
     f = d.newNote()
     f['Front'] = 'hello<b>world'
     d.addNote(f)
@@ -209,7 +209,7 @@ def test_chained_mods():
     t['qfmt'] = "{{cloze:text:Text}}"
     t['afmt'] = "{{cloze:text:Text}}"
     t.add()
-    mm.save(m)
+    m.save()
     m['tmpls'][0].rem()
     
     f = d.newNote()
@@ -232,7 +232,7 @@ def test_modelChange():
     t['qfmt'] = "{{Back}}"
     t['afmt'] = "{{Front}}"
     t.add()
-    mm.save(m)
+    m.save()
     f = deck.newNote()
     f['Front'] = 'f'
     f['Back'] = 'b123'
@@ -313,18 +313,18 @@ def test_availOrds():
     # simple templates
     assert m.availOrds(joinFields(f.fields)) == [0]
     t['qfmt'] = "{{Back}}"
-    mm.save(m, templates=True)
+    m.save(templates=True)
     assert not m.availOrds(joinFields(f.fields))
     # AND
     t['qfmt'] = "{{#Front}}{{#Back}}{{Front}}{{/Back}}{{/Front}}"
-    mm.save(m, templates=True)
+    m.save(templates=True)
     assert not m.availOrds(joinFields(f.fields))
     t['qfmt'] = "{{#Front}}\n{{#Back}}\n{{Front}}\n{{/Back}}\n{{/Front}}"
-    mm.save(m, templates=True)
+    m.save(templates=True)
     assert not m.availOrds(joinFields(f.fields))
     # OR
     t['qfmt'] = "{{Front}}\n{{Back}}"
-    mm.save(m, templates=True)
+    m.save(templates=True)
     assert m.availOrds(joinFields(f.fields)) == [0]
     t['Front'] = ""
     t['Back'] = "1"

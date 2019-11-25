@@ -97,7 +97,7 @@ class FixingManager:
                 if template['did'] == "None":
                     template['did'] = None
                     problems.append(_("Fixed AnkiDroid deck override bug."))
-                    self.col.models.save(model)
+                    model.save()
         return problems
 
     def req(self):

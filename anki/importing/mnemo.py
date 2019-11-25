@@ -128,7 +128,7 @@ acq_reps+ret_reps, lapses, card_type_id from cards"""):
             model = addBasicModel(self.col)
             model['name'] = "Mnemosyne-FrontOnly"
         mm = self.col.models
-        mm.save(model)
+        model.save()
         model.setCurrent()
         self.model = model
         self._fields = len(model['flds'])
@@ -193,7 +193,7 @@ acq_reps+ret_reps, lapses, card_type_id from cards"""):
         model = addClozeModel(self.col)
         model['name'] = "Mnemosyne-Cloze"
         mm = self.col.models
-        mm.save(model)
+        model.save()
         model.setCurrent()
         self.model = model
         self._fields = len(model['flds'])

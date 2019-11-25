@@ -139,7 +139,7 @@ class DeckConf(QDialog):
             if deck.isDyn():
                 continue
             deck.setConfId(self.deck.getConfId)
-            self.mw.col.decks.save(deck)
+            deck.save()
         tooltip(ngettext("%d deck updated.", "%d decks updated.", \
                         len(self.childDids)) % len(self.childDids))
 
@@ -286,8 +286,8 @@ class DeckConf(QDialog):
         conf['replayq'] = self.form.replayQuestion.isChecked()
         # description
         self.deck['desc'] = self.form.desc.toPlainText()
-        self.mw.col.decks.save(self.deck)
-        self.mw.col.decks.save(self.conf)
+        self.deck.save()
+        self.conf.save()
 
     def reject(self):
         self.accept()

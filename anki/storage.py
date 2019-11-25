@@ -101,14 +101,14 @@ def _upgrade(col, ver):
         for deck in col.decks.all():
             deck['dyn'] = DECK_STD
             deck['collapsed'] = False
-            col.decks.save(deck)
+            deck.save()
     if ver < 4:
         col.modSchema(check=False)
         clozes = []
         for model in col.models.all():
             if not "{{cloze:" in model['tmpls'][0]['qfmt']:
                 model['type'] = MODEL_STD
-                col.models.save(model)
+                model.save()
             else:
                 clozes.append(model)
         for model in clozes:
@@ -129,7 +129,7 @@ def _upgrade(col, ver):
                 model['css'] += "\n" + template['css'].replace(
                     ".card ", ".card%d "%(template['ord']+1))
                 del template['css']
-            col.models.save(model)
+            model.save()
         col.db.execute("update col set ver = 6")
     if ver < 7:
         col.modSchema(check=False)
@@ -181,19 +181,19 @@ update cards set left = left + left*1000 where queue = 1""")
                 if 'extendNew' not in deck:
                     deck['extendNew'] = 10
                     deck['extendRev'] = 50
-            col.decks.save(deck)
+            deck.save()
         for conf in col.decks.allConf():
             rev = conf['rev']
             rev['ivlFct'] = rev.get("ivlfct", 1)
             if 'ivlfct' in rev:
                 del rev['ivlfct']
             rev['maxIvl'] = 36500
-            col.decks.save(conf)
+            conf.save()
         for model in col.models.all():
             for template in model['tmpls']:
                 template['bqfmt'] = ''
                 template['bafmt'] = ''
-            col.models.save(model)
+            model.save()
         col.db.execute("update col set ver = 11")
 
 def _upgradeClozeModel(col, model):
@@ -213,7 +213,7 @@ def _upgradeClozeModel(col, model):
         rem.rem()
     del model['tmpls'][1:]
     model._updateTemplOrds()
-    col.models.save(model)
+    model.save()
 
 # Creating a new collection
 ######################################################################

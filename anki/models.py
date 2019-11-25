@@ -148,7 +148,7 @@ class ModelManager:
         for id, dic in json.loads(json_):
             self.models[id] = Model(self, dic)
 
-    def save(self, model=None, templates=False):
+    def save(self):
         """
         * Mark model modified if provided.
         * Schedule registry flush.
@@ -158,8 +158,6 @@ class ModelManager:
         model -- A Model
         templates -- whether to check for cards not generated in this model
         """
-        if model:
-            model.save(template=template, saveManager=False)
         self.changed = True
         runHook("newModel") # By default, only refresh side bar of browser
 
@@ -240,7 +238,7 @@ class ModelManager:
         model._setID()
         model.update()
         model.setCurrent()
-        model.save(saveManager=True)
+        model.save()
 
     def have(self, id):
         """Whether there exists a model whose id is did."""
@@ -282,10 +280,9 @@ class Model(DictAugmented):
         new['id'] = None
         self.load(manager, new)
 
-    def save(self, template=False, saveManager=False):
+    def save(self, template=False):
         """
         * Mark model modified.
-        * Schedule registry flush if saveManager
 
         Keyword arguments:
         model -- A Model
@@ -297,6 +294,7 @@ class Model(DictAugmented):
             model._updateRequired(model)
             if templates:
                 model._syncTemplates()
+        self.manager.save()
 
     def setCurrent(self, model):
         """Change curModel value and marks the collection as modified."""
@@ -576,7 +574,7 @@ select id from cards where nid in (select id from notes where mid = ?)""",
         self.manager.col.modSchema(check=True)
         self['sortf'] = idx
         self.manager.col.updateFieldCache(self.nids())
-        self.save(saveManager=True)
+        self.save()
 
     def newTemplate(self, name):
         return Template(self, name=name)
@@ -780,7 +778,7 @@ update cards set ord = ord - 1, usn = ?, mod = ?
                              self.model.manager.col.usn(), intTime(), self.self.getId(), ord)
         self.model['tmpls'].remove(template)
         self.model._updateTemplOrds()
-        self.model.save(True)
+        self.model.save()
         return True
 
     # Tools
@@ -807,7 +805,7 @@ and notes.mid = ? and cards.ord = ?""", self.model['id'], self['ord'])
             self.model.manager.col.modSchema(check=True)
         self.model['tmpls'].append(self)
         self.model._updateTemplOrds()
-        self.model.save(saveManager=True)
+        self.model.save()
 
     def move(self, idx):
         """Move input self to position idx in model.
@@ -828,7 +826,7 @@ and notes.mid = ? and cards.ord = ?""", self.model['id'], self['ord'])
         for self in self.model['tmpls']:
             map.append("when ord = %d then %d" % (oldidxs[id(self)], self['ord']))
         # apply
-        self.model.save(saveManager=True)
+        self.model.save()
         self.model.manager.col.db.execute("""
 update cards set ord = (case %s end),usn=?,mod=? where nid in (
 select id from notes where mid = ?)""" % " ".join(map),
@@ -862,7 +860,7 @@ class Field(DictAugmented):
             self.model.manager.col.modSchema(check=True)
         self.model['flds'].append(self)
         self.model._updateFieldOrds()
-        self.model.save(saveManager=True)
+        self.model.save()
         def add(fieldsContents):
             fieldsContents.append("")
             return fieldsContents
@@ -929,7 +927,7 @@ class Field(DictAugmented):
                     template[fmt] = re.sub(
                         pat  % re.escape(self['name']), "", template[fmt])
        self['name'] = newName
-       self.model.save(saveManager=True)
+       self.model.save()
 
     def move(self, idx):
         """Move the field to position idx
@@ -949,7 +947,7 @@ class Field(DictAugmented):
         # restore sort self
         self.model['sortf'] = self.model['flds'].index(sortf)
         self.model._updateFieldOrds()
-        self.model(saveManager=True)
+        self.model()
         def move(fields, oldidx=oldidx):
             val = fields[oldidx]
             del fields[oldidx]

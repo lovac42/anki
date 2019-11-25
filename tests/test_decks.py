@@ -36,7 +36,7 @@ def test_basic():
     deck.decks.id("ONE")
     m = deck.models.current()
     m['did'] = deck.decks.id("one::two")
-    deck.models.save(m)
+    m.save()
     n = deck.newNote()
     n['Front'] = "abc"
     deck.addNote(n)
@@ -170,6 +170,6 @@ def test_check():
     FOO_did = d.decks.id("bar")
     FOO = d.decks.byName("bar")
     FOO["name"] = "FOO"
-    d.decks.save(FOO)
+    FOO.save()
     #d.decks._checkDeckTree()
     #assert "foo" not in d.decks.allNames() or "FOO" not in d.decks.allNames()

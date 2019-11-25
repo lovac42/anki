@@ -229,9 +229,7 @@ class DeckManager:
         for key, dconf in json.loads(dconf):
             self.dconf[key] = DConf(dconf, self)
 
-    def save(self, deckOrOption=None):
-        if deckOrOption:
-            deckOrOption.save()
+    def save(self):
         self.changed = True
 
     def flush(self):
@@ -425,7 +423,7 @@ same id."""
         new['id'] = conf['id']
         new['name'] = conf['name']
         self.dconf[str(conf['id'])] = new
-        self.save(new)
+        new.save()
         # if it was previously randomized, resort
         if not oldOrder:
             self.col.sched.resortConf(new)
@@ -504,7 +502,7 @@ same id."""
         return DeckManager.normalizeName(name1) == DeckManager.normalizeName(name2)
 
 class DeckConf(DictAugmented):
-    def save(self, saveManager=False):
+    def save(self):
         """State that the DeckManager has been changed. Changes the
         mod and usn of the potential argument.
 
@@ -513,9 +511,8 @@ class DeckConf(DictAugmented):
         """
         self['mod'] = intTime()
         self['usn'] = self.col.usn()
-        if saveManager:
-            self.manager.save()
-
+        self.manager.save()
+            
 class Deck(DictAugmented):
     """
     dic -- the JSON object associated to this deck.
@@ -577,7 +574,7 @@ class Deck(DictAugmented):
             if str(dic['id']) not in self.manager.decks:
                 break
         copy = Deck(self.manager, self.parent, dic, baseName=baseName)
-        self.save(True)
+        self.save()
         
 
     def getBaseName(self):
@@ -651,11 +648,11 @@ class Deck(DictAugmented):
 
     def collapse(self):
         self['collapsed'] = not self['collapsed']
-        self.save(True)
+        self.save()
 
     def collapseBrowser(self):
         deck['browserCollapsed'] = not deck.get('browserCollapsed', False)
-        self.save(True)
+        self.save()
 
     def cids(self, children=False):
         """Return the list of id of cards whose deck's id is did.
@@ -737,11 +734,11 @@ class Deck(DictAugmented):
 
     def setConfId(self, confId):
         self['conf'] = confId
-        self.save(True)
+        self.save()
 
     def setConf(self, conf):
         self['conf'] = confId.getId
-        self.save(True)
+        self.save()
 
     def getConfId(self):
         return self['conf']
@@ -837,7 +834,7 @@ class DConf(DictAugmented):
         conf['id'] = id
         conf['name'] = name
         self.manager.dconf[str(id)] = self
-        self.save(True)
+        self.save()
         
     def load(self, manager, dict):
         super.__init__(manager, dict)
@@ -846,7 +843,7 @@ class DConf(DictAugmented):
             pd = 'perDay'
             if conf[type][pd] > 999999:
                 conf[type][pd] = 999999
-                self.save(conf)
+                conf.save()
                 self.manager.changed = True
 
     def getName(self):

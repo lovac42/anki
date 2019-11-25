@@ -89,7 +89,7 @@ class ModelChooser(QHBoxLayout):
         self.deck.conf['curModel'] = model['id']
         cdeck = self.deck.decks.current()
         cdeck['mid'] = model['id']
-        self.deck.decks.save(cdeck)
+        cdeck.save()
         runHook("currentModelChanged")
         self.mw.reset()
 

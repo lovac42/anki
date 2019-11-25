@@ -56,7 +56,7 @@ def test_new():
     # t['qfmt'] = "{{Back}}"
     # t['afmt'] = "{{Front}}"
     # t.add()
-    # mm.save(m)
+    # m.save()
     # f = d.newNote()
     # f['Front'] = u"2"; f['Back'] = u"2"
     # d.addNote(f)
@@ -210,7 +210,7 @@ def test_relearn_no_steps():
 
     conf = d.decks.get(1).getConf()
     conf['lapse']['delays'] = []
-    d.decks.save(conf)
+    conf.save()
 
     # fail the card
     d.reset()
@@ -390,7 +390,7 @@ def test_review_limits():
 
     m = d.models.current()
     m['did'] = child['id']
-    d.models.save(m)
+    m.save()
 
     # add some cards
     for i in range(20):
@@ -813,7 +813,7 @@ def test_ordcycle():
     t['qfmt'] = "{{Front}}"
     t['afmt'] = "{{Back}}"
     t.add()
-    mm.save(m)
+    m.save()
     # create a new note; it should have 3 cards
     f = d.newNote()
     f['Front'] = "1"; f['Back'] = "1"
