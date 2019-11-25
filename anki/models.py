@@ -256,13 +256,7 @@ class ModelManager:
             model.beforeUpload()
         self.save()
 
-class Model(DictAugmented):
-    def __init__(self, manager, dic=None, name=None):
-        if dict:
-            self.load(manager, dic)
-        else:
-            self.new(manager, name)
-
+class Model(DictAugmentedIdUsn):
     def load(self, manager, dic):
         super.__init__(manager, dic)
         self['tmpls'] = map(Template, self['tmpls'])
@@ -288,13 +282,10 @@ class Model(DictAugmented):
         model -- A Model
         templates -- whether to check for cards not generated in this model
         """
-        if self.getId():
-            model['mod'] = intTime()
-            model['usn'] = self.col.usn()
-            model._updateRequired(model)
-            if templates:
-                model._syncTemplates()
-        self.manager.save()
+        model._updateRequired(model)
+        if templates:
+            model._syncTemplates()
+        super.save()
 
     def setCurrent(self, model):
         """Change curModel value and marks the collection as modified."""
@@ -351,9 +342,6 @@ select id from cards where nid in (select id from notes where mid = ?)""",
         model -- a model object."""
         return self.manager.col.db.list(
             "select id from notes where mid = ?", self.getId())
-
-    def beforeUpload(self):
-        self['usn'] = 0
 
     # Schema hash
     ##########################################################################
@@ -678,28 +666,28 @@ select id from cards where nid in (select id from notes where mid = ?)""",
             cardData)
         self.manager.col.remCards(deleted)
 
-class Template(DictAugmented):
-    def __init__(self, model, dic=None, name=None):
-        if dic:
-            self.load(model, dic)
-        else:
-            assert (name is not None)
-            self.new(model, name)
+class SmallerClass(DictAugmented):
+    def copy(self, model):
+        return self.__class__(model, copy.deepcopy(self.dic))
 
-    self load(self, model, dic):
+    def load(self, model, dic):
         self.model = model
         self.dic = dic
 
-    def new(model, name):
+    def new(self, name, default):
+        fieldType = default.copy()
+        fieldType['name'] = name
+        self.load(model, fieldType)
+
+class Template(SmallerClass):
+    def new(self, model, name):
         """A new template, whose content is the one of
         defaultTemplate, and name is name.
 
         It's used in order to import mnemosyn, and create the standard
         model during anki's first initialization. It's not used in day to day anki.
         """
-        template = defaultTemplate.copy()
-        template['name'] = name
-        self.load(model, template)
+        super().__init__(name, defaultTemplate)
 
     # Required field/text cache
     ##########################################################################
@@ -794,9 +782,6 @@ update cards set ord = ord - 1, usn = ?, mod = ?
 select count() from cards, notes where cards.nid = notes.id
 and notes.mid = ? and cards.ord = ?""", self.model['id'], self['ord'])
 
-    def copy(self, model):
-        return Template(model, copy.deepcopy(self.dic))
-
     def add(self):
         """Add a new template in model, as last element. This template is a copy
         of the input template
@@ -832,22 +817,8 @@ update cards set ord = (case %s end),usn=?,mod=? where nid in (
 select id from notes where mid = ?)""" % " ".join(map),
                              self.model.manager.col.usn(), intTime(), self.model['id'])
 
-class Field(DictAugmented):
+class Field(SmallerClass):
     """Field may not be in model, and will be added later by add method"""
-    def __init__(self, model, dic=None, name=None):
-        if dic is not None:
-            self.load(model, dic)
-        else:
-            assert (name is not None)
-            self.new(model, name)
-
-    def load(self, model, dic):
-        self.model = model
-        self.dic = dic
-
-    def copy(self, model):
-        return Field(model, copy.deepcopy(self.dic))
-
     def add(self):
         """Append the field field as last element of the model model.
 
@@ -868,9 +839,7 @@ class Field(DictAugmented):
 
     def new(self, name):
         """A new field, similar to the default one, whose name is name."""
-        fieldType = defaultField.copy()
-        fieldType['name'] = name
-        self.load(model, fieldType)
+        super().new(name, name, defaultField)
 
     def rem(self):
         """Remove a field from a model.

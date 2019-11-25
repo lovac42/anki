@@ -501,19 +501,7 @@ same id."""
     def equalName(name1, name2):
         return DeckManager.normalizeName(name1) == DeckManager.normalizeName(name2)
 
-class DeckConf(DictAugmented):
-    def save(self):
-        """State that the DeckManager has been changed. Changes the
-        mod and usn of the potential argument.
-
-        The potential argument can be either a deck or a deck
-        configuration.
-        """
-        self['mod'] = intTime()
-        self['usn'] = self.col.usn()
-        self.manager.save()
-            
-class Deck(DictAugmented):
+class Deck(DictAugmentedIdUsn):
     """
     dic -- the JSON object associated to this deck.
     """
@@ -812,17 +800,10 @@ class Deck(DictAugmented):
     def getModel(self):
         self.manager.col.models.get(self['mid'])
                 
-class DConf(DictAugmented):
+class DConf(DictAugmentedIdUsn):
     """
     dic -- the JSON object associated to this conf.
     """
-    
-    def __init__(self, manager, dict=None, cloneFrom=None):
-        if dict:
-            self.load(manager, dict)
-        else:
-            self.create(cloneFrom)
-
     def create(self, manager, cloneFrom):
         if cloneFrom is None:
             cloneFrom = defaultConf

@@ -459,7 +459,14 @@ def negation(x):
 
 @functools.total_ordering
 class DictAugmented:
-    def __init__(self, manager, dic):
+    def __init__(self, manager, dic=None, name=None):
+        if dict:
+            self.load(manager, dic)
+        else:
+            assert (name is not None)
+            self.new(manager, name)
+
+    def load(self, manager, dic):
         self.manager = manager
         self.dic = dic
 
@@ -469,21 +476,36 @@ class DictAugmented:
     def __setitem(self, key, value):
         self.dic[key] = value
 
-    def beforeUpload(self):
-        self['usn'] = 0
-
     def dumps(self):
         return json.dumps(self.dic)
 
     def __eq__(self, other):
-        return self.get("id") == other.get("id")
+        return self.get("name") == other.get("name")
 
     def __lt__(self, other):
         return self.get("name") < other.get("name")
 
+class DictAugmentedIdUsn(DictAugmented):
     def getId(self):
         return self["id"]
 
     def dumps(self):
         return self.dic
+
+    def __eq__(self, other)
+        return self.getId() == other.getId()
+
+    def beforeUpload(self):
+        self['usn'] = 0
+
+    def save(self):
+        """State that the DeckManager has been changed. Changes the
+        mod and usn of the potential argument.
+
+        The potential argument can be either a deck or a deck
+        configuration.
+        """
+        self['mod'] = intTime()
+        self['usn'] = self.col.usn()
+        self.manager.save()
 
