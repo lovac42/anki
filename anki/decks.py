@@ -583,7 +583,7 @@ same id."""
             if 'conf' not in deck:
                 continue
             if str(deck.getConfId()) == str(id):
-                deck['conf'] = 1
+                deck.setDefaultConf()
                 self.save(deck)
 
     def setConf(self, deck, id):
