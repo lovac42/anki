@@ -598,7 +598,7 @@ same id."""
             # ignore cram decks
             if 'conf' not in deck:
                 continue
-            if str(deck['conf']) == str(id):
+            if str(deck.getConfId()) == str(id):
                 deck['conf'] = 1
                 self.save(deck)
 
@@ -614,7 +614,7 @@ same id."""
         """The dids of the decks using the configuration conf."""
         dids = []
         for deck in list(self.decks.values()):
-            if 'conf' in deck and deck['conf'] == conf.getId():
+            if 'conf' in deck and deck.getConfId() == conf.getId():
                 dids.append(deck.getId())
         return dids
 
