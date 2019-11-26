@@ -164,20 +164,18 @@ where id > ?""", (self.mw.col.sched.dayCutoff-86400)*1000)
             buf += self._topLevelDragRow()
         else:
             buf = ""
-        nameMap = self.mw.col.decks.nameMap()
-        buf += "".join(self._deckRow(node, depth, len(nodes), nameMap) for node in nodes)
+        buf += "".join(self._deckRow(node, depth, len(nodes)) for node in nodes)
         if depth == 0:
             buf += self._topLevelDragRow()
         return buf
 
-    def _deckRow(self, node, depth, cnt, nameMap):
+    def _deckRow(self, node, depth, cnt):
         """The HTML for a single deck (and its descendant)
 
         Keyword arguments:
         node -- see in the introduction of the file for a node description
         depth -- indentation argument (number of ancestors)
         cnt --  the number of sibling, counting itself
-        nameMap -- dictionnary, associating to a deck id its node
         """
         name, did, rev, lrn, new, children = node
         deck = self.mw.col.decks.get(did)
