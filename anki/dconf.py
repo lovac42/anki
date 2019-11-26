@@ -84,3 +84,11 @@ same id."""
         self.manager.dconf[str(id)] = conf
         conf.save()
         return conf
+
+    def getDecks(self, conf):
+        """The decks of the decks using the configuration conf."""
+        return filter(lambda deck: 'conf' in deck and deck.getConfId() == conf.getId() , self.decks.values())
+
+    def getDids(self, conf):
+        """The dids of the decks using the configuration conf."""
+        return map(lambda deck: deck.getId(), self.decks())
