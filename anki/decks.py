@@ -360,7 +360,7 @@ class DeckManager:
         if dyn is not None:
             decks = [deck for deck in decks if deck['dyn']==dyn]
         if sort:
-            decks.sort(key=lambda deck: self._path(deck['name']))
+            decks.sort(key=lambda deck: deck.getPath())
         return decks
 
     def allIds(self, sort=False, dyn=None):
