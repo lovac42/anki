@@ -1014,7 +1014,7 @@ QTreeWidget {
         if not diag.ok:
             # user cancelled first config
             self.col.decks.rem(did)
-            self.col.decks.select(deck.getId())
+            deck.select()
 
     # Menu, title bar & status
     ##########################################################################
@@ -1271,7 +1271,7 @@ will be lost. Continue?"""))
         ret = StudyDeck(
             self, dyn=True, current=self.col.decks.current().getName())
         if ret.name:
-            self.col.decks.select(self.col.decks.id(ret.name))
+            self.col.decks.get(self.col.decks.id(ret.name)).select()
             self.moveToState("overview")
 
     def onEmptyCards(self):
