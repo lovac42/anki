@@ -161,7 +161,7 @@ class BothScheduler:
 
     def _deckLimitSingle(self, deck, kind):
         "Limit for deck without parent limits."
-        if deck['dyn']:
+        if deck.isDyn():
             return self.reportLimit
         conf = self.col.decks.confForDid(deck.getId())
         return max(0, conf[kind]['perDay'] - deck[kind+'Today'][1])
@@ -535,7 +535,7 @@ select id from cards where did in %s and queue = {QUEUE_REV} and due <= ? limit 
         "Rebuild a dynamic deck."
         did = did or self.col.decks.selected()
         deck = self.col.decks.get(did)
-        assert deck['dyn']
+        assert deck.isDyn()
         # move any existing cards back first, then fill
         self.emptyDyn(did)
         ids = self._fillDyn(deck)
@@ -678,7 +678,7 @@ your short-term review workload will become.""").replace("\n", " "))
                 now = ""
             line.append(_("""\
 Some related or buried cards were delayed until a later session.""")+now)
-        if self.haveCustomStudy and not self.col.decks.current()['dyn']:
+        if self.haveCustomStudy and not self.col.decks.current().isDyn():
             line.append(_("""\
 To study outside of the normal schedule, click the Custom Study button below."""))
         return "<p>".join(line)

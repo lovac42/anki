@@ -153,7 +153,7 @@ order by due""" % (self._deckLimit()),
             # limit the counts to the deck's limits
             conf = self.col.decks.confForDid(did)
             deck = self.col.decks.get(did)
-            if not conf['dyn']:
+            if conf.isStd():
                 new = max(0, min(new, conf['new']['perDay']-deck['newToday'][1]))
             tree.append((head, did, rev, lrn, new, children))
         return tuple(tree)
@@ -680,7 +680,7 @@ where id = ?
 
     def _previewingCard(self, card):
         conf = self._cardConf(card)
-        return conf['dyn'] and not conf['resched']
+        return conf.isDyn() and not conf['resched']
 
     def _previewDelay(self, card):
         return self._cardConf(card).get("previewDelay", 10)*60
