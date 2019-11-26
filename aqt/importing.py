@@ -100,7 +100,7 @@ class ImportDialog(QDialog):
         self.showMapping()
         if self.mw.col.conf.get("addToCur", True):
             did = self.mw.col.conf['curDeck']
-            if self.mw.col.decks.isDyn(did):
+            if self.mw.col.decks.get(did).isDyn():
                 did = 1
         else:
             did = self.importer.model['did']
