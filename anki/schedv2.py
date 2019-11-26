@@ -383,7 +383,7 @@ select count() from cards where did in %s and queue = {QUEUE_PREVIEW}
 
         lim = super()._deckRevLimitSingle(deck)
 
-        if '::' not in deck['name']:
+        if '::' not in deck.getName():
             return lim
         else:
             for ancestor in self.col.decks.parents(deck.getId()):

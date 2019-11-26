@@ -141,7 +141,7 @@ insert or replace into notes values (?,?,?,?,?,?,?,?,?,?,?)""",
 
     def items(self):
         """The list of (name, value), for each field of the note."""
-        return [(fldType['name'], self.fields[ord])
+        return [(fldType.getName(), self.fields[ord])
                 for ord, fldType in sorted(self._fmap.values())]
 
     def _fieldOrd(self, key):
@@ -250,4 +250,4 @@ space, with an initial and a final white space."""
         return time.strftime("%Y-%m-%d", time.localtime(self.mod))
 
     def noteTypeBrowserColumn(self):
-        return self.model()['name']
+        return self.model().getName()
