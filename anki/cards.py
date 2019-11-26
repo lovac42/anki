@@ -329,7 +329,7 @@ lapses=?, left=?, odue=?, odid=?, did=? where id = ?""",
         return answerLine
 
     def templateBrowserColumn(self):
-        templateName = self.template()['name']
+        templateName = self.template().getName()
         if self.model()['type'] == MODEL_CLOZE:
             templateName += " %d" % (self.ord+1)
         return templateName
