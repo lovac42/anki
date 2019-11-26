@@ -71,7 +71,7 @@ class BothScheduler:
         for ancestor in self.col.decks.get(card.did).getAncestors(includeSelf=True):
             # add
             ancestor[key][1] += cnt
-            self.col.decks.save(ancestor)
+            ancestor.save()
 
     def extendLimits(self, new, rev):
         cur = self.col.decks.current()
@@ -81,7 +81,7 @@ class BothScheduler:
             # add
             deck['newToday'][1] -= new
             deck['revToday'][1] -= rev
-            self.col.decks.save(deck)
+            deck.save()
 
     def _walkingCount(self, limFn=None, cntFn=None):
         tot = 0

@@ -207,7 +207,7 @@ def test_relearn_no_steps():
 
     conf = d.decks.get(1).getConf()
     conf['lapse']['delays'] = []
-    d.decks.save(conf)
+    conf.save()
 
     # fail the card
     d.reset()
