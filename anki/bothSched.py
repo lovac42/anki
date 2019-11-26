@@ -134,7 +134,6 @@ class BothScheduler:
         #lims -- associating to each deck maximum number of new card and of review. Taking custom study into account
         lims = {}
         data = []
-        childMap = self.col.decks.childMap()
         for deck in decks:
             parentName = self.col.decks.parentName(deck.getName())
             # new
@@ -150,7 +149,7 @@ class BothScheduler:
             rlim = self._deckRevLimitSingle(deck)
             if parentName:
                 rlim = min(rlim, lims[parentName][1])
-            rev = self._revForDeck(deck.getId(), rlim, childMap)
+            rev = self._revForDeck(deck.getId(), rlim)
             # save to list
             data.append([self.col.decks._path(deck.getName()), deck.getId(), rev, lrn, new])
             # add deck as a parent
