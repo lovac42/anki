@@ -1013,7 +1013,7 @@ QTreeWidget {
         diag = aqt.dyndeckconf.DeckConf(self, first=True, search=search)
         if not diag.ok:
             # user cancelled first config
-            self.col.decks.rem(deck.getId())
+            deck.rem()
             deck.select()
 
     # Menu, title bar & status
