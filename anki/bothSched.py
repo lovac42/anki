@@ -68,17 +68,15 @@ class BothScheduler:
 
     def _updateStats(self, card, type, cnt=1):
         key = type+"Today"
-        for ancestor in ([self.col.decks.get(card.did)] +
-                  self.col.decks.parents(card.did)):
+        for ancestor in self.col.decks.get(card.did).getAncestors(includeSelf=True):
             # add
             ancestor[key][1] += cnt
             self.col.decks.save(ancestor)
 
     def extendLimits(self, new, rev):
         cur = self.col.decks.current()
-        ancestors = self.col.decks.parents(cur.getId())
-        children = [self.col.decks.get(did) for (name, did) in
-                    self.col.decks.children(cur.getId())]
+        ancestors = cur.getAncestors()
+        children = self.col.decks.childrenDecks(cur.getId())
         for deck in [cur] + ancestors + children:
             # add
             deck['newToday'][1] -= new
@@ -98,7 +96,7 @@ class BothScheduler:
             if not lim:
                 continue
             # check the parents
-            ancestors = self.col.decks.parents(did, nameMap)
+            ancestors = self.col.decks.get(did).getAncestors()
             for ancestor in ancestors:
                 # add if missing
                 if ancestor.getId() not in pcounts:
@@ -238,7 +236,7 @@ did = ? and queue = {QUEUE_NEW} limit ?)""", did, lim)
         sel = self.col.decks.get(did)
         lim = -1
         # for the deck and each of its parents
-        for ancestor in [sel] + self.col.decks.parents(did):
+        for ancestor in self.col.decks.get(did).getAncestors(includeSelf=True):
             rem = fn(ancestor)
             if lim == -1:
                 lim = rem
