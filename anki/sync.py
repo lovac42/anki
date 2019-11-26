@@ -499,7 +499,7 @@ from notes where %s""" % (self.maxUsn, lim))
                 localDeckOption = None
             # if missing locally or server is newer, update
             if not localDeckOption or serverDeckOption['mod'] > localDeckOption['mod']:
-                self.col.decks.updateConf(serverDeckOption)
+                serverDeckOption.update()
         self.col.decks.loadDeck()
 
     # Tags
