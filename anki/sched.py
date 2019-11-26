@@ -404,7 +404,7 @@ where queue in ({QUEUE_LRN},{QUEUE_DAY_LRN}) and type = {CARD_DUE}
     def _deckRevLimit(self, did):
         return self._deckNewLimit(did, self._deckRevLimitSingle)
 
-    def _revForDeck(self, did, lim, childMap):
+    def _revForDeck(self, did, lim):
         """number of cards to review today for deck did
 
         Minimum between this number, self report and limit. Not taking subdeck into account """
