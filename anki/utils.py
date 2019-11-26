@@ -23,6 +23,7 @@ from contextlib import contextmanager
 from hashlib import sha1
 from html.entities import name2codepoint
 
+import anki.consts
 from anki.lang import _, ngettext
 
 # Time handling
@@ -531,3 +532,16 @@ class DictAugmentedInModel(DictAugmented):
         if model is None:
             model = self.model
         return self.__class__(model, dict(self))
+
+class DictAugmentedDyn(DictAugmentedIdUsn):
+    def isDyn(self):
+        return self['dyn']
+
+    def isStd(self):
+        return not self.isDyn()
+
+    def setDyn(self):
+        self['dyn'] = anki.consts.DECK_DYN
+
+    def setStd(self):
+        self['dyn'] = anki.consts.DECK_STD
