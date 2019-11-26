@@ -87,7 +87,6 @@ class BothScheduler:
         tot = 0
         pcounts = {}
         # for each of the active decks
-        nameMap = self.col.decks.nameMap()
         for did in self.col.decks.active():
             # early alphas were setting the active ids as a str
             did = int(did)
