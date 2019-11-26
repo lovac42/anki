@@ -386,7 +386,7 @@ select count() from cards where did in %s and queue = {QUEUE_PREVIEW}
         if '::' not in deck.getName():
             return lim
         else:
-            for ancestor in self.col.decks.parents(deck.getId()):
+            for ancestor in deck.getAncestors():
                 # pass in dummy parentLimit so we don't do parent lookup again
                 lim = min(lim, self._deckRevLimitSingle(ancestor))
             return lim
