@@ -263,14 +263,14 @@ lapses=?, left=?, odue=?, odid=?, did=? where id = ?""",
         """Time limit for answering in milliseconds.
 
         According to the deck's information."""
-        conf = self.col.decks.confForDid(self.originalDeck())
+        conf = self.col.decks.get(self.originalDeck()).getConf()
         return conf['maxTaken']*1000
 
     def shouldShowTimer(self):
         """Whether timer should be shown.
 
         According to the deck's information."""
-        conf = self.col.decks.confForDid(self.originalDeck())
+        conf = self.col.decks.getConf(self.originalDeck())
         return conf['timer']
 
     def timeTaken(self):
