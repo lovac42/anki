@@ -442,7 +442,7 @@ and due <= ? limit ?)""",
         elif '::' not in deck.getName():
             return lim
         else:
-            for ancestor in self.col.decks.parents(deck.getId()):
+            for ancestor in deck.getAncestors():
                 # pass in dummy parentLimit so we don't do parent lookup again
                 lim = min(lim, self._deckRevLimitSingle(ancestor, parentLimit=lim))
             return lim
@@ -458,7 +458,7 @@ and due <= ? limit ?)""",
         elif '::' not in deck.getName():
             return lim
         else:
-            for parent in self.col.decks.parents(deck.getId()):
+            for parent in deck.getAncestors():
                 # pass in dummy parentLimit so we don't do parent lookup again
                 lim = min(lim, self._deckRevLimitSingle(parent, parentLimit=lim))
             return lim
