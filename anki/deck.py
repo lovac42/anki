@@ -29,6 +29,9 @@ class Deck(DictAugmentedDyn):
     def getParentName(self):
         return self.manager.parentName(self.getName())
 
+    def getParent(self):
+        return self.manager.byName(self.getParentName())
+
     def getBaseName(self):
         return self.manager._basename(self.getName())
 
