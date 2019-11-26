@@ -87,7 +87,7 @@ class NoteImporter(Importer):
 
         The nth element of the import is sent to nth field, if it exists
         to tag otherwise"""
-        flds = [fieldType['name'] for fieldType in self.model['flds']]
+        flds = [fieldType.getName() for fieldType in self.model['flds']]
         # truncate to provided count
         flds = flds[0:self.fields()]
         # if there's room left, add tags
@@ -99,7 +99,7 @@ class NoteImporter(Importer):
 
     def mappingOk(self):
         """Whether something is mapped to the first field"""
-        return self.model['flds'][0]['name'] in self.mapping
+        return self.model['flds'][0].getName() in self.mapping
 
     def foreignNotes(self):
         "Return a list of foreign notes for importing."
@@ -126,7 +126,7 @@ class NoteImporter(Importer):
             else:
                 csums[csum] = [id]
         firsts = {}#mapping sending first field of added note to true
-        fld0idx = self.mapping.index(self.model['flds'][0]['name'])
+        fld0idx = self.mapping.index(self.model['flds'][0].getName())
         self._fmap = self.col.models.fieldMap(self.model)
         self._nextID = timestampID(self.col.db, "notes")
         # loop through the notes
