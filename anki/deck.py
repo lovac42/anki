@@ -79,6 +79,14 @@ class Deck(DictAugmentedDyn):
             self._setPath()
         return self._path
 
+    ## Descendants
+
+    def getDescendants(self, includeSelf=False, sort=False):
+        name = self.getName()
+        actv = []
+        return [deck for deck in self.manager.all(sort=sort) if deck.getName().startswith(name+"::") or (includeSelf and deck.getName() == name)]
+    #todo, maybe sort only this smaller list, at least until all() memoize
+
     ## Tests:
     def isParentOf(self, other):
         otherParent = other.getParent()
