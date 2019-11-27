@@ -77,7 +77,7 @@ def test_fields():
 def test_templates():
     d = getEmptyCol()
     m = d.models.current(); mm = d.models
-    t = mm.newTemplate(m, "Reverse")
+    t = m.newTemplate("Reverse")
     t['qfmt'] = "{{Back}}"
     t['afmt'] = "{{Front}}"
     mm.addTemplate(m, t)
@@ -104,7 +104,7 @@ def test_templates():
     assert c.ord == 0
     assert stripHTML(c.q()) == "1"
     # it shouldn't be possible to orphan notes by removing templates
-    t = mm.newTemplate(m, "tmpl name")
+    t = m.newTemplate("tmpl name")
     mm.addTemplate(m, t)
     assert not d.models.remTemplate(m, m['tmpls'][0])
 
@@ -225,7 +225,7 @@ def test_modelChange():
     cloze = deck.models.byName("Cloze")
     # enable second template and add a note
     m = deck.models.current(); mm = deck.models
-    t = mm.newTemplate(m, "Reverse")
+    t = m.newTemplate("Reverse")
     t['qfmt'] = "{{Back}}"
     t['afmt'] = "{{Front}}"
     mm.addTemplate(m, t)
