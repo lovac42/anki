@@ -4,7 +4,6 @@
 
 import copy
 import json
-import re
 import time
 
 from anki.consts import *
@@ -250,7 +249,7 @@ class ModelManager:
             # need to rebuild sort field
             self.col.updateFieldCache(model.nids())
         # saves
-        self.renameField(model, fieldTypeToRemove, None)
+        fieldTypeToRemove.rename(None)
 
     def moveField(self, model, fieldType, newIdx):
         """Move the field to position newIdx
@@ -277,33 +276,6 @@ class ModelManager:
             fields.insert(newIdx, val)
             return fields
         model._transformFields(move)
-
-    def renameField(self, model, fieldType, newName):
-        """Rename the field. In each template, find the mustache related to
-        this field and change them.
-
-        model -- the model dictionnary
-        field -- the field dictionnary
-        newName -- either a name. Or None if the field is deleted.
-
-        """
-        self.col.modSchema(check=True)
-        #Regexp associating to a mustache the name of its field
-        pat = r'{{([^{}]*)([:#^/]|[^:#/^}][^:}]*?:|)%s}}'
-        def wrap(txt):
-            def repl(match):
-                return '{{' + match.group(1) + match.group(2) + txt +  '}}'
-            return repl
-        for template in model['tmpls']:
-            for fmt in ('qfmt', 'afmt'):
-                if newName:
-                    template[fmt] = re.sub(
-                        pat % re.escape(fieldType.getName()), wrap(newName), template[fmt])
-                else:
-                    template[fmt] = re.sub(
-                        pat  % re.escape(fieldType.getName()), "", template[fmt])
-        fieldType.setName(newName)
-        model.save()
 
     # Templates
     ##################################################
