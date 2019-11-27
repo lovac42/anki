@@ -166,10 +166,12 @@ class DeckManager:
         decks -- json dic associating to each id (as string) its deck.
         dconf -- json dic associating to each id (as string) its configuration(option)
         """
+        self.loading = True
         self.changed = False
         self.loadDeck(decks)
         self.loadConf(dconf)
         self.activeDecks = self.col.conf['activeDecks']
+        self.loading = False
 
     def loadDeck(self, decks=None):
         """If decks is not provided, reload current deck collection"""
@@ -185,7 +187,7 @@ class DeckManager:
             name = deck['name']
             parentName = self.parentName(name)
             parent = self.byName(parentName, create=True) if parentName else None
-            deck = Deck(self, deck, parent)
+            deck = Deck(self, deck, parent, loading=True)
             deck.addInManager()
 
     def loadConf(self, dconf):
@@ -321,7 +323,9 @@ class DeckManager:
             # useful mostly in tests where decks are given directly as dic
             parentName = self.parentName(name)
             parent = self.byName(parentName, create=True) if parentName else None
-            deck = Deck(self, copy.deepcopy(deckToCopy), parent)
+            deckCopied = copy.deepcopy(deckToCopy)
+            deckCopied['name'] = name # useful because name is used in deck creation
+            deck = Deck(self, deckCopied, parent)
             deck.cleanCopy(name)
             return deck
         else:
