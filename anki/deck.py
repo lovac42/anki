@@ -233,6 +233,10 @@ class Deck(DictAugmentedDyn):
     def getChildren(self):
         return [self.childrenDict.get(childBaseName) for childBaseName in self.getChildrenNormalizedBaseNames()]
 
+    def getChild(self, name):
+        name = self.manager.normalizeName(name)
+        return self.childrenDict.get(name)
+
     def getChildrenIds(self):
         return [child['id'] for child in self.getChildren()]
 
