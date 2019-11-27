@@ -1,3 +1,4 @@
+import re
 from typing import Any, Dict
 
 from anki.utils import DictAugmentedInModel
@@ -42,3 +43,27 @@ class Field(DictAugmentedInModel):
             fieldsContents.append("")
             return fieldsContents
         self.model._transformFields(add)
+
+    def rename(self, newName):
+        """Rename the field. In each template, find the mustache related to
+        this field and change them.
+        field -- the field dictionnary
+        newName -- either a name. Or None if the field is deleted.
+        """
+        self.model.manager.col.modSchema(check=True)
+        #Regexp associating to a mustache the name of its field
+        pat = r'{{([^{}]*)([:#^/]|[^:#/^}][^:}]*?:|)%s}}'
+        def wrap(txt):
+            def repl(match):
+                return '{{' + match.group(1) + match.group(2) + txt +  '}}'
+            return repl
+        for template in self.model['tmpls']:
+            for fmt in ('qfmt', 'afmt'):
+                if newName:
+                    template[fmt] = re.sub(
+                        pat % re.escape(self.getName()), wrap(newName), template[fmt])
+                else:
+                    template[fmt] = re.sub(
+                        pat  % re.escape(self.getName()), "", template[fmt])
+        self.setName(newName)
+        self.model.save()
