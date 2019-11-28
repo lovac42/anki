@@ -10,6 +10,10 @@ from anki.utils import DictAugmentedDyn, ids2str, intTime
 
 
 class Deck(DictAugmentedDyn):
+    def __init__(self, manager, dict, parent):
+        self.parent = parent
+        super().__init__(manager, dict)
+
     def addInModel(self):
         """Adding or replacing the deck with our id in the manager"""
         self.manager.decks[str(self.getId())] = self
