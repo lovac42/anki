@@ -22,6 +22,7 @@ class Deck(DictAugmentedDyn):
     def addInManager(self):
         """Adding or replacing the deck with our id in the manager"""
         self.manager.decks[str(self.getId())] = self
+        self.manager.decksByNames[self.getNormalizedName()] = self
 
     def copy_(self, name):
         deck = self.deepcopy()
