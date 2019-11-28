@@ -172,8 +172,13 @@ class DeckManager:
     def loadDeck(self, decks):
         self.decks = {}
         self.decksByNames = {}
-        for deck in json.loads(decks).values():
-            deck = Deck(self, deck)
+        decks = list(json.loads(decks).values())
+        decks.sort(key=operator.itemgetter("name"))
+        for deck in decks:
+            name = deck['name']
+            parentName = self.parentName(name)
+            parent = self.byName(parentName, create=True) if parentName else None
+            deck = Deck(self, deck, parent)
             deck.addInManager()
 
     def loadConf(self, dconf):
@@ -307,7 +312,9 @@ class DeckManager:
             deckToCopy = defaultDeck
         if isinstance(deckToCopy, dict):
             # useful mostly in tests where decks are given directly as dic
-            deck = Deck(self, copy.deepcopy(deckToCopy))
+            parentName = self.parentName(name)
+            parent = self.byName(parentName, create=True) if parentName else None
+            deck = Deck(self, copy.deepcopy(deckToCopy), parent)
             deck.cleanCopy(name)
             return deck
         else:
