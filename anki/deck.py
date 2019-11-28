@@ -98,6 +98,9 @@ class Deck(DictAugmentedDyn):
     def getBaseName(self):
         return self.manager._basename(self.getName())
 
+    def getNormalizedName(self):
+        return self.manager.normalizeName(self.getName())
+
     def getPath(self):
         if self._path is None:
             self._setPath()
