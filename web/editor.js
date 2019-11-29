@@ -380,22 +380,27 @@ function onCutOrCopy() {
     return true;
 }
 
-function createDiv(ord,  fieldValue){
-    return "    <td>\n\
-      <div id='f{0}' onkeydown='onKey();' oninput='onInput();' onmouseup='onKey();'  onfocus='onFocus(this);' onblur='onBlur();' class='field clearfix' ondragover='onDragOver(this);' onpaste='onPaste(this);' oncopy='onCutOrCopy(this);' oncut='onCutOrCopy(this);' contentEditable=true class=field\n\
+function td(nbCol, alone, clas){
+    if (alone) {
+        return "    <td class=\"{0}\">\n".format(clas);
+    } else {
+        return "    <td class=\"{0}\" colspan={1}>\n".format(clas, nbCol);
+    }
+}
+
+function createDiv(ord,  fieldValue, nbCol, alone){
+    return td(nbCol, alone, "") + "      <div id='f{0}' onkeydown='onKey();' oninput='onInput();' onmouseup='onKey();'  onfocus='onFocus(this);' onblur='onBlur();' class='field clearfix' ondragover='onDragOver(this);' onpaste='onPaste(this);' oncopy='onCutOrCopy(this);' oncut='onCutOrCopy(this);' contentEditable=true class=field\n\
         >{1}</div>\n\
     </td>".format(ord, fieldValue);
 }
 // no new line/space around {1} because otherwise they'd be saved in the note
 
-function createNameTd(ord, fieldName, nbCol){
-    txt = "    <td class='fname'>\n\
-      <span>\n\
+function createNameTd(ord, fieldName, nbCol, alone){
+    txt = td(nbCol, alone, "fname")+"      <span>\n\
        {0}\n\
       </span>".format(fieldName);
     if (nbCol>1) {
-        //Actions to do when multiple coluns
-        txt+= "\n\
+      txt+= "\n\
       <input type='button' tabIndex='-1' value='Change size' onClick='changeSize({0})'/>".format(ord);
     }
     txt += "\n\
@@ -414,16 +419,29 @@ function setFields(fields, nbCol) {
     var partialFields = "";
     var lengthLine = 0;
     for (var i = 0; i < fields.length; i++) {
+        var alone = fields[i][2];
         var fieldName = fields[i][0];
-        partialNames += createNameTd(i, fieldName, nbCol);
+        var fieldNameHtml = createNameTd(i, fieldName, nbCol, alone);
 
         var fieldValue = fields[i][1];
         if (!fieldValue) {
             fieldValue = "<br>";
         }
-        partialFields += createDiv(i, fieldValue);
+        var fieldValueHtml = createDiv(i, fieldValue, nbCol, alone);
 
-        lengthLine++;
+        if (alone) {
+            txt += "  <tr>\n\
+"+fieldNameHtml+"\n\
+  </tr>\n\
+  <tr>\n\
+"+fieldValueHtml+"\n\
+  </tr>";
+        } else {
+            lengthLine++;
+            partialNames += fieldNameHtml;
+            partialFields += fieldValueHtml;
+        }
+
         //When a line is full, or last field, append it to txt.
         if (lengthLine == nbCol || ( i == fields.length -1 && lengthLine>0)){
             txt+= "\n\
