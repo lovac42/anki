@@ -52,6 +52,7 @@ class FixingManager:
         self.reasonableRevueDue()
         self.floatIvlInCard()
         self.floatIvlInRevLog()
+        self.ensureSomeNoteType()
         self.remainingToSplit()
     
     def noteWithMissingModel(self):
@@ -199,7 +200,10 @@ and type = {CARD_NEW}""", [intTime(), self.col.usn()])
         if self.curs.rowcount:
             self.problems.append("Fixed %d review history entries with v2 scheduler bug." % self.curs.rowcount)
 
-    def remainingToSplit():
+    def ensureSomeNoteType():
         # models
         if self.col.models.ensureNotEmpty():
             self.problems.append("Added missing note type.")
+
+    def remainingToSplit():
+        pass
