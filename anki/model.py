@@ -462,3 +462,7 @@ select id from cards where nid in (select id from notes where mid = ?)""",
 
     def isStd(self):
         return self['type'] == MODEL_STD
+
+    def removeLS(self):
+        if "ls" in self:
+            del self["ls"]
