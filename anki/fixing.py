@@ -41,6 +41,7 @@ class FixingManager:
         self.req()
         self.invalidCardOrdinal()
         self.wrongNumberOfField()
+        self.noteWithoutCard()
         self.remainingToSplit()
     
     def noteWithMissingModel(self):
@@ -101,7 +102,7 @@ select id from notes where mid = ?)""" %
                              len(ids)) % len(ids))
                 self.col.remNotes(ids)
 
-    def remainingToSplit(self):
+    def noteWithoutCard(self):
         # delete any notes with missing cards
         ids = self.db.list("""
 select id from notes where id not in (select distinct nid from cards)""")
@@ -111,6 +112,8 @@ select id from notes where id not in (select distinct nid from cards)""")
                 ngettext("Deleted %d note with no cards.",
                          "Deleted %d notes with no cards.", cnt) % cnt)
             self.col._remNotes(ids)
+
+    def remainingToSplit(self):
         # cards with missing notes
         ids = self.db.list("""
 select id from cards where nid not in (select id from notes)""")
