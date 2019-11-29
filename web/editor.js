@@ -272,6 +272,11 @@ function caretToEnd() {
     s.addRange(r);
 }
 
+function changeSize(fieldNumber){
+    saveNow(true);
+    pycmd("toggleLineAlone:"+fieldNumber);
+}
+
 function onBlur() {
     /*Tells python that it must save. Either by key if current field
       is still active. Otherwise by blur.  If current field is not
@@ -390,6 +395,8 @@ function createNameTd(ord, fieldName, nbCol){
       </span>".format(fieldName);
     if (nbCol>1) {
         //Actions to do when multiple coluns
+        txt+= "\n\
+      <input type='button' tabIndex='-1' value='Change size' onClick='changeSize({0})'/>".format(ord);
     }
     txt += "\n\
     </td>"
