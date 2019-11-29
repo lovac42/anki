@@ -376,7 +376,7 @@ function onCutOrCopy() {
 }
 
 function createDiv(ord,  fieldValue){
-    return "    <td width=100%>\n\
+    return "    <td>\n\
       <div id='f{0}' onkeydown='onKey();' oninput='onInput();' onmouseup='onKey();'  onfocus='onFocus(this);' onblur='onBlur();' class='field clearfix' ondragover='onDragOver(this);' onpaste='onPaste(this);' oncopy='onCutOrCopy(this);' oncut='onCutOrCopy(this);' contentEditable=true class=field\n\
         >{1}</div>\n\
     </td>".format(ord, fieldValue);
@@ -384,14 +384,16 @@ function createDiv(ord,  fieldValue){
 // no new line/space around {1} because otherwise they'd be saved in the note
 
 function createNameTd(ord, fieldName){
-    return "    <td class='fname'>\n\
+    txt = "    <td class='fname'>\n\
       <span>\n\
        {0}\n\
-      </span>\n\
-    </td>".format(fieldName);
+      </span>".format(fieldName);
+    txt += "\n\
+    </td>"
+    return txt
 }
 
-function setFields(fields) {
+function setFields(fields, nbCol) {
     /*Replace #fields by the HTML to show the list of fields to edit.
       Potentially change buttons
 
@@ -403,23 +405,30 @@ function setFields(fields) {
     var lengthLine = 0;
     for (var i = 0; i < fields.length; i++) {
         var fieldName = fields[i][0];
-        fieldNameHtml = createNameTd(i, fieldName)
+        partialNames += createNameTd(i, fieldName);
 
         var fieldValue = fields[i][1];
         if (!fieldValue) {
             fieldValue = "<br>";
         }
-        fieldValueHtml = createDiv(i, fieldValue);
+        partialFields += createDiv(i, fieldValue);
 
-        txt += "  <tr>\n\
-"+fieldNameHtml+"\n\
-  </tr>\n\
+        lengthLine++;
+        //When a line is full, or last field, append it to txt.
+        if (lengthLine == nbCol || ( i == fields.length -1 && lengthLine>0)){
+            txt+= "\n\
   <tr>\n\
-"+fieldValueHtml+"\n\
+"+partialNames+"\n\
+  </tr>\n\
+  <tr>"+partialFields+"\n\
   </tr>";
+            // Re-initializing accumulators
+            partialNames = "";
+            partialFields = "";
+            lengthLine = 0;
+        }
     }
-    $("#fields").html("\n\
-<table cellpadding=0 width=100% style='table-layout: fixed;'>\n\
+    $("#fields").html("<table cellpadding=0 width=100% style='table-layout: fixed;'>\n\
 " + txt + "\n\
 </table>");
     maybeDisableButtons();
