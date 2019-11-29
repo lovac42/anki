@@ -855,7 +855,7 @@ QTreeWidget {
             self.col.startTimebox()
             self.moveToState("review")
         else:
-            self.moveToState("overview")
+            self.onReviewOrOverview()
 
     # App exit
     ##########################################################################
@@ -946,6 +946,12 @@ QTreeWidget {
     def onOverview(self):
         self.col.reset()
         self.moveToState("overview")
+
+    def onReviewOrOverview(self):
+        if self.col.conf.get("deckOverview", False):
+            self.onOverview()
+        else:
+            self.onReview()
 
     def onReview(self):
         self.col.startTimebox()
@@ -1276,7 +1282,7 @@ will be lost. Continue?"""))
             self, dyn=True, current=self.col.decks.current().getName())
         if ret.name:
             self.col.decks.byName(ret.name, create=True).select()
-            self.moveToState("overview")
+            self.onReviewOrOverview()
 
     def onEmptyCards(self):
         """Method called by Tools>Empty Cards..."""
