@@ -49,6 +49,8 @@ class FixingManager:
         self.col.tags.registerNotes()
         self.updateAllFieldcache()
         self.atMost1000000Due()
+        self.setNextPos()
+        self.reasonableRevueDue()
         self.remainingToSplit()
 
     def noteWithMissingModel(self):
@@ -168,10 +170,12 @@ and type = {CARD_NEW}""", [intTime(), self.col.usn()])
         if self.curs.rowcount:
             self.problems.append("Found %d new cards with a due number >= 1,000,000 - consider repositioning them in the Browse screen." % self.curs.rowcount)
 
-    def remainingToSplit(self):
+    def setNextPos(self):
         # new card position
         self.col.conf['nextPos'] = self.db.scalar(
             f"select max(due)+1 from cards where type = {CARD_NEW}") or 0
+
+    def reasonableRevueDue(self):
         # reviews should have a reasonable due #
         ids = self.db.list(
             "select id from cards where queue = 2 and due > 100000")
@@ -180,6 +184,8 @@ and type = {CARD_NEW}""", [intTime(), self.col.usn()])
             self.db.execute(
                 "update cards set due = ?, ivl = 1, mod = ?, usn = ? where id in %s"
                 % ids2str(ids), self.col.sched.today, intTime(), self.col.usn())
+
+    def remainingToSplit(self):
         # v2 sched had a bug that could create decimal intervals
         self.curs.execute("update cards set ivl=round(ivl),due=round(due) where ivl!=round(ivl) or due!=round(due)")
         if self.curs.rowcount:
