@@ -990,10 +990,10 @@ QTreeWidget {
         import aqt.importing
         aqt.importing.onImport(self)
 
-    def onExport(self, did=None):
-        """Open exporting window, with did as in its argument."""
+    def onExport(self, deck=None):
+        """Open exporting window, with deck as in its argument."""
         import aqt.exporting
-        aqt.exporting.ExportDialog(self, did=did)
+        aqt.exporting.ExportDialog(self, deck=deck)
 
     # Cramming
     ##########################################################################
