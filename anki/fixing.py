@@ -53,7 +53,6 @@ class FixingManager:
         self.floatIvlInCard()
         self.floatIvlInRevLog()
         self.ensureSomeNoteType()
-        self.remainingToSplit()
     
     def noteWithMissingModel(self):
         # note types with a missing model
@@ -204,6 +203,3 @@ and type = {CARD_NEW}""", [intTime(), self.col.usn()])
         # models
         if self.col.models.ensureNotEmpty():
             self.problems.append("Added missing note type.")
-
-    def remainingToSplit():
-        pass
