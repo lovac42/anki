@@ -462,9 +462,9 @@ and due <= ? limit ?)""",
     # Reviews
     ##########################################################################
 
-    def _currentRevLimit(self):
+    def _currentRevLimit(self, sync=False):
         deck = self.col.decks.get(self.col.decks.selected(), default=False)
-        return self._deckRevLimitSingle(deck)
+        return self._deckRevLimitSingle(deck, sync=sync)
 
         if parentLimit is not None:
             return min(parentLimit, lim)
@@ -473,7 +473,7 @@ and due <= ? limit ?)""",
         else:
             for ancestor in deck.getAncestors():
                 # pass in dummy parentLimit so we don't do parent lookup again
-                lim = min(lim, self._deckRevLimitSingle(ancestor, parentLimit=lim))
+                lim = min(lim, self._deckRevLimitSingle(ancestor, parentLimit=lim, sync=sync))
             return lim
 
     def _deckRevLimitSingle(self, deck, parentLimit=None, sync=False):
