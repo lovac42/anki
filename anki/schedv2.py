@@ -502,8 +502,11 @@ select count() from
 and due <= ? limit ?)""" % ids2str(dids),
             self.today, lim)
 
-    def _resetRevCount(self):
-        lim = self._currentRevLimit()
+    def _resetRevCount(self, sync=False):
+        """
+        sync -- whether it's called from sync, and the return must satisfies sync sanity check
+        """
+        lim = self._currentRevLimit(sync=sync)
         self.revCount = self.col.db.scalar(f"""
 select count() from (select id from cards where
 did in %s and queue = {QUEUE_REV} and due <= ? limit {lim})""" %
