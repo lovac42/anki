@@ -40,6 +40,7 @@ class FixingManager:
         self.noteWithMissingModel()
         self.override()
         self.req()
+        self.invalidCardOrdinal()
         self.remainingToSplit()
 
     def noteWithMissingModel(self):
@@ -68,7 +69,7 @@ select id from notes where mid not in """ + ids2str(self.col.models.ids()))
                 model._updateRequired()
                 self.problems.append(_("Fixed note type: %s") % model.getName())
 
-    def remainingToSplit(self):
+    def invalidCardOrdinal(self):
         for model in self.col.models.all(type=MODEL_STD):
             # cards with invalid ordinal
             ids = self.db.list("""
@@ -82,6 +83,8 @@ select id from notes where mid = ?)""" %
                              "Deleted %d cards with missing template.",
                              len(ids)) % len(ids))
                 self.col.remCards(ids)
+
+    def remainingToSplit(self):
         # notes with invalid field count
         for model in self.col.models.all():
             ids = []
