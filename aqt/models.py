@@ -154,7 +154,7 @@ class Models(QDialog):
         for name in list(note.keys()):
             note[name] = "("+name+")"
         try:
-            if "{{cloze:Text}}" in self.model['tmpls'][0]['qfmt']:
+            if "{{cloze:Text}}" in self.model.getTemplate()['qfmt']:
                 note['Text'] = _("This is a {{c1::sample}} cloze deletion.")
         except:
             # invalid cloze
