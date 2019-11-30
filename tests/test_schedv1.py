@@ -583,7 +583,7 @@ def test_cram():
     c = d.sched.getCard()
     assert c.type == CARD_DUE
     lrnConf = d.sched._lrnConf(c)
-    assert c.originalDeck().getConf()['lapse']['delays'] == [10]
+    assert c.originalConf()['lapse']['delays'] == [10]
     assert lrnConf['delays'] == [10]
     assert d.sched.answerButtons(c) == 2
     assert d.sched.nextIvl(c, 1) == 600
