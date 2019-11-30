@@ -136,7 +136,7 @@ class Card:
         self.mod = intTime()
         self.usn = self.col.usn()
         # bug check
-        if self.queue == QUEUE_REV and self.odue and not self.col.decks.get(self.did).isDyn():
+        if self.queue == QUEUE_REV and self.odue and not self.currentDeck().isDyn():
             runHook("odueInvalid")
         assert self.due < 4294967296
         self.col.db.execute(
@@ -171,7 +171,7 @@ insert or replace into cards values
         self.mod = intTime()
         self.usn = self.col.usn()
         # bug checks
-        if self.queue == QUEUE_REV and self.odue and not self.col.decks.get(self.did).isDyn():
+        if self.queue == QUEUE_REV and self.odue and not self.currentDeck().isDyn():
             runHook("odueInvalid")
         assert self.due < 4294967296
         self.col.db.execute(
@@ -301,6 +301,9 @@ lapses=?, left=?, odue=?, odid=?, did=? where id = ?""",
 
     def isFiltered(self):
         return self.odid
+
+    def currentDeck(self):
+        return self.col.decks.get(self.did)
 
     def originalDid(self):
         """Independantly of whether the card is filtered or not."""
