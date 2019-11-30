@@ -252,10 +252,7 @@ lapses=?, left=?, odue=?, odid=?, did=? where id = ?""",
         """The card's template object. See models.py for a comment of this
         object."""
         model = self.model()
-        if model['type'] == MODEL_STD:
-            return self.model()['tmpls'][self.ord]
-        else: #In case of cloze
-            return self.model()['tmpls'][0]
+        return self.model().getTemplate(self.ord)
 
     def startTimer(self):
         """Start the timer of the card"""
@@ -328,10 +325,7 @@ lapses=?, left=?, odue=?, odid=?, did=? where id = ?""",
         return answerLine
 
     def templateBrowserColumn(self):
-        templateName = self.template().getName()
-        if self.model()['type'] == MODEL_CLOZE:
-            templateName += " %d" % (self.ord+1)
-        return templateName
+        return self.template().getName()
 
     def nextDue(self):
         if self.odid:
