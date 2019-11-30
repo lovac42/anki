@@ -317,6 +317,9 @@ lapses=?, left=?, odue=?, odid=?, did=? where id = ?""",
         """Independantly of whether the card is filtered or not."""
         return self.originalDeck().getConf()
 
+    def currentConf(self):
+        return self.currentDeck().getConf()
+
     # Deck columns to show
     ######################################################################
 
