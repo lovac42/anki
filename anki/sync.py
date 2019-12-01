@@ -279,7 +279,7 @@ class Syncer:
             self.col.models.save()
         self.col.sched.reset()
         # check for missing parent decks
-        self.col.sched.deckDueList()
+        self.col.decks.checkIntegrity()
         # return summary of deck
         return [
             list(self.col.sched.counts()),
