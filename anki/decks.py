@@ -183,6 +183,8 @@ class DeckManager:
         self.decksByNames = {}
         decks = list(decks.values())
         decks.sort(key=operator.itemgetter("name"))
+        self.topLevel = Deck(self, {"name": "", "id":-1, "dyn":DECK_STD}, None)
+        #std deck so it can have child
         for deck in decks:
             name = deck['name']
             parentName = self.parentName(name)
@@ -272,6 +274,7 @@ class DeckManager:
         decks = list(self.decks.values())
         if not forceDefault and not self.col.db.scalar("select 1 from cards where did = 1 limit 1") and len(decks)>1:
             decks = [deck for deck in decks if deck['id'] != 1]
+        decks = [deck for deck in decks if not deck.isAboveTopLevel()]
         if dyn is not None:
             decks = [deck for deck in decks if deck['dyn']==dyn]
         if sort:
@@ -309,6 +312,8 @@ class DeckManager:
         not exists. Default true, otherwise return None
         deckToCopy -- A deck to copy in order to create this deck
         """
+        if name == "":
+            return self.topLevel
         name = name.replace('"', '')
         name = unicodedata.normalize("NFC", name)
         normalized = self.normalizeName(name)
@@ -322,7 +327,7 @@ class DeckManager:
         if isinstance(deckToCopy, dict):
             # useful mostly in tests where decks are given directly as dic
             parentName = self.parentName(name)
-            parent = self.byName(parentName, create=True) if parentName else None
+            parent = self.byName(parentName, create=True)
             deckCopied = copy.deepcopy(deckToCopy)
             deckCopied['name'] = name # useful because name is used in deck creation
             deck = Deck(self, deckCopied, parent)
@@ -373,7 +378,7 @@ class DeckManager:
         ancestorName = ""
         path = self._path(name)
         if len(path) < 2:
-            return None, name
+            return self.topLevel, name
         for pathPiece in path[:-1]:
             if not ancestorName:
                 ancestorName += pathPiece
