@@ -1081,11 +1081,11 @@ by clicking on one on the left."""))
                 children = deck.getBaseName()
                 item = self.CallbackItem(
                     root, children,
-                    lambda grp=grp: self.setFilter("deck", head+deck.getId()),
-                    lambda grp=grp: deck.collapseBrowser(),
+                    lambda deck=deck: self.setFilter("deck", head+deck.getId()),
+                    lambda deck=deck: deck.collapseBrowser(),
                     not deck.get('browserCollapsed', False))
                 item.setIcon(0, QIcon(":/icons/deck.svg"))
-                newhead = head + getBaseName + "::"
+                newhead = head  + deck.getBaseName() + "::"
                 fillGroups(item, deck, newhead)
         fillGroups(root, self.col.decks.topLevel)
 
