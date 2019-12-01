@@ -173,10 +173,13 @@ class DeckManager:
         self.decksByNames = {}
         decks = list(json.loads(decks).values())
         decks.sort(key=operator.itemgetter("name"))
+        self.topLevel = Deck(self, {"name": "", "id":-1, "dyn":DECK_STD}, None)
+        #std deck so it can have child
+        self.topLevel.addInModel()
         for deck in decks:
             name = deck['name']
             parentName = self.parentName(name)
-            parent = self.byName(parentName, create=True) if parentName else None
+            parent = self.byName(parentName, create=True)
             deck = Deck(self, deck, parent)
             deck.addInModel()
 
@@ -262,6 +265,7 @@ class DeckManager:
         standard -- whether to incorporate non dynamic deck
         """
         decks = list(self.decks.values())
+        decks = [deck for deck in decks if not deck.isAboveTopLevel()]
         if dyn is not None:
             decks = [deck for deck in decks if deck['dyn']==dyn]
         if sort:
@@ -312,7 +316,7 @@ class DeckManager:
         if isinstance(deckToCopy, dict):
             # useful mostly in tests where decks are given directly as dic
             parentName = self.parentName(name)
-            parent = self.byName(parentName, create=True) if parentName else None
+            parent = self.byName(parentName, create=True)
             deckCopied = copy.deepcopy(deckToCopy)
             deckCopied['name'] = name # useful because name is used in deck creation
             deck = Deck(self, deckCopied, parent)
