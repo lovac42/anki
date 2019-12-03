@@ -182,13 +182,10 @@ class DeckManager:
         self.decksByNames = {}
         decks = list(decks.values())
         decks.sort(key=operator.itemgetter("name"))
-        self.topLevel = Deck(self, {"name": "", "id":-1, "dyn":DECK_STD}, None)
+        self.topLevel = self.createDeck({"name": "", "id":-1, "dyn":DECK_STD})
         #std deck so it can have child
         for deck in decks:
-            name = deck['name']
-            parentName = self.parentName(name)
-            parent = self.byName(parentName, create=True) if parentName else None
-            deck = Deck(self, deck, parent, loading=True)
+            deck = self.createDeck(deck, loading=True)
             deck.addInManager()
 
     def loadConf(self, dconf):
@@ -324,11 +321,9 @@ class DeckManager:
             deckToCopy = defaultDeck
         if isinstance(deckToCopy, dict):
             # useful mostly in tests where decks are given directly as dic
-            parentName = self.parentName(name)
-            parent = self.byName(parentName, create=True)
             deckCopied = copy.deepcopy(deckToCopy)
             deckCopied['name'] = name # useful because name is used in deck creation
-            deck = Deck(self, deckCopied, parent)
+            deck = self.createDeck(deckCopied)
             deck.cleanCopy(name)
             return deck
         else:
@@ -532,3 +527,16 @@ class DeckManager:
     @staticmethod
     def equalName(name1, name2):
         return DeckManager.normalizeName(name1) == DeckManager.normalizeName(name2)
+
+    def createDeck(self, dict, *args, **kwargs):
+        name = dict['name']
+        if name == "":
+            parent = None
+            # topLevel uses _createDeck,  so toplevel can't be used yet
+        else:
+            parentName = self.parentName(name)
+            parent = self.byName(parentName, create=True)
+        return self._createDeck(dict, parent, *args, **kwargs)
+
+    def _createDeck(self, *args, **kwargs):
+        return Deck(self, *args, **kwargs)

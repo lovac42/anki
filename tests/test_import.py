@@ -13,9 +13,11 @@ from aqt import addons
 from aqt import browser
 from aqt import clayout
 from aqt import customstudy
+from aqt import deck
 from aqt import deckbrowser
 from aqt import deckchooser
 from aqt import deckconf
+from aqt import decks
 from aqt import downloader
 from aqt import dyndeckconf
 from aqt import editcurrent
