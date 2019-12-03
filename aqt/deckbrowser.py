@@ -94,7 +94,7 @@ class DeckBrowser:
         self.web.evalWithCallback("window.pageYOffset", self.__renderPage)
 
     def __renderPage(self, offset):
-        tree = self._renderDeckTree(self.mw.col.decks.topLevel.getChildren())
+        tree = self._renderDeckTree(self.mw.col.decks.topLevel)
         stats = self._renderStats()
         self.web.stdHtml(self._body%dict(
             tree=tree, stats=stats, countwarn=self._countWarn()),
@@ -139,13 +139,13 @@ where id > ?""", (self.mw.col.sched.dayCutoff-86400)*1000)
                     """
   </div>""")))
 
-    def _renderDeckTree(self, decks, depth=0):
+    def _renderDeckTree(self, deck, depth=0):
         """Html used to show the deck tree.
 
         keyword arguments
         depth -- the number of ancestors, excluding itself
         decks -- A list of decks, to render, with the same parent. See top of this file for detail"""
-        if not decks:
+        if not deck.getChildren():
             return ""
         if depth == 0:
             #Toplevel
@@ -164,7 +164,7 @@ where id > ?""", (self.mw.col.sched.dayCutoff-86400)*1000)
             buf += self._topLevelDragRow()
         else:
             buf = ""
-        buf += "".join(self._deckRow(deck, depth, len(decks)) for deck in decks)
+        buf += "".join(self._deckRow(child, depth, len(child.getChildren())) for child in child.getChildren())
         if depth == 0:
             buf += self._topLevelDragRow()
         return buf
@@ -244,7 +244,7 @@ where id > ?""", (self.mw.col.sched.dayCutoff-86400)*1000)
   </tr>""" % did)
         # children
         if not deck['collapsed']:
-            buf += self._renderDeckTree(children, depth+1)
+            buf += self._renderDeckTree(deck, depth+1)
         return buf
 
     def _topLevelDragRow(self):
