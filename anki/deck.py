@@ -202,6 +202,12 @@ class Deck(DictAugmentedDyn):
     def isAboveTopLevel(self):
         return self.getName() == ""
 
+    def isLeaf(self):
+        return not self.getChildren()
+
+    def directLine(self):
+        return self.getAncestors(includeSelf=True) + self.getDescendants()
+
     def getParentName(self):
         return self.manager.parentName(self.getName())
 
