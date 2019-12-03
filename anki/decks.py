@@ -180,13 +180,13 @@ class DeckManager:
         self.decksByNames = {}
         decks = list(json.loads(decks).values())
         decks.sort(key=operator.itemgetter("name"))
-        self.topLevel = Deck(self, {"name": "", "id":-1, "dyn":DECK_STD}, None)
+        self.topLevel = self.createDeck({"name": "", "id":-1, "dyn":DECK_STD}, None)
         #std deck so it can have child
         for deck in decks:
             name = deck['name']
             parentName = self.parentName(name)
             parent = self.byName(parentName, create=True)
-            deck = Deck(self, deck, parent)
+            deck = self.createDeck(deck, parent)
             deck.addInManager()
 
     def loadConf(self, dconf):
@@ -327,7 +327,7 @@ class DeckManager:
             parent = self.byName(parentName, create=True)
             deckCopied = copy.deepcopy(deckToCopy)
             deckCopied['name'] = name # useful because name is used in deck creation
-            deck = Deck(self, deckCopied, parent)
+            deck = self.createDeck(deckCopied, parent)
             deck.cleanCopy(name)
             return deck
         else:
@@ -556,3 +556,6 @@ class DeckManager:
     def setAll(self, decks=None):
         self.setLimits(decks)
         self.setNum(decks)
+
+    def createDeck(self, *args, **kwargs):
+        return Deck(self, *args, **kwargs)
