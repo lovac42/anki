@@ -145,7 +145,7 @@ where id > ?""", (self.mw.col.sched.dayCutoff-86400)*1000)
         keyword arguments
         depth -- the number of ancestors, excluding itself
         decks -- A list of decks, to render, with the same parent. See top of this file for detail"""
-        if not deck.getChildren():
+        if deck.isLeaf():
             return ""
         if depth == 0:
             #Toplevel
@@ -164,26 +164,24 @@ where id > ?""", (self.mw.col.sched.dayCutoff-86400)*1000)
             buf += self._topLevelDragRow()
         else:
             buf = ""
-        buf += "".join(self._deckRow(child, depth, len(child.getChildren())) for child in child.getChildren())
+        buf += "".join(self._deckRow(child, depth) for child in deck.getChildren())
         if depth == 0:
             buf += self._topLevelDragRow()
         return buf
 
-    def _deckRow(self, deck, depth, cnt):
+    def _deckRow(self, deck, depth):
         """The HTML for a single deck (and its descendant)
 
         Keyword arguments:
         deck -- see in the introduction of the file for a deck description
         depth -- indentation argument (number of ancestors)
-        cnt --  the number of sibling, counting itself
         """
         name = deck.getBaseName()
         did = deck.getId()
         rev = deck.count['due']['rev']
         lrn = deck.count['due']['lrn']
         new = deck.count['due']['new']
-        children = deck.getChildren()
-        if deck.isDefault() and cnt > 1 and not children:
+        if deck.isDefault() and not deck.getParent().isLeaf() and deck.isLeaf():
             # if the default deck is empty, hide it
             if not self.mw.col.db.scalar("select 1 from cards where did = 1 limit 1"):
                 return ""
@@ -200,7 +198,7 @@ where id > ?""", (self.mw.col.sched.dayCutoff-86400)*1000)
         buf = """
   <tr class='%s' id='%d'>""" % (klass, did)
         # deck link
-        if children:
+        if not deck.isLeaf():
             collapse = """
       <a class=collapse href=# onclick='return pycmd(\"collapse:%d\")'>%s</a>""" % (did, prefix)
         else:
