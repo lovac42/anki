@@ -524,7 +524,7 @@ crt=?, mod=?, scm=?, dty=?, usn=?, ls=?, conf=?""",
         usn = self.usn()
         for nid, mid, flds in self.db.execute(
             "select id, mid, flds from notes where id in "+snids):
-            model = self.models.get(mid)
+            model = self.models.get(mid, orNone=False)
             assert(model)
             avail = model.availOrds(flds)
             did = dids.get(nid) or model['did']
@@ -694,7 +694,7 @@ where card.nid = note.id and card.id in %s group by nid""" % ids2str(cids)):
         notesUpdates = []
         for (nid, mid, flds) in self._fieldData(snids):
             fields = splitFields(flds)
-            model = self.models.get(mid)
+            model = self.models.get(mid, orNone=False)
             if not model:
                 # note points to invalid model
                 continue
@@ -743,7 +743,7 @@ where card.nid = note.id and card.id in %s group by nid""" % ids2str(cids)):
         # data is [cid, nid, mid, did, ord, tags, flds, cardFlags]
         # unpack fields and create dict
 
-        model = self.models.get(mid)
+        model = self.models.get(mid, orNone=False)
         if model['type'] == MODEL_STD:
             template = model['tmpls'][ord]
         else:
