@@ -99,3 +99,7 @@ class Deck(anki.deck.Deck):
         if not self['collapsed']:
             buf += self._renderDeckTree(depth+1)
         return buf
+
+    def _selDeck(self):
+        self.select()
+        self.manager.mw.onOverview()
