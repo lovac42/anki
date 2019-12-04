@@ -1,8 +1,10 @@
 import anki.deck
 from anki.consts import *
 from anki.errors import DeckRenameError
+from anki.hooks import runHook
 from anki.lang import _, ngettext
 from anki.utils import ids2str
+from aqt.qt import *
 from aqt.utils import askUser, getOnlyText, showWarning
 
 
@@ -107,6 +109,20 @@ class Deck(anki.deck.Deck):
     def _selDeck(self):
         self.select()
         self.manager.mw.onOverview()
+
+    def _showOptions(self):
+        menu = QMenu(self.manager.mw)
+        action = menu.addAction(_("Rename"))
+        action.triggered.connect(lambda button, deck=self: deck._askAndRename())
+        action = menu.addAction(_("Options"))
+        action.triggered.connect(lambda button, deck=self: deck._options())
+        action = menu.addAction(_("Export"))
+        action.triggered.connect(lambda button, deck=self: deck._export())
+        action = menu.addAction(_("Delete"))
+        action.triggered.connect(lambda button, deck=self: deck._delete())
+        runHook("showDeckOptions", menu, self.getId())
+        # still passing did, as add-ons have not updated to my fork.
+        menu.exec_(QCursor.pos())
 
     def _export(self):
         self.manager.mw.onExport(deck=self)
