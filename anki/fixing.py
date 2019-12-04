@@ -2,6 +2,8 @@ import os
 import stat
 
 from anki.consts import *
+from anki.dconf import defaultConf as defaultDeckConf
+from anki.decks import defaultDeck, defaultDynamicDeck
 from anki.lang import _, ngettext
 from anki.utils import ids2str, intTime
 
@@ -54,6 +56,7 @@ class FixingManager:
         self.floatIvlInCard()
         self.floatIvlInRevLog()
         self.ensureSomeNoteType()
+        self.checkDeck()
 
     def noteWithMissingModel(self):
         # note types with a missing model
@@ -202,3 +205,17 @@ and type = {CARD_NEW}""", [intTime(), self.col.usn()])
         # models
         if self.col.models.ensureNotEmpty():
             self.problems.append("Added missing note type.")
+
+    def checkDeck(self):
+        """check that all default confs/decks option are set in all deck's related object"""
+        for paramsSet, defaultParam, what, kind in [(self.col.decks.dconf.values(), defaultDeckConf, "'s option", "deck configuration"),
+                                                    (self.col.decks.all(sort=False, dyn=DECK_STD), defaultDeck, "", "standard deck"),
+                                                    (self.col.decks.all(sort=False, dyn=DECK_DYN), defaultDynamicDeck, " (dynamic)", "dynamic deck"),
+                                                    (self.col.decks.all(sort=False, dyn=DECK_DYN), defaultDeckConf, " (dynamic)", "dynamic deck as conf"),
+        ]:
+            for key in defaultParam:
+                for params in paramsSet:
+                    if key not in params:
+                        params[key] = defaultParam[key]
+                        params.save()
+                        self.problems.append(f"Adding some «{key}» which was missing in deck{what} {params['name']}")
