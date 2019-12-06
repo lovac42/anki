@@ -1,5 +1,6 @@
 import time
 
+from anki.lang import _
 from anki.utils import formatDay
 
 
@@ -78,3 +79,10 @@ class DateColumnFromQuery(BrowserColumn):
 
     def getSort(self):
         return f"{self.query}, card.ord" #second is useless to sort card. Useful for notes
+
+class UselessColumn(BrowserColumn):
+    def __init__(self, type):
+        super().__init__(type, _(type))
+
+    def content(self, card):
+        return ""
