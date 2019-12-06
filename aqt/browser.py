@@ -19,7 +19,7 @@ from anki.lang import _, ngettext
 from anki.sound import allSounds, clearAudioQueue, play
 from anki.utils import (bodyClass, fmtTimeSpan, htmlToTextLine, ids2str,
                         intTime, isMac, isWin)
-from aqt.browserColumn import BrowserColumn
+from aqt.browserColumn import BrowserColumn, UselessColumn
 from aqt.qt import *
 from aqt.utils import (MenuList, SubMenu, askUser, getOnlyText, getTag,
                        mungeQA, openHelp, qtMenuShortcutWorkaround,
@@ -573,6 +573,9 @@ class Browser(QMainWindow):
         # alphabetical order in
         # the local language
         self.columns = {column.type: column for column in columns}
+        for column in self.col.conf.get("activeCols", []):
+            if column not in self.columns:
+                self.columns[column] = UselessColumn(column)
 
     # Searching
     ######################################################################
@@ -825,6 +828,7 @@ by clicking on one on the left."""))
                 self.model.endReset()
                 return showInfo(_("You must have at least one column."))
             self.model.activeCols.remove(type)
+            self.setupColumns() #in case we removed a column which should disappear
             adding=False
         else:
             self.model.activeCols.append(type)

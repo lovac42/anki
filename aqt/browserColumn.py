@@ -44,3 +44,10 @@ class BrowserColumn:
             return self.defaultSort
         else:
             return self.sort
+
+def UselessColumn(BrowserColumn):
+    def __init__(self, type):
+        super().__init__(type, _(type), sort="")
+
+    def content(self, card):
+        return ""
