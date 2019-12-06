@@ -19,7 +19,8 @@ from anki.lang import _, ngettext
 from anki.sound import allSounds, clearAudioQueue, play
 from anki.utils import (bodyClass, fmtTimeSpan, htmlToTextLine, ids2str,
                         intTime, isMac, isWin)
-from aqt.browserColumn import ColumnByMethod, DateColumnFromQuery
+from aqt.browserColumn import (ColumnByMethod, DateColumnFromQuery,
+                               UselessColumn)
 from aqt.qt import *
 from aqt.utils import (MenuList, SubMenu, askUser, getOnlyText, getTag,
                        mungeQA, openHelp, qtMenuShortcutWorkaround,
@@ -154,8 +155,8 @@ class DataModel(QAbstractTableModel):
         if orientation == Qt.Vertical or not(role == Qt.DisplayRole and section < len(self.activeCols)):
             return
         type = self.columnType(section)
-        # handle case where extension has set an invalid column type
-        return self.columns.get(type, list(self.columns.values())[0]).name
+        column = self.columns[type]
+        return column.name
 
     def flags(self, index):
         """Required by QAbstractTableModel. State that interaction is possible
@@ -181,11 +182,9 @@ class DataModel(QAbstractTableModel):
         self.cards = []
         invalid = False
         try:
-            sortColum = self.columns.get(self.col.conf['sortType'])
-            if sortColum is None:
-                sort = BrowserColumn.defaultSort
-            else:
-                sort = sortColum.getSort()
+            type = self.col.conf['sortType']
+            sortColumn = self.columns[type]
+            sort = sortColumn.getSort()
             self.cards = self.col.findCards(txt, order=sort)
         except Exception as e:
             if str(e) == "invalidSearch":
@@ -309,6 +308,13 @@ class DataModel(QAbstractTableModel):
             ColumnByMethod('noteTags', _("Tags"), methodName="stringTags"),
             ColumnByMethod('note', _("Note"), methodName="noteTypeBrowserColumn"),
         ]
+        columnTypes = {column.type for column in columns}
+        for type in self.activeCols:
+            if type not in columnTypes:
+                column = UselessColumn(type)
+                columns.append(column)
+                columnTypes.add(type)
+
         columns.sort(key=lambda browser:browser.name) # allow to sort by
         # alphabetical order in
         # the local language
@@ -332,8 +338,7 @@ class DataModel(QAbstractTableModel):
         type = self.columnType(col)
         card = self.getCard(index)
 
-        if type in self.columns:
-            return self.columns[type].content(card)
+        return self.columns[type].content(card)
 
     def isRTL(self, index):
         col = index.column()
@@ -828,6 +833,7 @@ by clicking on one on the left."""))
                 self.model.endReset()
                 return showInfo(_("You must have at least one column."))
             self.model.activeCols.remove(type)
+            self.setupColumns() #in case we removed a column which should disappear
             adding=False
         else:
             self.model.activeCols.append(type)
