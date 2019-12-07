@@ -2,6 +2,8 @@
 # Copyright: Ankitects Pty Ltd and contributors
 # License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
 
+import time
+
 from anki.utils import (fieldChecksum, guid64, htmlToTextLine, intTime,
                         joinFields, splitFields, stripHTMLMedia, timestampID)
 
@@ -242,3 +244,6 @@ space, with an initial and a final white space."""
 
     def crtBrowserColumn(self):
         return time.strftime("%Y-%m-%d", time.localtime(self.id/1000))
+
+    def modBrowserColumn(self):
+        return time.strftime("%Y-%m-%d", time.localtime(self.mod))
