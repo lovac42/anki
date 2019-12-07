@@ -316,3 +316,9 @@ lapses=?, left=?, odue=?, odid=?, did=? where id = ?""",
         if answerLine.startswith(questionHtml):
             return answerLine[len(questionHtml):].strip()
         return answerLine
+
+    def templateBrowserColumn(self):
+        templateName = self.template()['name']
+        if self.model()['type'] == MODEL_CLOZE:
+            templateName += " %d" % (self.ord+1)
+        return templateName
