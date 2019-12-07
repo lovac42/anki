@@ -314,7 +314,7 @@ class DataModel(QAbstractTableModel):
         if type == "question":
             return card.questionBrowserColumn()
         elif type == "answer":
-            return self.answer(card)
+            return card.answerBrowserColumn()
         elif type == "noteFld":
             note = card.note()
             return htmlToTextLine(note.fields[self.col.models.sortIdx(note.model())])
@@ -364,18 +364,6 @@ class DataModel(QAbstractTableModel):
                     self.browser.mw.col.decks.name(card.odid))
             # normal deck
             return self.browser.mw.col.decks.name(card.did)
-
-    def answer(self, card):
-        if card.template().get('bafmt'):
-            # they have provided a template, use it verbatim
-            card.q(browser=True)
-            return htmlToTextLine(card.a())
-        # need to strip question from answer
-        questionHtml = self.question(card)
-        answerLine = htmlToTextLine(card.a())
-        if answerLine.startswith(questionHtml):
-            return answerLine[len(questionHtml):].strip()
-        return answerLine
 
     def nextDue(self, card, index):
         if card.odid:
