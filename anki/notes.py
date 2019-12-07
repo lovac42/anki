@@ -247,3 +247,6 @@ space, with an initial and a final white space."""
 
     def modBrowserColumn(self):
         return time.strftime("%Y-%m-%d", time.localtime(self.mod))
+
+    def noteTypeBrowserColumn(self):
+        return self.model()['name']

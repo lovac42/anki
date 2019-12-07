@@ -327,7 +327,7 @@ class DataModel(QAbstractTableModel):
         elif type == "noteTags":
             return card.note().stringTags()
         elif type == "note":
-            return card.model()['name']
+            return card.note().noteTypeBrowserColumn()
         elif type == "cardIvl":
             if card.type == 0:
                 return _("(new)")
