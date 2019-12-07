@@ -2,8 +2,8 @@
 # Copyright: Ankitects Pty Ltd and contributors
 # License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
 
-from anki.utils import (fieldChecksum, guid64, intTime, joinFields,
-                        splitFields, stripHTMLMedia, timestampID)
+from anki.utils import (fieldChecksum, guid64, htmlToTextLine, intTime,
+                        joinFields, splitFields, stripHTMLMedia, timestampID)
 
 
 class Note:
@@ -233,3 +233,9 @@ space, with an initial and a final white space."""
             # document that the user should open the templates window to
             # garbage collect empty cards
             #self.col.remEmptyCards(ids)
+
+    # Deck columns to show
+    ######################################################################
+
+    def fldBrowserColumn(self):
+        return htmlToTextLine(self.fields[self.col.models.sortIdx(self.model())])
