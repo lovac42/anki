@@ -350,3 +350,6 @@ lapses=?, left=?, odue=?, odid=?, did=? where id = ?""",
 
     def modBrowserColumn(self):
         return time.strftime("%Y-%m-%d", time.localtime(self.mod))
+
+    def repsBrowserColumn(self):
+        return str(self.reps)
