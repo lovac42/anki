@@ -6,7 +6,9 @@ import time
 
 from anki.consts import *
 from anki.hooks import runHook
-from anki.utils import htmlToTextLine, intTime, joinFields, timestampID
+from anki.lang import _
+from anki.utils import (fmtTimeSpan, htmlToTextLine, intTime, joinFields,
+                        timestampID)
 
 # Cards
 ##########################################################################
@@ -356,3 +358,10 @@ lapses=?, left=?, odue=?, odid=?, did=? where id = ?""",
 
     def lapsesBrowserColumn(self):
         return str(self.lapses)
+
+    def ivlBrowserColumn(self):
+        if self.type == 0:
+            return _("(new)")
+        elif self.type == 1:
+            return _("(learning)")
+        return fmtTimeSpan(self.ivl*86400)
