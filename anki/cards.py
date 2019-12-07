@@ -304,3 +304,15 @@ lapses=?, left=?, odue=?, odid=?, did=? where id = ?""",
 
     def questionBrowserColumn(self):
         return htmlToTextLine(self.q(browser=True))
+
+    def answerBrowserColumn(self):
+        if self.template().get('bafmt'):
+            # they have provided a template, use it verbatim
+            self.q(browser=True)
+            return htmlToTextLine(self.a())
+        # need to strip question from answer
+        questionHtml = self.questionBrowserColumn()
+        answerLine = htmlToTextLine(self.a())
+        if answerLine.startswith(questionHtml):
+            return answerLine[len(questionHtml):].strip()
+        return answerLine
