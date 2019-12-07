@@ -347,3 +347,6 @@ lapses=?, left=?, odue=?, odid=?, did=? where id = ?""",
         if self.queue < 0:#supsended or buried
             dueString = "(" + dueString + ")"
         return dueString
+
+    def modBrowserColumn(self):
+        return time.strftime("%Y-%m-%d", time.localtime(self.mod))
