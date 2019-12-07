@@ -353,3 +353,6 @@ lapses=?, left=?, odue=?, odid=?, did=? where id = ?""",
 
     def repsBrowserColumn(self):
         return str(self.reps)
+
+    def lapsesBrowserColumn(self):
+        return str(self.lapses)
