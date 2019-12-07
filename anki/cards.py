@@ -365,3 +365,17 @@ lapses=?, left=?, odue=?, odid=?, did=? where id = ?""",
         elif self.type == 1:
             return _("(learning)")
         return fmtTimeSpan(self.ivl*86400)
+
+    def easeBrowserColumn(self):
+        if self.type == 0:
+            return _("(new)")
+        return "%d%%" % (self.factor/10)
+
+    def deckBrowserColumn(self):
+        if self.odid:
+            # in a cram deck
+            return "%s (%s)" % (
+                self.col.decks.name(self.did),
+                self.col.decks.name(self.odid))
+        # normal deck
+        return self.col.decks.name(self.did)

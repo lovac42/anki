@@ -338,17 +338,9 @@ class DataModel(QAbstractTableModel):
         elif type == "cardIvl":
             return card.ivlBrowserColumn()
         elif type == "cardEase":
-            if card.type == 0:
-                return _("(new)")
-            return "%d%%" % (card.factor/10)
+            return card.easeBrowserColumn()
         elif type == "deck":
-            if card.odid:
-                # in a cram deck
-                return "%s (%s)" % (
-                    self.browser.mw.col.decks.name(card.did),
-                    self.browser.mw.col.decks.name(card.odid))
-            # normal deck
-            return self.browser.mw.col.decks.name(card.did)
+            return card.deckBrowserColumn()
 
     def isRTL(self, index):
         col = index.column()
