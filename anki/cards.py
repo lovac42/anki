@@ -6,7 +6,7 @@ import time
 
 from anki.consts import *
 from anki.hooks import runHook
-from anki.utils import intTime, joinFields, timestampID
+from anki.utils import htmlToTextLine, intTime, joinFields, timestampID
 
 # Cards
 ##########################################################################
@@ -298,3 +298,9 @@ lapses=?, left=?, odue=?, odid=?, did=? where id = ?""",
     def setUserFlag(self, flag):
         assert 0 <= flag <= 7
         self.flags = (self.flags & ~0b111) | flag
+
+    # Deck columns to show
+    ######################################################################
+
+    def questionBrowserColumn(self):
+        return htmlToTextLine(self.q(browser=True))

@@ -312,7 +312,7 @@ class DataModel(QAbstractTableModel):
         type = self.columnType(col)
         card = self.getCard(index)
         if type == "question":
-            return self.question(card)
+            return card.questionBrowserColumn()
         elif type == "answer":
             return self.answer(card)
         elif type == "noteFld":
@@ -364,9 +364,6 @@ class DataModel(QAbstractTableModel):
                     self.browser.mw.col.decks.name(card.odid))
             # normal deck
             return self.browser.mw.col.decks.name(card.did)
-
-    def question(self, card):
-        return htmlToTextLine(card.q(browser=True))
 
     def answer(self, card):
         if card.template().get('bafmt'):
