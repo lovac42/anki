@@ -322,3 +322,28 @@ lapses=?, left=?, odue=?, odid=?, did=? where id = ?""",
         if self.model()['type'] == MODEL_CLOZE:
             templateName += " %d" % (self.ord+1)
         return templateName
+
+    def nextDue(self):
+        if self.odid:
+            return _("(filtered)")
+        elif self.queue == QUEUE_LRN:
+            date = self.due
+        elif self.queue == QUEUE_NEW or self.type == CARD_NEW:
+            return str(self.due)
+        elif self.queue in (QUEUE_REV, QUEUE_DAY_LRN) or (self.type == CARD_DUE and
+                                                          self.queue < 0#suspended or buried
+        ):
+            date = time.time() + ((self.due - self.col.sched.today)*86400)
+        else:
+            return ""
+        return time.strftime("%Y-%m-%d", time.localtime(date))
+
+    def dueBrowserColumn(self):
+        # catch invalid dates
+        try:
+            dueString = self.nextDue()
+        except:
+            dueString = ""
+        if self.queue < 0:#supsended or buried
+            dueString = "(" + dueString + ")"
+        return dueString
