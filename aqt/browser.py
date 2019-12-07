@@ -311,10 +311,7 @@ class DataModel(QAbstractTableModel):
         elif type == "noteFld":
             return card.note().fldBrowserColumn()
         elif type == "template":
-            templateName = card.template()['name']
-            if card.model()['type'] == MODEL_CLOZE:
-                templateName += " %d" % (card.ord+1)
-            return templateName
+            return card.templateBrowserColumn()
         elif type == "cardDue":
             # catch invalid dates
             try:
