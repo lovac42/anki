@@ -49,9 +49,13 @@ class Finder:
         sql = select + _from + preds + groupBy + order
         try:
             if tuples:
-                return self.col.db.all(sql, *args)
+                l = self.col.db.all(sql, *args)
             else:
-                return self.col.db.list(sql, *args)
+                l = self.col.db.list(sql, *args)
+            if self.col.conf['sortBackwards']:
+                l.reverse()
+            return l
+
         except Exception as e:
             # invalid grouping
             print(f"On query «{query}», sql «{sql}» return empty because of {e}")
@@ -234,7 +238,7 @@ class Finder:
         """
         if order is False:
             return ""
-        if isinstance(order, str) and order not in {"noteCrt", "noteMod", "noteFld", "cardMod", "cardReps", "cardDue", "cardEase", "cardLapses", "cardIvl"}:
+        if isinstance(order, str):
             # custom order string provided
             return " order by " + order
         if order is True:
@@ -244,30 +248,7 @@ class Finder:
             type = order
         sc = "DESC" if self.col.conf['sortBackwards'] else "ASC"
         sort = None
-        if type.startswith("note"):
-            if type == "noteCrt":
-                sort = f"note.id {sc}, card.ord {sc}"
-            elif type == "noteMod":
-                sort = f"note.mod {sc}, card.ord {sc}"
-            elif type == "noteFld":
-                sort = f"note.sfld collate nocase {sc}, card.ord {sc}"
-        elif type.startswith("card"):
-            if type == "cardMod":
-                sort =  f"card.mod {sc}"
-            elif type == "cardReps":
-                sort = f"card.reps {sc}"
-            elif type == "cardDue":
-                sort = f"card.type {sc}, card.due {sc}"
-            elif type == "cardEase":
-                sort = f"(card.type == 0) {sc}, card.factor {sc}"
-            elif type == "cardLapses":
-                sort = f"card.lapses {sc}"
-            elif type == "cardIvl":
-                sort = f"card.ivl {sc}"
-        if sort is None:
-            # deck has invalid sort order; revert to noteCrt
-            sort = "note.id {sc}, card.ord {sc}"
-        return " order by " + sort
+        return f" order by note.id, card.ord"
 
     # Commands
     ######################################################################
