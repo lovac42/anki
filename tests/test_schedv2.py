@@ -8,6 +8,7 @@ from anki.hooks import addHook
 from anki.utils import intTime
 from tests.shared import getEmptyCol
 
+
 def test_clock():
     d = getEmptyCol()
     if (d.sched.dayCutoff - intTime()) < 10*60:
