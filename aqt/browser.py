@@ -319,7 +319,7 @@ class DataModel(QAbstractTableModel):
         elif type == "noteMod":
             return card.note().modBrowserColumn()
         elif type == "cardMod":
-            return time.strftime("%Y-%m-%d", time.localtime(card.mod))
+            return card.modBrowserColumn()
         elif type == "cardReps":
             return str(card.reps)
         elif type == "cardLapses":
