@@ -118,16 +118,16 @@ def test_findCards():
     assert len(deck.findCards("front:*")) == 5
     # ordering
     deck.conf['sortType'] = "noteCrt"
-    assert deck.findCards("front:*", order=True)[-1] in latestCardIds
-    assert deck.findCards("", order=True)[-1] in latestCardIds
+    assert deck.findCards("front:*", order=" note.id, card.ord ")[-1] in latestCardIds
+    assert deck.findCards("", order=" note.id, card.ord ")[-1] in latestCardIds
     deck.conf['sortType'] = "noteFld"
-    assert deck.findCards("", order=True)[0] == catCard.id
-    assert deck.findCards("", order=True)[-1] in latestCardIds
+    assert deck.findCards("", order=" note.sfld collate nocase, card.ord ")[0] == catCard.id
+    assert deck.findCards("", order=" note.sfld collate nocase, card.ord ")[-1] in latestCardIds
     deck.conf['sortType'] = "cardMod"
-    assert deck.findCards("", order=True)[-1] in latestCardIds
-    assert deck.findCards("", order=True)[0] == firstCardId
+    assert deck.findCards("", order=" card.mod ")[-1] in latestCardIds
+    assert deck.findCards("", order=" card.mod ")[0] == firstCardId
     deck.conf['sortBackwards'] = True
-    assert deck.findCards("", order=True)[0] in latestCardIds
+    assert deck.findCards("", order=" card.mod ")[0] in latestCardIds
     # model
     assert len(deck.findCards("note:basic")) == 5
     assert len(deck.findCards("-note:basic")) == 0

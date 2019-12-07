@@ -4,8 +4,10 @@ class BrowserColumn:
     name -- the (translated) name of the column
     note -- whether this show informations relative to note. Otherwise it's to the card.
     methodName -- a method in the class card/note according to self.note.
+    sort -- the text to use in finder to sort by this column. None means this columns can't be sorted.
     """
-    def __init__(self, type, name, methodName=None, note=None):
+    defaultSort = "note.id, card.ord"
+    def __init__(self, type, name, sort=None, methodName=None, note=None):
         """All methods names ends with BrowserColumn. Only the part before has to be given.
         If methodName is not indicated, then it's assumed to be the same as
         type. Except if it starts with card or note, in which case
@@ -16,6 +18,7 @@ class BrowserColumn:
         """
         self.type = type
         self.name = name
+        self.sort = sort
         if methodName is not None:
             self.methodName = methodName
         else:
@@ -35,3 +38,9 @@ class BrowserColumn:
         else:
             base = card
         return getattr(base, self.methodName)()
+
+    def getSort(self):
+        if self.sort is None:
+            return self.defaultSort
+        else:
+            return self.sort

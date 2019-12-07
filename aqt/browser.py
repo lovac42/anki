@@ -178,7 +178,12 @@ class DataModel(QAbstractTableModel):
         self.cards = []
         invalid = False
         try:
-            self.cards = self.col.findCards(txt, order=True)
+            sortColum = self.browser.columns.get(self.col.conf['sortType'])
+            if sortColum is None:
+                sort = BrowserColumn.defaultSort
+            else:
+                sort = sortColum.getSort()
+            self.cards = self.col.findCards(txt, order=sort)
         except Exception as e:
             if str(e) == "invalidSearch":
                 self.cards = []
@@ -543,19 +548,19 @@ class Browser(QMainWindow):
         columns = [
             BrowserColumn('question', _("Question")),
             BrowserColumn('answer', _("Answer")),
-            BrowserColumn('template', _("Card")),
+            BrowserColumn('template', _("Card"),),
             BrowserColumn('deck', _("Deck")),
-            BrowserColumn('noteFld', _("Sort Field")),
-            BrowserColumn('noteCrt', _("Created")),
-            BrowserColumn('noteMod', _("Edited")),
-            BrowserColumn('cardMod', _("Changed")),
-            BrowserColumn('cardDue', _("Due")),
-            BrowserColumn('cardIvl', _("Interval")),
-            BrowserColumn('cardEase', _("Ease")),
-            BrowserColumn('cardReps', _("Reviews")),
-            BrowserColumn('cardLapses', _("Lapses")),
+            BrowserColumn('noteFld', _("Sort Field"), "note.sfld collate nocase, card.ord"),
+            BrowserColumn('noteCrt', _("Created"), "note.id, card.ord"),
+            BrowserColumn('noteMod', _("Edited"), "note.mod, card.ord"),
+            BrowserColumn('cardMod', _("Changed"), "card.mod"),
+            BrowserColumn('cardDue', _("Due"), "card.type, card.due"),
+            BrowserColumn('cardIvl', _("Interval"), "card.ivl"),
+            BrowserColumn('cardEase', _("Ease"), "(card.type == 0), card.factor"),
+            BrowserColumn('cardReps', _("Reviews"), "card.reps"),
+            BrowserColumn('cardLapses', _("Lapses"), "card.laspses"),
             BrowserColumn('noteTags', _("Tags")),
-            BrowserColumn('note', _("Note"), "noteType"),
+            BrowserColumn('note', _("Note"), methodName="noteType"),
         ]
         columns.sort(key=lambda browser:browser.name) # allow to sort by
         # alphabetical order in
