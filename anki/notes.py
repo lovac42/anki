@@ -240,3 +240,6 @@ space, with an initial and a final white space."""
 
     def fldBrowserColumn(self):
         return htmlToTextLine(self.fields[self.col.models.sortIdx(self.model())])
+
+    def crtBrowserColumn(self):
+        return time.strftime("%Y-%m-%d", time.localtime(self.id/1000))
