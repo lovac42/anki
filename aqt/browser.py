@@ -313,14 +313,7 @@ class DataModel(QAbstractTableModel):
         elif type == "template":
             return card.templateBrowserColumn()
         elif type == "cardDue":
-            # catch invalid dates
-            try:
-                dueString = self.nextDue(card, index)
-            except:
-                dueString = ""
-            if card.queue < 0:#supsended or buried
-                dueString = "(" + dueString + ")"
-            return dueString
+            return card.dueBrowserColumn()
         elif type == "noteCrt":
             return time.strftime("%Y-%m-%d", time.localtime(card.note().id/1000))
         elif type == "noteMod":
@@ -353,21 +346,6 @@ class DataModel(QAbstractTableModel):
                     self.browser.mw.col.decks.name(card.odid))
             # normal deck
             return self.browser.mw.col.decks.name(card.did)
-
-    def nextDue(self, card, index):
-        if card.odid:
-            return _("(filtered)")
-        elif card.queue == QUEUE_LRN:
-            date = card.due
-        elif card.queue == QUEUE_NEW or card.type == CARD_NEW:
-            return str(card.due)
-        elif card.queue in (QUEUE_REV, QUEUE_DAY_LRN) or (card.type == CARD_DUE and
-                                                          card.queue < 0#suspended or buried
-        ):
-            date = time.time() + ((card.due - self.col.sched.today)*86400)
-        else:
-            return ""
-        return time.strftime("%Y-%m-%d", time.localtime(date))
 
     def isRTL(self, index):
         col = index.column()
