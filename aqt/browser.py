@@ -317,7 +317,7 @@ class DataModel(QAbstractTableModel):
         elif type == "noteCrt":
             return card.note().crtBrowserColumn()
         elif type == "noteMod":
-            return time.strftime("%Y-%m-%d", time.localtime(card.note().mod))
+            return card.note().modBrowserColumn()
         elif type == "cardMod":
             return time.strftime("%Y-%m-%d", time.localtime(card.mod))
         elif type == "cardReps":
