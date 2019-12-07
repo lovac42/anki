@@ -183,7 +183,12 @@ class DataModel(QAbstractTableModel):
         self.cards = []
         invalid = False
         try:
-            self.cards = self.col.findCards(txt, order=True)
+            sortColum = self.browser.columns.get(self.col.conf['sortType'])
+            if sortColum is None:
+                sort = BrowserColumn.defaultSort
+            else:
+                sort = sortColum.getSort()
+            self.cards = self.col.findCards(txt, order=sort)
             if self.browser.sortBackwards:
                 self.cards.reverse()
         except Exception as e:
@@ -550,19 +555,19 @@ class Browser(QMainWindow):
         columns = [
             ColumnByMethod('question', _("Question")),
             ColumnByMethod('answer', _("Answer")),
-            ColumnByMethod('template', _("Card")),
+            ColumnByMethod('template', _("Card"),),
             ColumnByMethod('deck', _("Deck")),
-            ColumnByMethod('noteFld', _("Sort Field")),
-            ColumnByMethod('noteCrt', _("Created")),
-            ColumnByMethod('noteMod', _("Edited")),
-            ColumnByMethod('cardMod', _("Changed")),
-            ColumnByMethod('cardDue', _("Due")),
-            ColumnByMethod('cardIvl', _("Interval")),
-            ColumnByMethod('cardEase', _("Ease")),
-            ColumnByMethod('cardReps', _("Reviews")),
-            ColumnByMethod('cardLapses', _("Lapses")),
-            ColumnByMethod('noteTags', _("Tags"), "stringTags"),
-            ColumnByMethod('note', _("Note"), "noteTypeBrowserColumn"),
+            ColumnByMethod('noteFld', _("Sort Field"), "note.sfld collate nocase, card.ord"),
+            ColumnByMethod('noteCrt', _("Created"), "note.id, card.ord"),
+            ColumnByMethod('noteMod', _("Edited"), "note.mod, card.ord"),
+            ColumnByMethod('cardMod', _("Changed"), "card.mod"),
+            ColumnByMethod('cardDue', _("Due"), "card.type, card.due"),
+            ColumnByMethod('cardIvl', _("Interval"), "card.ivl"),
+            ColumnByMethod('cardEase', _("Ease"), "(card.type == 0), card.factor"),
+            ColumnByMethod('cardReps', _("Reviews"), "card.reps"),
+            ColumnByMethod('cardLapses', _("Lapses"), "card.lapses"),
+            ColumnByMethod('noteTags', _("Tags"), methodName="stringTags"),
+            ColumnByMethod('note', _("Note"), methodName="noteTypeBrowserColumn"),
         ]
         columns.sort(key=lambda browser:browser.name) # allow to sort by
         # alphabetical order in
