@@ -329,11 +329,7 @@ class DataModel(QAbstractTableModel):
         elif type == "note":
             return card.note().noteTypeBrowserColumn()
         elif type == "cardIvl":
-            if card.type == 0:
-                return _("(new)")
-            elif card.type == 1:
-                return _("(learning)")
-            return fmtTimeSpan(card.ivl*86400)
+            return card.ivlBrowserColumn()
         elif type == "cardEase":
             if card.type == 0:
                 return _("(new)")
