@@ -250,3 +250,7 @@ space, with an initial and a final white space."""
 
     def tagsBrowserColumn(self):
         return " ".join(self.tags)
+
+    def noteTypeBrowserColumn(self):
+        return self.model()['name']
+
