@@ -328,7 +328,7 @@ class DataModel(QAbstractTableModel):
         elif type == "cardMod":
             return card.modBrowserColumn()
         elif type == "cardReps":
-            return str(card.reps)
+            return card.repsBrowserColumn()
         elif type == "cardLapses":
             return str(card.lapses)
         elif type == "noteTags":
