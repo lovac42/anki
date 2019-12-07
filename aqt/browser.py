@@ -19,6 +19,7 @@ from anki.lang import _, ngettext
 from anki.sound import allSounds, clearAudioQueue, play
 from anki.utils import (bodyClass, fmtTimeSpan, htmlToTextLine, ids2str,
                         intTime, isMac, isWin)
+from aqt.browserColumn import ColumnByMethod
 from aqt.qt import *
 from aqt.utils import (MenuList, SubMenu, askUser, getOnlyText, getTag,
                        mungeQA, openHelp, qtMenuShortcutWorkaround,
@@ -150,15 +151,8 @@ class DataModel(QAbstractTableModel):
         if orientation == Qt.Vertical or not(role == Qt.DisplayRole and section < len(self.activeCols)):
             return
         type = self.columnType(section)
-        txt = None
-        for stype, name in self.browser.columns:
-            if type == stype:
-                txt = name
-                break
         # handle case where extension has set an invalid column type
-        if not txt:
-            txt = self.browser.columns[0][1]
-        return txt
+        return self.browser.columns.get(type, list(self.browser.columns.values())[0]).name
 
     def flags(self, index):
         """Required by QAbstractTableModel. State that interaction is possible
@@ -304,36 +298,9 @@ class DataModel(QAbstractTableModel):
         col = index.column()
         type = self.columnType(col)
         card = self.getCard(index)
-        if type == "question":
-            return card.questionBrowserColumn()
-        elif type == "answer":
-            return card.answerBrowserColumn()
-        elif type == "noteFld":
-            return card.note().fldBrowserColumn()
-        elif type == "template":
-            return card.templateBrowserColumn()
-        elif type == "cardDue":
-            return card.dueBrowserColumn()
-        elif type == "noteCrt":
-            return card.note().crtBrowserColumn()
-        elif type == "noteMod":
-            return card.note().modBrowserColumn()
-        elif type == "cardMod":
-            return card.modBrowserColumn()
-        elif type == "cardReps":
-            return card.repsBrowserColumn()
-        elif type == "cardLapses":
-            return card.lapsesBrowserColumn()
-        elif type == "noteTags":
-            return card.note().stringTags()
-        elif type == "note":
-            return card.note().noteTypeBrowserColumn()
-        elif type == "cardIvl":
-            return card.ivlBrowserColumn()
-        elif type == "cardEase":
-            return card.easeBrowserColumn()
-        elif type == "deck":
-            return card.deckBrowserColumn()
+
+        if type in self.browser.columns:
+            return self.browser.columns[type].content(card)
 
     def isRTL(self, index):
         col = index.column()
@@ -573,27 +540,27 @@ class Browser(QMainWindow):
 
     def setupColumns(self):
         """Set self.columns"""
-        self.columns = [
-            ('question', _("Question")),
-            ('answer', _("Answer")),
-            ('template', _("Card")),
-            ('deck', _("Deck")),
-            ('noteFld', _("Sort Field")),
-            ('noteCrt', _("Created")),
-            ('noteMod', _("Edited")),
-            ('cardMod', _("Changed")),
-            ('cardDue', _("Due")),
-            ('cardIvl', _("Interval")),
-            ('cardEase', _("Ease")),
-            ('cardReps', _("Reviews")),
-            ('cardLapses', _("Lapses")),
-            ('noteTags', _("Tags")),
-            ('note', _("Note")),
+        columns = [
+            ColumnByMethod('question', _("Question")),
+            ColumnByMethod('answer', _("Answer")),
+            ColumnByMethod('template', _("Card")),
+            ColumnByMethod('deck', _("Deck")),
+            ColumnByMethod('noteFld', _("Sort Field")),
+            ColumnByMethod('noteCrt', _("Created")),
+            ColumnByMethod('noteMod', _("Edited")),
+            ColumnByMethod('cardMod', _("Changed")),
+            ColumnByMethod('cardDue', _("Due")),
+            ColumnByMethod('cardIvl', _("Interval")),
+            ColumnByMethod('cardEase', _("Ease")),
+            ColumnByMethod('cardReps', _("Reviews")),
+            ColumnByMethod('cardLapses', _("Lapses")),
+            ColumnByMethod('noteTags', _("Tags"), "stringTags"),
+            ColumnByMethod('note', _("Note"), "noteTypeBrowserColumn"),
         ]
-        self.columns.sort(key=itemgetter(1)) # allow to sort by
-                                             # alphabetical order in
-                                             # the local language
-
+        columns.sort(key=lambda browser:browser.name) # allow to sort by
+        # alphabetical order in
+        # the local language
+        self.columns = {column.type: column for column in columns}
 
     # Searching
     ######################################################################
@@ -816,11 +783,11 @@ by clicking on one on the left."""))
         gpos = self.form.tableView.mapToGlobal(pos) # the position,
         # usable from the browser
         menu = QMenu()
-        for type, name in self.columns:
-            action = menu.addAction(name)
+        for column in self.columns.values():
+            action = menu.addAction(column.name)
             action.setCheckable(True)
-            action.setChecked(type in self.model.activeCols)
-            action.toggled.connect(lambda button, type=type: self.toggleField(type))
+            action.setChecked(column.type in self.model.activeCols)
+            action.toggled.connect(lambda button, type=column.type: self.toggleField(type))
         menu.exec_(gpos)
 
     def toggleField(self, type):
