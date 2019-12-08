@@ -252,7 +252,7 @@ select id from cards where nid in (select id from notes where mid = ?)""",
         where "ord" is set to 6.
 
         """
-        if self['type'] == MODEL_STD or ord==0:
+        if self.isStd() or ord==0:
             return self['tmpls'][ord]
         else:
             template = self['tmpls'][0]
@@ -331,7 +331,7 @@ select id from cards where nid in (select id from notes where mid = ?)""",
             "select id, ord from cards where nid in "+ids2str(nids)):
             # if the src model is a cloze, we ignore the map, as the gui
             # doesn't currently support mapping them
-            if oldModel['type'] == MODEL_CLOZE:
+            if oldModel.isCloze():
                 new = ord
                 if self['type'] != MODEL_CLOZE:
                     # if we're mapping to a regular note, we need to check if
@@ -371,7 +371,7 @@ select id from cards where nid in (select id from notes where mid = ?)""",
 
     def _updateRequired(self):
         """Entirely recompute the model's req value"""
-        if self['type'] == MODEL_CLOZE:
+        if self.isCloze():
             # nothing to do
             return
         req = []
@@ -386,7 +386,7 @@ select id from cards where nid in (select id from notes where mid = ?)""",
         should be generated. See
         ../documentation/templates_generation_rules.md for the detail
         """
-        if self['type'] == MODEL_CLOZE:
+        if self.isCloze():
             return self._availClozeOrds(flds)
         fields = {}
         for index, fieldType in enumerate(splitFields(flds)):
@@ -447,3 +447,9 @@ select id from cards where nid in (select id from notes where mid = ?)""",
         l = list(ords)
         l.sort()
         return l
+
+    def isCloze(self):
+        return self['type'] == MODEL_CLOZE
+
+    def isStd(self):
+        return self['type'] == MODEL_STD
