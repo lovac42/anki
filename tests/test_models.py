@@ -7,7 +7,7 @@ from tests.shared import getEmptyCol
 
 
 def reqSize(model):
-    if model['type'] == MODEL_CLOZE:
+    if model.isCloze():
         return
     assert (len(model['tmpls']) == len(model['req']))
 

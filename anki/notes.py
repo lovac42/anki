@@ -251,4 +251,3 @@ space, with an initial and a final white space."""
 
     def noteTypeBrowserColumn(self):
         return self.model().getName()
-
