@@ -15,6 +15,7 @@ nose=nosetests
 if which nosetests3 >/dev/null 2>&1; then
     nose=nosetests3
 fi
+./tools/build_ui.sh
 
 dir=.
 
