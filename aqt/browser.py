@@ -339,6 +339,7 @@ class DataModel(QAbstractTableModel):
             TimeColumnFromQuery('cardFirstReview', _("First Review"), "min(id)"),
             TimeColumnFromQuery('cardLastReview', _("Last Review"), "max(id)"),
             TimeColumnFromQuery('cardAverageTime', _('Average time'), "avg(time)/1000.0"),
+            TimeColumnFromQuery('cardTotalTime', _('Total time'), "sum(time)/1000.0"),
         ]:
             add(column)
         for type in self.activeCols:
