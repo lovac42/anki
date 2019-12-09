@@ -1,3 +1,5 @@
+import time
+
 class BrowserColumn:
     """
     type -- the internal name of the column in the list of columns
@@ -59,3 +61,17 @@ class ColumnByMethod(BrowserColumn):
 
     def content(self, card):
         return getattr(self.getBase(card), self.methodName)()
+
+
+class DateColumnFromQuery(BrowserColumn):
+    def __init__(self, type, name, query):
+        self.query = query
+        super().__init__(type, name, sort=query)
+
+    def content(self, card):
+        base =self.getBase(card)
+        object = "notes note" if self.note else "cards card"
+        return time.strftime("%Y-%m-%d", time.localtime(base.col.db.scalar(f"select {self.query} from {object} where id = ?", base.id)))
+
+    def getSort(self):
+        return f"{self.query}, card.ord" #second is useless to sort card. Useful for notes
