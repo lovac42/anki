@@ -390,3 +390,15 @@ lapses=?, left=?, odue=?, odid=?, did=? where id = ?""",
                 self.col.decks.name(self.odid))
         # normal deck
         return self.col.decks.name(self.did)
+
+    def overdueIvlBrowserColumn(self):
+        if self.odid or self.queue == QUEUE_LRN:
+            return
+        elif self.queue == QUEUE_NEW or self.type == CARD_NEW:
+            return
+        elif self.queue in (QUEUE_REV, QUEUE_DAY_LRN) or (self.type == CARD_DUE and self.queue < 0):
+            lateness = self.col.sched.today - self.due
+            if lateness > 0 :
+                return f"{lateness} day{'s' if lateness > 1 else ''}"
+            else:
+                return

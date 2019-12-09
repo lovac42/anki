@@ -342,6 +342,18 @@ class DataModel(QAbstractTableModel):
             TimeColumnFromQuery('cardTotalTime', _('Total time'), "sum(time)/1000.0"),
             TimeColumnFromQuery('cardFastestTime', _('Fastest review'), "time/1000.0", True),
             TimeColumnFromQuery('cardSlowestTime', _('Slowest review'), "time/1000.0", True),
+            ColumnByMethod("cardOverdueIvl", _("Overdue interval"), f"""(
+select
+  (case
+    when odid then ""
+    when queue =1 then ""
+    when queue = 0 then ""
+    when type=0 then ""
+    when due<{self.col.sched.today} and (queue in (2, 3) or (type=2 and queue<0))
+    then {self.col.sched.today}-due
+    else ""
+  end)
+  from cards where id = card.id)"""),
         ]:
             add(column)
         for type in self.activeCols:
