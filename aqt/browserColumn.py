@@ -102,6 +102,26 @@ class TimeColumnFromQuery(BrowserColumn):
     def getSort(self):
         return f"(select {self.sort} from revlog where cid = card.id)"
 
+class ColumnAttribute(BrowserColumn):
+    def __init__(self, type, name, attribute=None, note=None):
+        if attribute is None:
+            attribute = type[1:]
+        self.attribute = attribute
+        if note is None:
+            if type[0] == "n":
+                note = True
+            else:
+                assert type[0] == 'c'
+                note = False
+        sort = ("note" if note else "card") + "." + attribute
+        super().__init__(type, name, sort=sort, note=note)
+
+    def content(self, card):
+        return getattr(self.getBase(card), self.attribute)
+
+    def getSort(self):
+        return ("note" if self.note else "card") + "." + self.attribute
+
 class UselessColumn(BrowserColumn):
     def __init__(self, type):
         super().__init__(type, _(type))
