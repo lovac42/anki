@@ -347,6 +347,7 @@ class DataModel(QAbstractTableModel):
             ColumnByMethod("cardPercentCorrect", _("Percent correct"), "cast(card.lapses as real)/card.reps"),
             ColumnByMethod("cardPreviousDuration", _("Previous duration"), """(select time/1000.0 from revlog where cid = card.idy order by id desc limit 1)"""),
             ColumnAttribute("nid", _("Note id")),
+            ColumnAttribute("nguid", _("Note guid")),
             ColumnByMethod("cardOverdueIvl", _("Overdue interval"), f"""(
 select
   (case
