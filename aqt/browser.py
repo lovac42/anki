@@ -313,7 +313,7 @@ class DataModel(QAbstractTableModel):
             ColumnByMethod('cardEase', _("Ease"), "(card.type == 0), card.factor"),
             ColumnByMethod('cardReps', _("Reviews"), "card.reps"),
             ColumnByMethod('cardLapses', _("Lapses"), "card.lapses"),
-            ColumnByMethod('noteTags', _("Tags"), methodName="stringTags"),
+            ColumnByMethod('noteTags', _("Tags"), "note.tags", "stringTags"),
             ColumnByMethod('note', _("Note"), methodName="noteTypeBrowserColumn"),
         ]
         columnTypes = {column.type for column in columns}
@@ -761,7 +761,7 @@ class Browser(QMainWindow):
 
     def _onSortChanged(self, idx, ord):
         type = self.model.activeCols[idx]
-        noSort = ("question", "answer", "template", "deck", "note", "noteTags")
+        noSort = ("question", "answer", "template", "deck", "note")
         if type in noSort:
             if type == "template":
                 showInfo(_("""\
