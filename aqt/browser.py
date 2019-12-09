@@ -19,7 +19,7 @@ from anki.lang import _, ngettext
 from anki.sound import allSounds, clearAudioQueue, play
 from anki.utils import (bodyClass, fmtTimeSpan, htmlToTextLine, ids2str,
                         intTime, isMac, isWin)
-from aqt.browserColumn import ColumnByMethod
+from aqt.browserColumn import ColumnByMethod, DateColumnFromQuery
 from aqt.qt import *
 from aqt.utils import (MenuList, SubMenu, askUser, getOnlyText, getTag,
                        mungeQA, openHelp, qtMenuShortcutWorkaround,
@@ -560,9 +560,9 @@ class Browser(QMainWindow):
             ColumnByMethod('template', _("Card"),),
             ColumnByMethod('deck', _("Deck")),
             ColumnByMethod('noteFld', _("Sort Field"), "note.sfld collate nocase, card.ord"),
-            ColumnByMethod('noteCrt', _("Created"), "note.id, card.ord"),
-            ColumnByMethod('noteMod', _("Edited"), "note.mod, card.ord"),
-            ColumnByMethod('cardMod', _("Changed"), "card.mod"),
+            DateColumnFromQuery('noteCrt', _("Created"), "note.id/1000.0"),
+            DateColumnFromQuery('noteMod', _("Edited"), "note.mod"),
+            DateColumnFromQuery('cardMod', _("Changed"), "card.mod"),
             ColumnByMethod('cardDue', _("Due"), "card.type, card.due"),
             ColumnByMethod('cardIvl', _("Interval"), "card.ivl"),
             ColumnByMethod('cardEase', _("Ease"), "(card.type == 0), card.factor"),
