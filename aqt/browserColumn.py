@@ -1,7 +1,7 @@
 import time
 
 from anki.lang import _
-from anki.utils import formatDay
+from anki.utils import formatDay, formatMinute
 
 
 class BrowserColumn:
@@ -79,14 +79,16 @@ class ColumnByMethod(BrowserColumn):
 
 
 class DateColumnFromQuery(BrowserColumn):
-    def __init__(self, type, name, query, menu=True):
+    def __init__(self, type, name, query, browserModel, menu=True):
         self.query = query
+        self.browserModel = browserModel
         super().__init__(type, name, menu, sort=query)
 
     def content(self, card):
         base =self.getBase(card)
         object = "notes note" if self.note else "cards card"
-        return formatDay(base.col.db.scalar(f"select {self.query} from {object} where id = ?", base.id))
+        time = base.col.db.scalar(f"select {self.query} from {object} where id = ?", base.id)
+        return formatMinute(time) if self.browserModel.minutes else formatDay(time)
 
     def getSort(self):
         return f"{self.query}, card.ord" #second is useless to sort card. Useful for notes

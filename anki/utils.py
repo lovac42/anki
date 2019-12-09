@@ -137,6 +137,9 @@ def fmtFloat(float_value, point=1):
 def formatDay(day):
     return time.strftime("%Y-%m-%d", time.localtime(day))
 
+def formatMinute(day):
+    return time.strftime("%Y-%m-%d %H:%M", time.localtime(day))
+
 # HTML
 ##############################################################################
 reComment = re.compile("(?s)<!--.*?-->")
