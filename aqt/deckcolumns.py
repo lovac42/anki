@@ -1,5 +1,6 @@
 from anki.lang import _
 
+
 class Column:
     def topRow(self):
         pass
