@@ -402,3 +402,16 @@ lapses=?, left=?, odue=?, odid=?, did=? where id = ?""",
                 return f"{lateness} day{'s' if lateness > 1 else ''}"
             else:
                 return
+
+    def previousIvlBrowserColumn(self):
+        ivl = self.col.db.scalar(
+            "select ivl from revlog where cid = ? "
+            "order by id desc limit 1 offset 1", self.id)
+        if ivl is None:
+            return
+        elif ivl == 0:
+            return "0 days"
+        elif ivl > 0:
+            return fmtTimeSpan(ivl*86400)
+        else:
+            return timeFmt(-ivl)
