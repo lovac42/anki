@@ -243,6 +243,7 @@ conf, models, decks, dconf, tags from col""")
         """Add some function to the database. E.g. it can be used to sort
         elements."""
         self.db._db.create_function("questionContentByCid", 1, lambda cid: self.getCard(cid).questionBrowserColumn()))
+        self.db._db.create_function("answerContentByCid", 1, lambda cid: self.getCard(cid).answerBrowserColumn()))
 
     def setMod(self):
         """Mark DB modified.

@@ -301,7 +301,7 @@ class DataModel(QAbstractTableModel):
         """Set self.columns"""
         columns = [
             ColumnByMethod('question', _("Question"), "questionContentByCid(card.id)"),
-            ColumnByMethod('answer', _("Answer")),
+            ColumnByMethod('answer', _("Answer"), "answerContentByCid(card.id)"),
             ColumnByMethod('template', _("Card"),),
             ColumnByMethod('deck', _("Deck")),
             ColumnByMethod('noteFld', _("Sort Field"), "note.sfld collate nocase, card.ord"),
@@ -761,7 +761,7 @@ class Browser(QMainWindow):
 
     def _onSortChanged(self, idx, ord):
         type = self.model.activeCols[idx]
-        noSort = ("answer", "template", "deck", "note")
+        noSort = ("template", "deck", "note")
         if type in noSort:
             if type == "template":
                 showInfo(_("""\
