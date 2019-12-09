@@ -8,7 +8,7 @@ from anki.consts import *
 from anki.hooks import runHook
 from anki.lang import _
 from anki.utils import (fmtTimeSpan, formatDay, htmlToTextLine, intTime,
-                        joinFields, timestampID)
+                        joinFields, strftimeIfArgument, timestampID)
 
 # Cards
 ##########################################################################
