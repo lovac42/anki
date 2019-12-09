@@ -1,4 +1,5 @@
 import time
+from anki.utils import formatDay
 
 from anki.lang import _
 from anki.utils import formatDay
