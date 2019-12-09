@@ -314,7 +314,7 @@ class DataModel(QAbstractTableModel):
             ColumnByMethod('cardReps', _("Reviews"), "card.reps"),
             ColumnByMethod('cardLapses', _("Lapses"), "card.lapses"),
             ColumnByMethod('noteTags', _("Tags"), "note.tags", "stringTags"),
-            ColumnByMethod('note', _("Note"), methodName="noteTypeBrowserColumn"),
+            ColumnByMethod('note', _("Note"), "nameByMid(note.mid)", "noteTypeBrowserColumn"),
         ]
         columnTypes = {column.type for column in columns}
         for type in self.activeCols:
@@ -761,11 +761,6 @@ class Browser(QMainWindow):
 
     def _onSortChanged(self, idx, ord):
         type = self.model.activeCols[idx]
-        noSort = ("note",)
-        if type in noSort:
-            showInfo(_("Sorting on this column is not supported. Please "
-                       "choose another."))
-            type = self.col.conf['sortType']
         if self.col.conf['sortType'] != type:
             self.col.conf['sortType'] = type
             # default to descending for non-text fields

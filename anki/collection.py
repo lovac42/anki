@@ -246,6 +246,7 @@ conf, models, decks, dconf, tags from col""")
         self.db._db.create_function("answerContentByCid", 1, lambda cid: self.getCard(cid).answerBrowserColumn())
         self.db._db.create_function("nameByMidOrd", 2, self.models.templateName)
         self.db._db.create_function("nameForDeck", 1, self.decks.name)
+        self.db._db.create_function("nameByMid", 1, self.models.name)
 
     def setMod(self):
         """Mark DB modified.

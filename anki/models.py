@@ -206,6 +206,12 @@ class ModelManager:
     # Deck columns to show
     ######################################################################
 
+    def name(self, id):
+        m = self.get(id, orNone=True)
+        if m is None:
+            return ""
+        return m.getName()
+
     def templateName(self, id, ord):
         m = self.get(id, orNone=True)
         if m is None:
