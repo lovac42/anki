@@ -343,6 +343,7 @@ class DataModel(QAbstractTableModel):
             TimeColumnFromQuery('cardFastestTime', _('Fastest review'), "time/1000.0", True),
             TimeColumnFromQuery('cardSlowestTime', _('Slowest review'), "time/1000.0", True),
             ColumnByMethod("cardPreviousIvl", _("Previous interval"), """(select ivl from revlog where cid = card.id order by id desc limit 1 offset 1)"""),
+            ColumnByMethod("cardPercentCorrect", _("Percent correct"), "cast(card.lapses as real)/card.reps"),
             ColumnByMethod("cardOverdueIvl", _("Overdue interval"), f"""(
 select
   (case

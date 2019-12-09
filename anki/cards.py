@@ -404,6 +404,7 @@ lapses=?, left=?, odue=?, odid=?, did=? where id = ?""",
                 return
 
     def previousIvlBrowserColumn(self):
+
         ivl = self.col.db.scalar(
             "select ivl from revlog where cid = ? "
             "order by id desc limit 1 offset 1", self.id)
@@ -415,3 +416,9 @@ lapses=?, left=?, odue=?, odid=?, did=? where id = ?""",
             return fmtTimeSpan(ivl*86400)
         else:
             return timeFmt(-ivl)
+
+    def percentCorrectBrowserColumn(self):
+        if self.reps <= 0:
+            return ""
+        return "{:2.0f}%".format(100 - ((self.lapses / float(self.reps)) * 100)),
+
