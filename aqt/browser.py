@@ -21,7 +21,7 @@ from anki.sound import allSounds, clearAudioQueue, play
 from anki.utils import (bodyClass, fmtTimeSpan, htmlToTextLine, ids2str,
                         intTime, isMac, isWin)
 from aqt.browserColumn import (ColumnByMethod, DateColumnFromQuery,
-                               UselessColumn)
+                               TimeColumnFromQuery, UselessColumn)
 from aqt.main import \
     AnkiQt  # used to be `from aqt import AnkiQt` but this lead to import in errors
 from aqt.qt import *

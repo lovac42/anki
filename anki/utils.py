@@ -83,6 +83,12 @@ def fmtTimeSpan(time, pad=0, point=0, short=False, inTime=False, unit=99):
     timestr = "%%%(a)d.%(point)df" % {'a': pad, 'point': point}
     return locale.format_string(fmt % timestr, time)
 
+def strftimeIfArgument(timeString):
+    if timeString:
+        return time.strftime("%Y-%m-%d", time.localtime(timeString / 1000))
+    else:
+        return ""
+
 def optimalPeriod(time, point, unit):
     if abs(time) < 60 or unit < 1:
         type = "seconds"

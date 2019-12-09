@@ -1,7 +1,7 @@
 import time
 
 from anki.lang import _
-from anki.utils import formatDay
+from anki.utils import formatDay, strftimeIfArgument
 
 
 class BrowserColumn:
@@ -90,6 +90,16 @@ class DateColumnFromQuery(BrowserColumn):
 
     def getSort(self):
         return f"{self.query}, card.ord" #second is useless to sort card. Useful for notes
+
+class TimeColumnFromQuery(BrowserColumn):
+    def __init__(self, type, name, sort):
+        super().__init__(type, name, sort=sort, note=False, menu=True)
+
+    def content(self, card):
+        return strftimeIfArgument(card.col.db.scalar(f"select {self.sort} from revlog where cid = ?", card.id))
+
+    def getSort(self):
+        return f"(select {self.sort} from revlog where cid = card.id)"
 
 class UselessColumn(BrowserColumn):
     def __init__(self, type):
