@@ -396,6 +396,7 @@ class Browser(QMainWindow):
         QMainWindow.__init__(self, None, Qt.Window)
         self.mw = mw
         self.col = self.mw.col
+        self.sortBackwards = self.col.conf['sortBackwards']
         self.lastFilter = ""
         self.focusTo = None
         self._previewWindow = None
@@ -534,6 +535,7 @@ class Browser(QMainWindow):
         self.mw.maybeReset()
         aqt.dialogs.markClosed("Browser")
         self._closeEventHasCleanedUp = True
+        self.col.conf['sortBackwards'] = self.sortBackwards
         self.mw.gcWindow(self)
         self.close()
 
@@ -764,11 +766,11 @@ by clicking on one on the left."""))
             # default to descending for non-text fields
             if type == "noteFld":
                 ord = not ord
-            self.col.conf['sortBackwards'] = ord
+            self.sortBackwards = ord
             self.search()
         else:
-            if self.col.conf['sortBackwards'] != ord:
-                self.col.conf['sortBackwards'] = ord
+            if self.sortBackwards != ord:
+                self.sortBackwards = ord
                 self.model.reverse()
         self.setSortIndicator()
 
@@ -781,7 +783,7 @@ by clicking on one on the left."""))
             hh.setSortIndicatorShown(False)
             return
         idx = self.model.activeCols.index(type)
-        if self.col.conf['sortBackwards']:
+        if self.sortBackwards:
             ord = Qt.DescendingOrder
         else:
             ord = Qt.AscendingOrder
