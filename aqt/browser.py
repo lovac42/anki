@@ -302,7 +302,7 @@ class DataModel(QAbstractTableModel):
         columns = [
             ColumnByMethod('question', _("Question"), "questionContentByCid(card.id)"),
             ColumnByMethod('answer', _("Answer"), "answerContentByCid(card.id)"),
-            ColumnByMethod('template', _("Card"),),
+            ColumnByMethod('template', _("Card"), "nameByMidOrd(note.mid, card.ord)"),
             ColumnByMethod('deck', _("Deck")),
             ColumnByMethod('noteFld', _("Sort Field"), "note.sfld collate nocase, card.ord"),
             DateColumnFromQuery('noteCrt', _("Created"), "note.id/1000.0"),
@@ -761,13 +761,9 @@ class Browser(QMainWindow):
 
     def _onSortChanged(self, idx, ord):
         type = self.model.activeCols[idx]
-        noSort = ("template", "deck", "note")
+        noSort = ("deck", "note")
         if type in noSort:
-            if type == "template":
-                showInfo(_("""\
-This column can't be sorted on, but you can search for individual card types, \
-such as 'card:1'."""))
-            elif type == "deck":
+            if type == "deck":
                 showInfo(_("""\
 This column can't be sorted on, but you can search for specific decks \
 by clicking on one on the left."""))

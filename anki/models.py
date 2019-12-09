@@ -202,3 +202,15 @@ class ModelManager:
         for model in self.all():
             model.beforeUpload()
         self.save()
+
+    # Deck columns to show
+    ######################################################################
+
+    def templateName(self, id, ord):
+        m = self.get(id, orNone=True)
+        if m is None:
+            return ""
+        t = m.getTemplate(ord, orNone=True)
+        if t is None:
+            return ""
+        return t.getName()
