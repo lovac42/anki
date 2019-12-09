@@ -352,6 +352,7 @@ class DataModel(QAbstractTableModel):
             ColumnAttribute("nusn", _("note usn")),
             ColumnByMethod("nfields", _("Note fields"), "note.flds", methodName="joinedFields", note=True),
             ColumnAttribute("nflags", _("Note flags")),
+            ColumnAttribute("ndata", _("Note data")),
             ColumnByMethod("cardOverdueIvl", _("Overdue interval"), f"""(
 select
   (case
