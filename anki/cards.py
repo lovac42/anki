@@ -7,8 +7,8 @@ import time
 from anki.consts import *
 from anki.hooks import runHook
 from anki.lang import _
-from anki.utils import (fmtTimeSpan, htmlToTextLine, intTime, joinFields,
-                        timestampID)
+from anki.utils import (fmtTimeSpan, formatDay, htmlToTextLine, intTime,
+                        joinFields, timestampID)
 
 # Cards
 ##########################################################################
@@ -354,7 +354,7 @@ lapses=?, left=?, odue=?, odid=?, did=? where id = ?""",
             date = time.time() + ((self.due - self.col.sched.today)*86400)
         else:
             return ""
-        return time.strftime("%Y-%m-%d", time.localtime(date))
+        return formatDay(date)
 
     def dueBrowserColumn(self):
         # catch invalid dates

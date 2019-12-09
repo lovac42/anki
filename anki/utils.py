@@ -134,6 +134,9 @@ def fmtFloat(float_value, point=1):
     fmt = '%' + "0.%(point)df" % {'point': point}
     return locale.format_string(fmt, float_value)
 
+def formatDay(day):
+    return time.strftime("%Y-%m-%d", time.localtime(day))
+
 # HTML
 ##############################################################################
 reComment = re.compile("(?s)<!--.*?-->")
