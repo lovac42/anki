@@ -348,6 +348,7 @@ class DataModel(QAbstractTableModel):
             ColumnByMethod("cardPreviousDuration", _("Previous duration"), """(select time/1000.0 from revlog where cid = card.idy order by id desc limit 1)"""),
             ColumnAttribute("nid", _("Note id")),
             ColumnAttribute("nguid", _("Note guid")),
+            ColumnAttribute("nmid", _("mid")),
             ColumnByMethod("cardOverdueIvl", _("Overdue interval"), f"""(
 select
   (case
