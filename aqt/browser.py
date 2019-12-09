@@ -358,6 +358,7 @@ class DataModel(QAbstractTableModel):
             ColumnAttribute("codid", _("Deck Original id")),
             ColumnAttribute("cord", _("Card Ord")),
             ColumnAttribute("cusn", _("Card Usn")),
+            ColumnAttribute("ctype", _("Card type")),
             ColumnByMethod("cardOverdueIvl", _("Overdue interval"), f"""(
 select
   (case
