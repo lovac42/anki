@@ -337,6 +337,7 @@ class DataModel(QAbstractTableModel):
             ColumnByMethod('noteTags', _("Tags"), methodName="stringTags"),
             ColumnByMethod('note', _("Note"), methodName="noteTypeBrowserColumn"),
             TimeColumnFromQuery('cardFirstReview', _("First Review"), "min(id)"),
+            TimeColumnFromQuery('cardLastReview', _("Last Review"), "max(id)"),
         ]:
             add(column)
         for type in self.activeCols:
