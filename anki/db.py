@@ -4,7 +4,7 @@
 
 import os
 import time
-from sqlite3 import Cursor
+from sqlite3 import Cursor, OperationalError, ProgrammingError
 from sqlite3 import dbapi2 as sqlite
 
 DBError = sqlite.Error
@@ -30,12 +30,20 @@ class DB:
             if normalizedSql.startswith(stmt):
                 self.mod = True
         startTime = time.time()
-        if ka:
-            # execute("...where id = :id", id=5)
-            res = self._db.execute(sql, ka)
-        else:
-            # execute("...where id = ?", 5)
-            res = self._db.execute(sql, args)
+        try:
+            if ka:
+                # execute("...where id = :id", id=5)
+                res = self._db.execute(sql, ka)
+            else:
+                # execute("...where id = ?", 5)
+                res = self._db.execute(sql, args)
+        except (OperationalError, ProgrammingError):
+            print(f"Error in sql:\n----------------\n{sql}\n----------------\n")
+            if args:
+                print(f"args:\n----------------\n{args}\n----------------\n")
+            if ka:
+                print(f"ka:\n----------------\n{ka}\n----------------\n")
+            raise
         if self.echo:
             #print args, ka
             print(sql, "%0.3fms" % ((time.time() - startTime)*1000))

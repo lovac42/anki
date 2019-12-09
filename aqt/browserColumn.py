@@ -1,5 +1,7 @@
 import time
+
 from anki.utils import formatDay
+
 
 class BrowserColumn:
     """
