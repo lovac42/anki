@@ -360,6 +360,7 @@ class DataModel(QAbstractTableModel):
             ColumnAttribute("cusn", _("Card Usn")),
             ColumnAttribute("ctype", _("Card type")),
             ColumnAttribute("cqueue", _("Card queue")),
+            ColumnAttribute("cleft", _("Card left")),
             ColumnByMethod("cardOverdueIvl", _("Overdue interval"), f"""(
 select
   (case
