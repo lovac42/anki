@@ -92,11 +92,12 @@ class DateColumnFromQuery(BrowserColumn):
         return f"{self.query}, card.ord" #second is useless to sort card. Useful for notes
 
 class TimeColumnFromQuery(BrowserColumn):
-    def __init__(self, type, name, sort):
+    def __init__(self, type, name, sort, limit=False):
         super().__init__(type, name, sort=sort, note=False, menu=True)
+        self.limit = limit
 
     def content(self, card):
-        return strftimeIfArgument(card.col.db.scalar(f"select {self.sort} from revlog where cid = ?", card.id))
+        return strftimeIfArgument(card.col.db.scalar(f"select {self.sort} from revlog where cid = ?"+(" limit 1" if self.limit else ""), card.id))
 
     def getSort(self):
         return f"(select {self.sort} from revlog where cid = card.id)"
