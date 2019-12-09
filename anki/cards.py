@@ -8,7 +8,7 @@ from anki.consts import *
 from anki.hooks import runHook
 from anki.lang import _
 from anki.utils import (fmtTimeSpan, formatDay, htmlToTextLine, intTime,
-                        joinFields, strftimeIfArgument, timestampID)
+                        joinFields, strftimeIfArgument, timeFmt, timestampID)
 
 # Cards
 ##########################################################################
@@ -422,3 +422,7 @@ lapses=?, left=?, odue=?, odid=?, did=? where id = ?""",
             return ""
         return "{:2.0f}%".format(100 - ((self.lapses / float(self.reps)) * 100)),
 
+    def previousDurationBrowserColumn(self):
+        return timeFmt(self.col.db.scalar(
+            "select time/1000.0 from revlog where cid = ? "
+            "order by id desc limit 1", self.id))
