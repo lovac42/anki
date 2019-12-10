@@ -55,6 +55,7 @@ class DataModel(QAbstractTableModel):
         self.sortKey = None
         self.activeCols = self.col.conf.get(
             "activeCols", ["noteFld", "template", "cardDue", "deck"])
+        self.setupColumns()
         self.cards = []
         self.cardObjs = {}
         self.focusedCard = focusedCard
@@ -154,7 +155,7 @@ class DataModel(QAbstractTableModel):
             return
         type = self.columnType(section)
         # handle case where extension has set an invalid column type
-        return self.browser.columns.get(type, list(self.browser.columns.values())[0]).name
+        return self.columns.get(type, list(self.columns.values())[0]).name
 
     def flags(self, index):
         """Required by QAbstractTableModel. State that interaction is possible
@@ -180,7 +181,7 @@ class DataModel(QAbstractTableModel):
         self.cards = []
         invalid = False
         try:
-            sortColum = self.browser.columns.get(self.col.conf['sortType'])
+            sortColum = self.columns.get(self.col.conf['sortType'])
             if sortColum is None:
                 sort = BrowserColumn.defaultSort
             else:
@@ -288,6 +289,31 @@ class DataModel(QAbstractTableModel):
     # Column data
     ######################################################################
 
+
+    def setupColumns(self):
+        """Set self.columns"""
+        columns = [
+            ColumnByMethod('question', _("Question")),
+            ColumnByMethod('answer', _("Answer")),
+            ColumnByMethod('template', _("Card"),),
+            ColumnByMethod('deck', _("Deck")),
+            ColumnByMethod('noteFld', _("Sort Field"), "note.sfld collate nocase, card.ord"),
+            DateColumnFromQuery('noteCrt', _("Created"), "note.id/1000.0"),
+            DateColumnFromQuery('noteMod', _("Edited"), "note.mod"),
+            DateColumnFromQuery('cardMod', _("Changed"), "card.mod"),
+            ColumnByMethod('cardDue', _("Due"), "card.type, card.due"),
+            ColumnByMethod('cardIvl', _("Interval"), "card.ivl"),
+            ColumnByMethod('cardEase', _("Ease"), "(card.type == 0), card.factor"),
+            ColumnByMethod('cardReps', _("Reviews"), "card.reps"),
+            ColumnByMethod('cardLapses', _("Lapses"), "card.lapses"),
+            ColumnByMethod('noteTags', _("Tags"), methodName="stringTags"),
+            ColumnByMethod('note', _("Note"), methodName="noteTypeBrowserColumn"),
+        ]
+        columns.sort(key=lambda browser:browser.name) # allow to sort by
+        # alphabetical order in
+        # the local language
+        self.columns = {column.type: column for column in columns}
+
     def columnType(self, column):
         """The name of the column in position `column`"""
         return self.activeCols[column]
@@ -306,8 +332,8 @@ class DataModel(QAbstractTableModel):
         type = self.columnType(col)
         card = self.getCard(index)
 
-        if type in self.browser.columns:
-            return self.browser.columns[type].content(card)
+        if type in self.columns:
+            return self.columns[type].content(card)
 
     def isRTL(self, index):
         col = index.column()
@@ -409,7 +435,6 @@ class Browser(QMainWindow):
         restoreSplitter(self.form.splitter, "editor3")
         self.form.splitter.setChildrenCollapsible(False)
         self.card = None
-        self.setupColumns()
         self.setupTable()
         self.setupMenus()
         self.setupHeaders()
@@ -551,30 +576,6 @@ class Browser(QMainWindow):
             self.close()
         else:
             super().keyPressEvent(evt)
-
-    def setupColumns(self):
-        """Set self.columns"""
-        columns = [
-            ColumnByMethod('question', _("Question")),
-            ColumnByMethod('answer', _("Answer")),
-            ColumnByMethod('template', _("Card"),),
-            ColumnByMethod('deck', _("Deck")),
-            ColumnByMethod('noteFld', _("Sort Field"), "note.sfld collate nocase, card.ord"),
-            DateColumnFromQuery('noteCrt', _("Created"), "note.id/1000.0"),
-            DateColumnFromQuery('noteMod', _("Edited"), "note.mod"),
-            DateColumnFromQuery('cardMod', _("Changed"), "card.mod"),
-            ColumnByMethod('cardDue', _("Due"), "card.type, card.due"),
-            ColumnByMethod('cardIvl', _("Interval"), "card.ivl"),
-            ColumnByMethod('cardEase', _("Ease"), "(card.type == 0), card.factor"),
-            ColumnByMethod('cardReps', _("Reviews"), "card.reps"),
-            ColumnByMethod('cardLapses', _("Lapses"), "card.lapses"),
-            ColumnByMethod('noteTags', _("Tags"), methodName="stringTags"),
-            ColumnByMethod('note', _("Note"), methodName="noteTypeBrowserColumn"),
-        ]
-        columns.sort(key=lambda browser:browser.name) # allow to sort by
-        # alphabetical order in
-        # the local language
-        self.columns = {column.type: column for column in columns}
 
     # Searching
     ######################################################################
@@ -800,7 +801,7 @@ by clicking on one on the left."""))
         gpos = self.form.tableView.mapToGlobal(pos) # the position,
         # usable from the browser
         menu = QMenu()
-        for column in self.columns.values():
+        for column in self.model.columns.values():
             action = menu.addAction(column.name)
             action.setCheckable(True)
             action.setChecked(column.type in self.model.activeCols)
