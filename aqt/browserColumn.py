@@ -33,7 +33,7 @@ class BrowserColumn:
         if menu is True:
             menu = ["Note"] if self.note else ["Card"]
         assert(isinstance(menu, list))
-        self.menu = menu
+        self.menus = [menu]
 
     def getBase(self, card):
         if self.note:
@@ -45,6 +45,11 @@ class BrowserColumn:
     def getSort(self):
         return self.sort
 
+    def __eq__(self, other):
+        return self.type == other.type and self.name == other.name and self.__class__ == other.__class__
+
+    def addMenu(self, menu):
+        self.menus.append(menu)
 
 class ColumnByMethod(BrowserColumn):
     """

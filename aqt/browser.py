@@ -4,6 +4,7 @@
 
 import html
 import json
+import operator
 import re
 import sre_constants
 import time
@@ -299,7 +300,27 @@ class DataModel(QAbstractTableModel):
 
     def setupColumns(self):
         """Set self.columns"""
-        columns = [
+
+        #type -> columns
+        columns = {}
+        def add(column):
+            """Add a column in columns. If the column is new, add it. Otherwise,
+            simply add the menu path to the column already present in
+            the dict
+
+            """
+            type = column.type
+            present = columns.get(type)
+            if present is not None:
+                present = columns[type]
+                assert column == present
+                menus = column.menus
+                assert len(menus)==1
+                present.addMenu(menus[0])
+            else:
+                columns[type] = column
+
+        for column in [
             ColumnByMethod('question', _("Question")),
             ColumnByMethod('answer', _("Answer")),
             ColumnByMethod('template', _("Card"),),
@@ -315,18 +336,17 @@ class DataModel(QAbstractTableModel):
             ColumnByMethod('cardLapses', _("Lapses"), "card.lapses"),
             ColumnByMethod('noteTags', _("Tags"), methodName="stringTags"),
             ColumnByMethod('note', _("Note"), methodName="noteTypeBrowserColumn"),
-        ]
-        columnTypes = {column.type for column in columns}
+        ]:
+            add(column)
         for type in self.activeCols:
-            if type not in columnTypes:
+            if type not in columns:
                 column = UselessColumn(type)
-                columns.append(column)
-                columnTypes.add(type)
+                add(column)
 
-        columns.sort(key=lambda browser:browser.name) # allow to sort by
-        # alphabetical order in
-        # the local language
-        self.columns = {column.type: column for column in columns}
+        # allow to sort by alphabetical order in he local language
+        self.columns = {column.type: column
+                        for column in sorted(columns.values(), key=operator.attrgetter('name'))
+        }
 
     def columnType(self, column):
         """The name of the column in position `column`"""
@@ -816,23 +836,27 @@ by clicking on one on the left."""))
         topMenu = QMenu()
         menuDict = dict()
         for column in self.model.columns.values():
-            currentDict = menuDict
-            currentMenu = topMenu
-            for submenuName in column.menu:
-                if submenuName in currentDict:
-                    currentDict, currentMenu = currentDict[submenuName]
-                else:
-                    newDict = dict()
-                    newMenu = currentMenu.addMenu(submenuName)
-                    currentDict[submenuName] = newDict, newMenu
-                    currentMenu = newMenu
-                    currentDict = newDict
+            for menu in column.menus:
+                currentDict = menuDict
+                currentMenu = topMenu
+                for submenuName in menu:
+                    if submenuName in currentDict:
+                        currentDict, currentMenu = currentDict[submenuName]
+                    else:
+                        newDict = dict()
+                        newMenu = currentMenu.addMenu(submenuName)
+                        currentDict[submenuName] = newDict, newMenu
+                        currentMenu = newMenu
+                        currentDict = newDict
 
-            action = currentMenu.addAction(column.name)
-            action.setCheckable(True)
-            action.setChecked(column.type in self.model.activeCols)
-            action.toggled.connect(lambda button, type=column.type: self.toggleField(type))
+                action = currentMenu.addAction(column.name)
+                action.setCheckable(True)
+                action.setChecked(column.type in self.model.activeCols)
+                action.toggled.connect(lambda button, type=column.type: self.toggleField(type))
         topMenu.exec_(gpos)
+
+    def addMenu(self, menu):
+        self.menus.append(menu)
 
     def toggleField(self, type):
         """
