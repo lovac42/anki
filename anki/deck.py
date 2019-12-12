@@ -357,5 +357,5 @@ class Deck(DictAugmentedDyn):
         # current deck
         self.manager.col.conf['curDeck'] = did
         # and active decks (current + all children)
-        self.manager.col.conf['activeDecks'] = self.getDescendantsIds(sort=True, includeSelf=True)
+        self.manager.activeDecks = self.getDescendantsIds(sort=True, includeSelf=True)
         self.manager.changed = True
