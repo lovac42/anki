@@ -104,7 +104,11 @@ class CardLayout(QDialog):
 
     def setupTopArea(self):
         self.topArea = QWidget()
-        module = aqt.forms.clayout_top_cloze if self._isCloze() else aqt.forms.clayout_top
+        if self._isCloze():
+            module = aqt.forms.clayout_top_cloze
+            print("cloze")
+        else:
+            module = aqt.forms.clayout_top
         self.topAreaForm = module.Ui_Form()
         self.topAreaForm.setupUi(self.topArea)
         if self._isCloze():
