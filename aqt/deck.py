@@ -67,7 +67,7 @@ class Deck(anki.deck.Deck):
         action.triggered.connect(lambda button, deck=self: deck._export())
         action = menu.addAction(_("Delete"))
         action.triggered.connect(lambda button, deck=self: deck._delete())
-        if not self.mw.col.conf.get("overview", False):
+        if not self.manager.mw.col.conf.get("overview", False):
             action = menu.addAction(_("Overview"))
             action.triggered.connect(lambda button, deck=self: deck._overviewDeck())
         runHook("showDeckOptions", menu, self.getId())
