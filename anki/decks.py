@@ -167,6 +167,7 @@ class DeckManager:
         self.changed = False
         self.loadDeck(decks)
         self.loadConf(dconf)
+        self.activeDecks = self.col.conf['activeDecks']
 
     def loadDeck(self, decks):
         self.decks = {}
@@ -199,6 +200,7 @@ class DeckManager:
                                  json.dumps(self.decks, default=lambda model: model.dumps()),
                                  json.dumps(self.dconf, default=lambda model: model.dumps()))
             self.changed = False
+            self.col.conf['activeDecks'] = self.active()
 
     # Deck save/load
     #############################################################
@@ -420,8 +422,8 @@ class DeckManager:
         #It seems that nothing related to default happen in this code
         #nor in the function called by this code.
         #maybe is not appropriate, since no condition occurs
-        deck = self.current()
-        deck.select()
+        self.activeDecks = None
+        self.changed = True
 
     def _recoverOrphans(self):
         """Move the cards whose deck does not exists to the default
@@ -468,7 +470,9 @@ class DeckManager:
 
     def active(self):
         "The currrently active dids. Make sure to copy before modifying."
-        return self.col.conf['activeDecks']
+        if self.activeDecks is None:
+            self.current().select()
+        return self.activeDecks
 
     def selected(self):
         """The did of the currently selected deck."""
