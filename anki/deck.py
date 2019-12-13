@@ -127,7 +127,7 @@ class Deck(DictAugmentedDyn):
             self.manager.all()[0].select()
         self.manager.save()
 
-    def rename(self, newName):
+    def rename(self, newName, merge=False):
         """Rename the deck object g to newName. Updates
         children. Creates parents of newName if required.
 
@@ -140,7 +140,7 @@ class Deck(DictAugmentedDyn):
         if newName is False:
             raise DeckRenameError(_("A filtered deck cannot have subdecks."))
         # make sure target node doesn't already exist
-        if self.manager.byName(newName):
+        if self.manager.byName(newName) and not merge:
             raise DeckRenameError(_("That deck already exists."))
         self._rename(newName)
         # renaming may have altered active did order
