@@ -147,25 +147,39 @@ class Deck(DictAugmentedDyn):
         self.manager.maybeAddToActive()
 
     def _rename(self, newName):
-        """Rename the deck object g to newName. Updates
-        children. Creates parents of newName if required.
+        """Rename the deck object g to newName. Merge to newName if it already
+        exists. Updates children. Creates parents of newName if
+        required.
 
-        It's assumed newName does not already exists, and is not a
-        descendant of a filtered deck.
+        It's assumed newName is not a descendant of a filtered deck.
 
         """
+        mergeTo = self.manager.byName(newName, create=False)
+        if mergeTo:
+            self._mergeTo(mergeTo)
+        else:
+            self.__rename(newName)
+
+    def __rename(self, newName):
         self.parent.removeChild(self)
-        # rename children
         oldName = self.getName()
         for child in self.getDescendants(includeSelf=True):
             del self.manager.decksByNames[child.getNormalizedName()]
-            child.setName(child.getName().replace(oldName, newName, 1))
+            newChildName = child.getName().replace(oldName, newName, 1)
+            child.setName(newChildName)
             child.addInManager()
             child.save()
         # ensure we have parents again, as we may have renamed parent->child
         parent, newName = self.manager._ensureParents(newName)
         self.parent = parent
         self.parent.addChild(self)
+
+    def _mergeTo(self, mergeTo):
+        self.manager.col.db.execute("update cards set did=?, mod=?, usn=? where did=?", mergeTo.getId(), intTime(), self.manager.col.usn(), self.getId())
+        for child in self.getChildren():
+            newChildName = child.getName().replace(self.getName(), mergeTo.getName(), 1)
+            child._rename(newChildName)
+        self.rem(cardsToo=False, childrenToo=False)#normally, no child and no card.
 
     def renameForDragAndDrop(self, ontoDeckDid):
         """Rename the deck whose id is draggedDeckDid as a children of
