@@ -142,6 +142,18 @@ class Deck(DictAugmentedDyn):
         # make sure target node doesn't already exist
         if self.manager.byName(newName):
             raise DeckRenameError(_("That deck already exists."))
+        self._rename(newName)
+        # renaming may have altered active did order
+        self.manager.maybeAddToActive()
+
+    def _rename(self, newName):
+        """Rename the deck object g to newName. Updates
+        children. Creates parents of newName if required.
+
+        It's assumed newName does not already exists, and is not a
+        descendant of a filtered deck.
+
+        """
         self.parent.removeChild(self)
         # rename children
         oldName = self.getName()
@@ -154,8 +166,6 @@ class Deck(DictAugmentedDyn):
         parent, newName = self.manager._ensureParents(newName)
         self.parent = parent
         self.parent.addChild(self)
-        # renaming may have altered active did order
-        self.manager.maybeAddToActive()
 
     def renameForDragAndDrop(self, ontoDeckDid):
         """Rename the deck whose id is draggedDeckDid as a children of
