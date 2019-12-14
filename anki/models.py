@@ -432,21 +432,21 @@ and notes.mid = ? and cards.ord = ?""", model['id'], ord)
         # saves
         self.renameField(model, fieldTypeToRemove, None)
 
-    def moveField(self, model, fieldType, idx):
-        """Move the field to position idx
+    def moveField(self, model, fieldType, newIdx):
+        """Move the field to position newIdx
 
-        idx -- new position, integer
+        newIdx -- new position, integer
         field -- a field object
         """
         self.col.modSchema(check=True)
         oldidx = model['flds'].index(fieldType)
-        if oldidx == idx:
+        if oldidx == newIdx:
             return
         # remember old sort fieldType
         sortf = model['flds'][model['sortf']]
         # move
         model['flds'].remove(fieldType)
-        model['flds'].insert(idx, fieldType)
+        model['flds'].insert(newIdx, fieldType)
         # restore sort fieldType
         model['sortf'] = model['flds'].index(sortf)
         self._updateFieldOrds(model)
@@ -454,7 +454,7 @@ and notes.mid = ? and cards.ord = ?""", model['id'], ord)
         def move(fields, oldidx=oldidx):
             val = fields[oldidx]
             del fields[oldidx]
-            fields.insert(idx, val)
+            fields.insert(newIdx, val)
             return fields
         self._transformFields(model, move)
 
@@ -574,19 +574,19 @@ update cards set ord = ord - 1, usn = ?, mod = ?
         for index, template in enumerate(model['tmpls']):
             template['ord'] = index
 
-    def moveTemplate(self, model, template, idx):
-        """Move input template to position idx in model.
+    def moveTemplate(self, model, template, newIdx):
+        """Move input template to position newIdx in model.
 
         Move also every other template to make this consistent.
 
         Comment again after that TODODODO
         """
         oldidx = model['tmpls'].index(template)
-        if oldidx == idx:
+        if oldidx == newIdx:
             return
         oldidxs = dict((id(template), template['ord']) for template in model['tmpls'])
         model['tmpls'].remove(template)
-        model['tmpls'].insert(idx, template)
+        model['tmpls'].insert(newIdx, template)
         self._updateTemplOrds(model)
         # generate change map
         map = []
