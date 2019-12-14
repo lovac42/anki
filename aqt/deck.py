@@ -78,6 +78,10 @@ class Deck(anki.deck.Deck):
         oldName = self.getName()
         newName = getOnlyText(_("New deck name:"), default=oldName)
         newName = newName.replace('"', "")
+        self._renameOrWarn(newName, merge)
+
+    def _renameOrWarn(self, newName, merge=None):
+        oldName = self.getName()
         if not newName or newName == oldName:
             return
         if merge is None:
