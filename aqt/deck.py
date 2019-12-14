@@ -115,13 +115,11 @@ class Deck(anki.deck.Deck):
             self.manager.mw.progress.finish()
             self.manager.mw.deckBrowser.show()
 
-    def _dragDeckOnto(self, ontoDeckDid):
-        try:
-            self.renameForDragAndDrop(ontoDeckDid)
-        except DeckRenameError as e:
-            return showWarning(e.description)
-
-        self.manager.mw.deckBrowser.show()
+    def _dragDeckOnto(self, ontoDeckDid, merge=None):
+        assert not self.exporting
+        newName = self.newNameForDragAndDrop(ontoDeckDid)
+        if newName is not None:
+            self._renameOrWarn(newName, merge)
 
     def _collapse(self):
         self.collapse()
