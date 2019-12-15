@@ -224,14 +224,19 @@ select id from cards where nid in (select id from notes where mid = ?)""",
     # Templates
     ##################################################
 
-    def newTemplate(self, name):
-        """A new template, whose content is the one of
-        defaultTemplate, and name is name.
+    def newTemplate(self, name, qfmt, afmt):
+        """A new template, added to the model, with parameter name, question
+        and format.
 
-        It's used in order to import mnemosyn, and create the standard
-        model during anki's first initialization. It's not used in day to day anki.
         """
-        return Template(self, name=name)
+        dic = defaultTemplate.copy()
+        dic.update(
+            {'name': name,
+             'qfmt': qfmt,
+             'afmt': afmt})
+        t = Template(self, dic)
+        t.add()
+        return t
 
     def _updateTemplOrds(self):
         """Change the value of 'ord' in each template of this model to reflect its new position"""

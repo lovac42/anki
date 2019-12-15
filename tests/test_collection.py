@@ -49,11 +49,10 @@ def test_noteAddDelete():
     assert n == 1
     # test multiple cards - add another template
     m = deck.models.current(); mm = deck.models
-    t = m.newTemplate("Reverse")
-    t['qfmt'] = "{{Back}}"
-    t['afmt'] = "{{Front}}"
-    t.add()
-    m.save()
+    t = m.newTemplate("Reverse",
+                      "{{Back}}",
+                      "{{Front}}")
+    m.save(updateReqs=False)
     # the default save doesn't generate cards
     assert deck.cardCount() == 1
     # but when templates are edited such as in the card layout screen, it

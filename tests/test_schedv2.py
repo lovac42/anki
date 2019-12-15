@@ -49,11 +49,10 @@ def test_new():
     # # the default order should ensure siblings are not seen together, and
     # # should show all cards
     # m = d.models.current(); mm = d.models
-    # t = m.newTemplate("Reverse")
-    # t['qfmt'] = "{{Back}}"
-    # t['afmt'] = "{{Front}}"
-    # t.add()
-    # m.save()
+    # t = m.newTemplate("Reverse",
+    # "{{Back}}",
+    #= "{{Front}}")
+    # m.save(updateReqs=False)
     # f = d.newNote()
     # f['Front'] = u"2"; f['Back'] = u"2"
     # d.addNote(f)
@@ -808,15 +807,13 @@ def test_ordcycle():
     d = getEmptyCol()
     # add two more templates and set second active
     m = d.models.current(); mm = d.models
-    t = m.newTemplate("Reverse")
-    t['qfmt'] = "{{Back}}"
-    t['afmt'] = "{{Front}}"
-    t.add()
-    t = m.newTemplate("f2")
-    t['qfmt'] = "{{Front}}"
-    t['afmt'] = "{{Back}}"
-    t.add()
-    m.save()
+    t = m.newTemplate("Reverse",
+                      "{{Back}}",
+                      "{{Front}}")
+    t = m.newTemplate("f2",
+                      "{{Front}}",
+                      "{{Back}}")
+    m.save(updateReqs=False)
     # create a new note; it should have 3 cards
     f = d.newNote()
     f['Front'] = "1"; f['Back'] = "1"
