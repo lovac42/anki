@@ -35,6 +35,7 @@ class Template(DictAugmentedInModel):
         """
         if self.model.getId():
             self.model.manager.col.modSchema(check=True)
+        self['ord'] = len(self.model['tmpls'])
         self.model['tmpls'].append(self)
         self.model._updateTemplOrds()
         self.model.save()
@@ -46,10 +47,9 @@ class Template(DictAugmentedInModel):
         """
         assert len(self.model['tmpls']) > 1
         # find cards using this template
-        ord = self.model['tmpls'].index(self)
         cids = self.model.manager.col.db.list("""
 select card.id from cards card, notes note where card.nid=note.id and mid = ? and ord = ?""",
-                                 self.model.getId(), ord)
+                                 self.model.getId(), self['ord'])
         # all notes with this template must have at least two cards, or we
         # could end up creating orphaned notes
         if self.model.manager.col.db.scalar("""
@@ -66,11 +66,11 @@ limit 1""" % ids2str(cids)):
         self.model.manager.col.db.execute("""
 update cards set ord = ord - 1, usn = ?, mod = ?
  where nid in (select id from notes where mid = ?) and ord > ?""",
-                             self.model.manager.col.usn(), intTime(), self.model.getId(), ord)
-        self.model['tmpls'].pop(ord)
+                             self.model.manager.col.usn(), intTime(), self.model.getId(), self['ord'])
+        self.model['tmpls'].pop(self['ord'])
         if 'req' in self.model:
             # True except for quite new models, especially in tests.
-            self.model['req'].pop(ord)
+            self.model['req'].pop(self['ord'])
         self.model._updateTemplOrds()
         self.model.save(updateReqs=False)
         return True
