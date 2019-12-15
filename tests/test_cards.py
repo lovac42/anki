@@ -59,11 +59,10 @@ def test_genrem():
     m = d.models.current()
     mm = d.models
     # adding a new template should automatically create cards
-    t = m.newTemplate("rev")
-    t['qfmt'] = '{{Front}}'
-    t['afmt'] = ""
-    t.add()
-    m.save(templates=True)
+    t = m.newTemplate("rev",
+                      '{{Front}}',
+                      "")
+    m.save(templates=True, updateReqs=False)
     assert len(f.cards()) == 2
     # if the template is changed to remove cards, they'll be removed
     t['qfmt'] = "{{Back}}"
