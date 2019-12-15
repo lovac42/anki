@@ -140,10 +140,10 @@ acq_reps+ret_reps, lapses, card_type_id from cards"""):
         model = addBasicModel(self.col)
         model.setName("Mnemosyne-FrontBack")
         mm = self.col.models
-        template = model.newTemplate("Back")
-        template['qfmt'] = "{{Back}}"
-        template['afmt'] = template['qfmt'] + "\n\n<hr id=answer>\n\n{{Front}}"
-        template.add()
+        question = "{{Back}}"
+        template = model.newTemplate("Back",
+                                     question,
+                                     question + "\n\n<hr id=answer>\n\n{{Front}}")
         self._addFronts(notes, model)
 
     def _addVocabulary(self, notes):
@@ -152,16 +152,16 @@ acq_reps+ret_reps, lapses, card_type_id from cards"""):
         for fieldName in "Expression", "Pronunciation", "Meaning", "Notes":
             fm = model.newField(fieldName)
             fm.add()
-        template = model.newTemplate("Recognition")
-        template['qfmt'] = "{{Expression}}"
-        template['afmt'] = template['qfmt'] + """\n\n<hr id=answer>\n\n\
-{{Pronunciation}}<br>\n{{Meaning}}<br>\n{{Notes}}"""
-        template.add()
-        template = model.newTemplate("Production")
-        template['qfmt'] = "{{Meaning}}"
-        template['afmt'] = template['qfmt'] + """\n\n<hr id=answer>\n\n\
-{{Expression}}<br>\n{{Pronunciation}}<br>\n{{Notes}}"""
-        template.add()
+        question = "{{Expression}}"
+        template = model.newTemplate("Recognition",
+                                     question,
+                                     question + """\n\n<hr id=answer>\n\n\
+{{Pronunciation}}<br>\n{{Meaning}}<br>\n{{Notes}}""")
+        question = "{{Meaning}}"
+        template = model.newTemplate("Production",
+                                     question,
+                                     question + """\n\n<hr id=answer>\n\n\
+{{Expression}}<br>\n{{Pronunciation}}<br>\n{{Notes}}""")
         model.add()
         self._addFronts(notes, model, fields=("f", "p_1", "m_1", "n"))
 
