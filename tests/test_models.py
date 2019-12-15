@@ -77,11 +77,10 @@ def test_fields():
 def test_templates():
     d = getEmptyCol()
     m = d.models.current(); mm = d.models
-    t = m.newTemplate("Reverse")
-    t['qfmt'] = "{{Back}}"
-    t['afmt'] = "{{Front}}"
-    t.add()
-    m.save()
+    t = m.newTemplate("Reverse",
+                      "{{Back}}",
+                      "{{Front}}")
+    m.save(updateReqs=False)
     f = d.newNote()
     f['Front'] = '1'
     f['Back'] = '2'
@@ -104,8 +103,7 @@ def test_templates():
     assert c.ord == 0
     assert stripHTML(c.q()) == "1"
     # it shouldn't be possible to orphan notes by removing templates
-    t = m.newTemplate("tmpl name")
-    t.add()
+    t = m.newTemplate("tmpl name", "", "")
     assert not m.getTemplate().rem()
 
 def test_cloze_ordinals():
@@ -224,11 +222,10 @@ def test_modelChange():
     cloze = deck.models.byName("Cloze")
     # enable second template and add a note
     m = deck.models.current(); mm = deck.models
-    t = m.newTemplate("Reverse")
-    t['qfmt'] = "{{Back}}"
-    t['afmt'] = "{{Front}}"
-    t.add()
-    m.save()
+    t = m.newTemplate("Reverse",
+                      "{{Back}}",
+                      "{{Front}}")
+    m.save(updateReqs=False)
     f = deck.newNote()
     f['Front'] = 'f'
     f['Back'] = 'b123'
@@ -242,8 +239,9 @@ def test_modelChange():
     assert f['Front'] == 'b123'
     assert f['Back'] == 'f'
     # switch cards
-    c0 = f.cards()[0]
-    c1 = f.cards()[1]
+    cards = f.cards()
+    c0 = cards[0]
+    c1 = cards[1]
     assert "b123" in c0.q()
     assert "f" in c1.q()
     assert c0.ord == 0
