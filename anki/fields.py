@@ -58,10 +58,11 @@ class Field(DictAugmentedInModel):
                 return ""
             else:
                 return '{{' + match.group(1) + match.group(2) + newName +  '}}'
+        def newTemplate(txt):
+            return re.sub(pat % re.escape(self.getName()), repl, txt)
         for template in self.model['tmpls']:
             for fmt in ('qfmt', 'afmt'):
-                template[fmt] = re.sub(
-                    pat % re.escape(self.getName()), repl, template[fmt])
+                template[fmt] = newTemplate(template[fmt])
         self.setName(newName)
         self.model.save()
 
