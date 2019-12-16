@@ -53,15 +53,15 @@ class Field(DictAugmentedInModel):
         self.model.manager.col.modSchema(check=True)
         #Regexp associating to a mustache the name of its field
         pat = r'{{([^{}]*)([:#^/]|[^:#/^}][^:}]*?:|)%s}}'
-        def wrap(txt):
+        def wrap():
             def repl(match):
-                return '{{' + match.group(1) + match.group(2) + txt +  '}}'
+                return '{{' + match.group(1) + match.group(2) + newName +  '}}'
             return repl
         for template in self.model['tmpls']:
             for fmt in ('qfmt', 'afmt'):
                 if newName:
                     template[fmt] = re.sub(
-                        pat % re.escape(self.getName()), wrap(newName), template[fmt])
+                        pat % re.escape(self.getName()), wrap(), template[fmt])
                 else:
                     template[fmt] = re.sub(
                         pat  % re.escape(self.getName()), "", template[fmt])
