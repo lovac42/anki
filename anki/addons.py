@@ -24,7 +24,7 @@ from jsonschema.exceptions import ValidationError
 from send2trash import send2trash
 
 from anki.consts import appShared
-from anki.incorporatedAddons import incorporatedAddonsDict
+from anki.incorporatedAddons import addonsNotToLoad
 from anki.lang import _
 from anki.sync import AnkiRequestsClient
 from anki.utils import intTime
@@ -114,7 +114,7 @@ class AddonManager:
         return errors
 
     def isIncorporated(self, dir):
-        return dir in incorporatedAddonsDict or (re.match(r"^\d+$", dir) and int(dir) in incorporatedAddonsDict)
+        return dir in addonsNotToLoad or (re.match(r"^\d+$", dir) and int(dir) in addonsNotToLoad)
 
     # Metadata
     ######################################################################
