@@ -381,8 +381,8 @@ select id from cards where nid in (select id from notes where mid = ?)""",
             return
         req = []
         for template in self['tmpls']:
-            ret = template._req()
-            req.append([template['ord'], ret[0], ret[1]])
+            type, list = template._req()
+            req.append([template['ord'], type, list])
         self['req'] = req
 
     def availOrds(self, flds):
