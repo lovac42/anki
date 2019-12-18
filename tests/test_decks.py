@@ -38,7 +38,7 @@ def test_basic():
     deck.decks.id("ONE")
     m = deck.models.current()
     m['did'] = deck.decks.id("one::two")
-    m.save(updateReqs=False)
+    m.save()
     n = deck.newNote()
     n['Front'] = "abc"
     deck.addNote(n)

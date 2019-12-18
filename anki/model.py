@@ -55,17 +55,14 @@ class Model(DictAugmentedIdUsn):
         model['id'] = None
         self.load(manager, model)
 
-    def save(self, templates=False, updateReqs=True):
+    def save(self, templates=False):
         """
         * Mark model modified.
         Keyword arguments:
         model -- A Model
         templates -- whether to check for cards not generated in this model
-        updateReqs -- whether reqs should be changed. Useless for some changes such as renaming the template.
         """
         if self.getId():
-            if updateReqs:
-                self._updateRequired()
             if templates:
                 self._syncTemplates()
         super().save()
@@ -76,7 +73,7 @@ class Model(DictAugmentedIdUsn):
         self.update()
         self.setCurrent()
         self._updateRequired()
-        self.save(updateReqs=False)
+        self.save()
 
     def update(self):
         "Add or update an existing model. Used for syncing and merging."
@@ -194,7 +191,7 @@ select id from cards where nid in (select id from notes where mid = ?)""",
         self.manager.col.modSchema(check=True)
         self['sortf'] = idx
         self.manager.col.updateFieldCache(self.nids())
-        self.save(updateReqs=False)
+        self.save()
 
     def _transformFields(self, fn):
         """For each note of the model self, apply fn to the set of field's
