@@ -150,3 +150,7 @@ and notes.mid = ? and cards.ord = ?""", self.model.getId(), self['ord'])
             if self.model.manager.col._renderQA(data)['q'] != empty:
                 req.append(i)
         return 'any', req
+
+    def getReq(self):
+        assert self.model.isStd()
+        return self.model['req'][self['ord']]
