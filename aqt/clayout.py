@@ -306,12 +306,10 @@ Please create a new card type first."""))
     def saveCard(self):
         if self.redrawing:
             return
-        text = self.tform.front.toPlainText()
-        self.card.template()['qfmt'] = text
-        text = self.tform.css.toPlainText()
-        self.card.model()['css'] = text
-        text = self.tform.back.toPlainText()
-        self.card.template()['afmt'] = text
+        self.card.template().changeTemplates(
+            self.tform.front.toPlainText(),
+            self.tform.back.toPlainText(),
+            self.tform.css.toPlainText())
         self.renderPreview()
 
     # Preview
@@ -461,8 +459,8 @@ Please create a new card type first."""))
 Anki couldn't find the line between the question and answer. Please \
 adjust the template manually to switch the question and answer."""))
             return
-        dst['afmt'] = "{{FrontSide}}\n\n<hr id=answer>\n\n%s" % src['qfmt']
-        dst['qfmt'] = match.group(2).strip()
+        dst.changeTemplates(match.group(2).strip(),
+                            "{{FrontSide}}\n\n<hr id=answer>\n\n%s" % src['qfmt'])
         return True
 
     def onMore(self):

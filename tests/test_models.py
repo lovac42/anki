@@ -113,9 +113,9 @@ def test_cloze_ordinals():
     
     #We replace the default Cloze template
     t = m['tmpls'][0]
-    t['qfmt'] = "{{text:cloze:Text}}"
-    t['afmt'] = "{{text:cloze:Text}}"
-    m.save()
+    t.changeTemplates("{{text:cloze:Text}}",
+                      "{{text:cloze:Text}}")
+    m.save(updateReqs=False)
     f = d.newNote()
     f['Text'] = '{{c1::firstQ::firstA}}{{c2::secondQ::secondA}}'
     d.addNote(f)
@@ -129,8 +129,9 @@ def test_cloze_ordinals():
 def test_text():
     d = getEmptyCol()
     m = d.models.current()
-    m.getTemplate()['qfmt'] = "{{text:Front}}"
-    m.save()
+    t = m.getTemplate()
+    t.changeTemplates("{{text:Front}}")
+    m.save(updateReqs=False)
     f = d.newNote()
     f['Front'] = 'hello<b>world'
     d.addNote(f)
@@ -202,9 +203,9 @@ def test_chained_mods():
     
     #We replace the default Cloze template
     t = m['tmpls'][0]
-    t['qfmt'] = "{{cloze:text:Text}}"
-    t['afmt'] = "{{cloze:text:Text}}"
-    m.save()
+    t.changeTemplates("{{cloze:text:Text}}",
+                      "{{cloze:text:Text}}")
+    m.save(updateReqs=False)
     
     f = d.newNote()
     q1 = '<span style=\"color:red\">phrase</span>'
@@ -314,19 +315,19 @@ def test_availOrds():
     f['Front'] = "1"
     # simple templates
     assert m.availOrds(joinFields(f.fields)) == [0]
-    t['qfmt'] = "{{Back}}"
-    m.save(templates=True)
+    t.changeTemplates("{{Back}}")
+    m.save(templates=True, updateReqs=False)
     assert not m.availOrds(joinFields(f.fields))
     # AND
-    t['qfmt'] = "{{#Front}}{{#Back}}{{Front}}{{/Back}}{{/Front}}"
-    m.save(templates=True)
+    t.changeTemplates("{{#Front}}{{#Back}}{{Front}}{{/Back}}{{/Front}}")
+    m.save(templates=True, updateReqs=False)
     assert not m.availOrds(joinFields(f.fields))
-    t['qfmt'] = "{{#Front}}\n{{#Back}}\n{{Front}}\n{{/Back}}\n{{/Front}}"
-    m.save(templates=True)
+    t.changeTemplates("{{#Front}}\n{{#Back}}\n{{Front}}\n{{/Back}}\n{{/Front}}")
+    m.save(templates=True, updateReqs=False)
     assert not m.availOrds(joinFields(f.fields))
     # OR
-    t['qfmt'] = "{{Front}}\n{{Back}}"
-    m.save(templates=True)
+    t.changeTemplates("{{Front}}\n{{Back}}")
+    m.save(templates=True, updateReqs=False)
     assert m.availOrds(joinFields(f.fields)) == [0]
     t['Front'] = ""
     t['Back'] = "1"
@@ -346,13 +347,12 @@ def test_req():
     assert basic.getTemplate(0).getReq() == [0, 'all', [0]]
     opt = mm.byName("Basic (optional reversed card)")
     reqSize(opt)
+    tmpl1 = opt.getTemplate(1)
     assert opt.getTemplate(0).getReq() == [0, 'all', [0]]
-    assert opt.getTemplate(1).getReq() == [1, 'all', [1, 2]]
+    assert tmpl1.getReq() == [1, 'all', [1, 2]]
     #testing any
-    opt['tmpls'][1]['qfmt'] = "{{Back}}{{Add Reverse}}"
-    opt.save(templates=True)
-    assert opt.getTemplate(1).getReq() == [1, 'any', [1, 2]]
+    tmpl1.changeTemplates("{{Back}}{{Add Reverse}}")
+    assert tmpl1.getReq() == [1, 'any', [1, 2]]
     #testing None
-    opt['tmpls'][1]['qfmt'] = "{{^Add Reverse}}{{Back}}{{/Add Reverse}}"
-    opt.save(templates=True)
-    assert opt.getTemplate(1).getReq() == [1, 'none', []]
+    tmpl1.changeTemplates("{{^Add Reverse}}{{Back}}{{/Add Reverse}}")
+    assert tmpl1.getReq() == [1, 'none', []]

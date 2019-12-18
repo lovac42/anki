@@ -61,10 +61,11 @@ class Field(DictAugmentedInModel):
         def newTemplate(txt):
             return re.sub(pat % re.escape(self.getName()), repl, txt)
         for template in self.model['tmpls']:
-            for fmt in ('qfmt', 'afmt'):
-                template[fmt] = newTemplate(template[fmt])
+            template.changeTemplates(
+                newTemplate(template['qfmt']),
+                newTemplate(template['afmt']))
         self.setName(newName)
-        self.model.save()
+        self.model.save(updateReqs=False)
 
     def move(self, newIdx):
         """Move the field to position newIdx
