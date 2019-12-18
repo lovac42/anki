@@ -524,7 +524,7 @@ class Editor:
         if self.addMode:
             # save tags to model
             self.model['tags'] = self.note.tags
-            self.model.save(updateReqs=False)
+            self.model.save()
 
     def hideCompleters(self):
         "Remove tags's line"

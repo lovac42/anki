@@ -43,7 +43,7 @@ class Field(DictAugmentedInModel):
             return fieldsContents
         self.model._transformFields(add)
         self.reqIfName()
-        self.model.save(updateReqs=False)
+        self.model.save()
 
     def reqIfName(self):
         """Recompute req for templates containing this field.
@@ -80,7 +80,7 @@ class Field(DictAugmentedInModel):
         if newName is not None:
             self.setName(newName)
             self.reqIfName()
-        self.model.save(updateReqs=False)
+        self.model.save()
 
     def move(self, newIdx):
         """Move the field to position newIdx
@@ -115,7 +115,7 @@ class Field(DictAugmentedInModel):
             fields.insert(newIdx, val)
             return fields
         self.model._transformFields(move)
-        self.model.save(updateReqs=False)
+        self.model.save()
 
     def rem(self):
         """Remove a field from a model.
