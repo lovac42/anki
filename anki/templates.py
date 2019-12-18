@@ -129,10 +129,9 @@ and notes.mid = ? and cards.ord = ?""", self.model.getId(), self['ord'])
 
         # if full and empty are the same, the self is invalid and there is
         # no way to satisfy it
-        if full == empty:
-            return "none", []
-        type = 'all'
         req = []
+        if full == empty:
+            return 'none', req
         for i in range(nbFlds):
             tmp = ankiflagFlds[:]
             tmp[i] = ""
@@ -141,10 +140,8 @@ and notes.mid = ? and cards.ord = ?""", self.model.getId(), self['ord'])
             if "ankiflag" not in self.model.manager.col._renderQA(data)['q']:
                 req.append(i)
         if req:
-            return type, req
+            return 'all', req
         # if there are no required fields, switch to any mode
-        type = 'any'
-        req = []
         for i in range(nbFlds):
             tmp = emptyFlds[:]
             tmp[i] = "1"
@@ -152,4 +149,4 @@ and notes.mid = ? and cards.ord = ?""", self.model.getId(), self['ord'])
             # if not the same as empty, this field can make the card non-blank
             if self.model.manager.col._renderQA(data)['q'] != empty:
                 req.append(i)
-        return type, req
+        return 'any', req
