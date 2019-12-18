@@ -38,11 +38,24 @@ class Field(DictAugmentedInModel):
             self.model.manager.col.modSchema(check=True)
         self.model['flds'].append(self)
         self.model._updateFieldOrds()
-        self.model.save()
         def add(fieldsContents):
             fieldsContents.append("")
             return fieldsContents
         self.model._transformFields(add)
+        self.reqIfName()
+        self.model.save(updateReqs=False)
+
+    def reqIfName(self):
+        """Recompute req for templates containing this field.
+
+        Since the field may be included in plenty of different way, I
+        just check for the field naem and not for {{.
+
+        used when a field is aded or renamed, because the field may actually already be in templates.
+        """
+        for template in self.model['tmpls']:
+            if self.getName() in template['qfmt']:
+                template.setReq()
 
     def rename(self, newName):
         """Rename the field. In each template, find the mustache related to
@@ -64,7 +77,9 @@ class Field(DictAugmentedInModel):
             template.changeTemplates(
                 newTemplate(template['qfmt']),
                 newTemplate(template['afmt']))
-        self.setName(newName)
+        if newName is not None:
+            self.setName(newName)
+            self.reqIfName()
         self.model.save(updateReqs=False)
 
     def move(self, newIdx):
