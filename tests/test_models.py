@@ -343,16 +343,16 @@ def test_req():
     basic = mm.byName("Basic")
     assert 'req' in basic
     reqSize(basic)
-    assert basic['req'][0] == [0, 'all', [0]]
+    assert basic.getTemplate(0).getReq() == [0, 'all', [0]]
     opt = mm.byName("Basic (optional reversed card)")
     reqSize(opt)
-    assert opt['req'][0] == [0, 'all', [0]]
-    assert opt['req'][1] == [1, 'all', [1, 2]]
+    assert opt.getTemplate(0).getReq() == [0, 'all', [0]]
+    assert opt.getTemplate(1).getReq() == [1, 'all', [1, 2]]
     #testing any
     opt['tmpls'][1]['qfmt'] = "{{Back}}{{Add Reverse}}"
     opt.save(templates=True)
-    assert opt['req'][1] == [1, 'any', [1, 2]]
+    assert opt.getTemplate(1).getReq() == [1, 'any', [1, 2]]
     #testing None
     opt['tmpls'][1]['qfmt'] = "{{^Add Reverse}}{{Back}}{{/Add Reverse}}"
     opt.save(templates=True)
-    assert opt['req'][1] == [1, 'none', []]
+    assert opt.getTemplate(1).getReq() == [1, 'none', []]

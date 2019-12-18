@@ -396,7 +396,8 @@ select id from cards where nid in (select id from notes where mid = ?)""",
         for index, fieldType in enumerate(splitFields(flds)):
             fields[index] = fieldType.strip()
         avail = []
-        for ord, type, req in self['req']:
+        for template in self['tmpls']:
+            ord, type, req = template.getReq()
             # unsatisfiable template
             if type == "none":
                 continue
