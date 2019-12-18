@@ -151,6 +151,11 @@ and notes.mid = ? and cards.ord = ?""", self.model.getId(), self['ord'])
                 req.append(i)
         return 'any', req
 
+    def setReq(self):
+        type, req = self._req()
+        self.model['req'][self['ord']] = [self['ord'], type, req]
+        return type, l
+
     def getReq(self):
         assert self.model.isStd()
         return self.model['req'][self['ord']]
