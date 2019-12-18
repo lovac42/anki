@@ -23,7 +23,7 @@ class PaukerImporter(NoteImporter):
     def run(self):
         model = addForwardReverse(self.col)
         model.setName("Pauker")
-        model.models.save(updateReqs=False)
+        model.models.save()
         model.setCurrent()
         self.model = model
         self.initMapping()
