@@ -2,7 +2,7 @@ from anki.utils import DictAugmentedInModel, ids2str, intTime, joinFields
 
 defaultTemplate = {
     'name': "",
-    'ord': None,
+    'ord': 0,
     'qfmt': "",
     'afmt': "",
     'did': None,
