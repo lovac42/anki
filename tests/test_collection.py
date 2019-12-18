@@ -122,8 +122,8 @@ def test_furigana():
     mm = deck.models
     m = mm.current()
     # filter should work
-    m.getTemplate()['qfmt'] = '{{kana:Front}}'
-    m.save()
+    m.getTemplate().changeTemplates('{{kana:Front}}')
+    m.save(updateReqs=False)
     n = deck.newNote()
     n['Front'] = 'foo[abc]'
     deck.addNote(n)
@@ -134,6 +134,6 @@ def test_furigana():
     n.flush()
     assert "sound:" in c.q(reload=True)
     # it shouldn't throw an error while people are editing
-    m.getTemplate()['qfmt'] = '{{kana:}}'
-    m.save()
+    m.getTemplate().changeTemplates('{{kana:}}')
+    m.save(updateReqs=False)
     c.q(reload=True)

@@ -154,8 +154,18 @@ and notes.mid = ? and cards.ord = ?""", self.model.getId(), self['ord'])
     def setReq(self):
         type, req = self._req()
         self.model['req'][self['ord']] = [self['ord'], type, req]
-        return type, l
+        return type, req
 
     def getReq(self):
         assert self.model.isStd()
         return self.model['req'][self['ord']]
+
+    def changeTemplates(self, question=None, answer=None, css=None):
+        if question is not None and question != self['qfmt']:
+            self['qfmt'] = question
+            if self.model.isStd():
+                self.setReq()
+        if answer is not None:
+            self['afmt'] = answer
+        if css is not None:
+            self.model['css'] = css

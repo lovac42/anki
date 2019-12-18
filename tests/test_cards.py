@@ -65,8 +65,8 @@ def test_genrem():
     m.save(templates=True, updateReqs=False)
     assert len(f.cards()) == 2
     # if the template is changed to remove cards, they'll be removed
-    t['qfmt'] = "{{Back}}"
-    m.save(templates=True)
+    t.changeTemplates("{{Back}}")
+    m.save(templates=True, updateReqs=False)
     d.remCards(d.emptyCids())
     assert len(f.cards()) == 1
     # if we add to the note, a card should be automatically generated
