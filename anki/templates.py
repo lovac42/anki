@@ -130,7 +130,7 @@ and notes.mid = ? and cards.ord = ?""", self.model.getId(), self['ord'])
         # if full and empty are the same, the self is invalid and there is
         # no way to satisfy it
         if full == empty:
-            return "none", [], []
+            return "none", []
         type = 'all'
         req = []
         for i in range(nbFlds):
