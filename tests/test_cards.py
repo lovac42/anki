@@ -62,11 +62,11 @@ def test_genrem():
     t = m.newTemplate("rev",
                       '{{Front}}',
                       "")
-    m.save(templates=True, updateReqs=False)
+    m.save(templates=True)
     assert len(f.cards()) == 2
     # if the template is changed to remove cards, they'll be removed
     t.changeTemplates("{{Back}}")
-    m.save(templates=True, updateReqs=False)
+    m.save(templates=True)
     d.remCards(d.emptyCids())
     assert len(f.cards()) == 1
     # if we add to the note, a card should be automatically generated
@@ -87,7 +87,7 @@ def test_gendeck():
     # set the model to a new default deck
     newId = d.decks.id("new")
     cloze['did'] = newId
-    cloze.save(updateReqs=False)
+    cloze.save()
     # a newly generated card should share the first card's deck
     f['Text'] += '{{c2::two}}'
     f.flush()

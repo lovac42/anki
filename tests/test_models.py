@@ -80,7 +80,7 @@ def test_templates():
     t = m.newTemplate("Reverse",
                       "{{Back}}",
                       "{{Front}}")
-    m.save(updateReqs=False)
+    m.save()
     f = d.newNote()
     f['Front'] = '1'
     f['Back'] = '2'
@@ -115,7 +115,7 @@ def test_cloze_ordinals():
     t = m['tmpls'][0]
     t.changeTemplates("{{text:cloze:Text}}",
                       "{{text:cloze:Text}}")
-    m.save(updateReqs=False)
+    m.save()
     f = d.newNote()
     f['Text'] = '{{c1::firstQ::firstA}}{{c2::secondQ::secondA}}'
     d.addNote(f)
@@ -131,7 +131,7 @@ def test_text():
     m = d.models.current()
     t = m.getTemplate()
     t.changeTemplates("{{text:Front}}")
-    m.save(updateReqs=False)
+    m.save()
     f = d.newNote()
     f['Front'] = 'hello<b>world'
     d.addNote(f)
@@ -205,7 +205,7 @@ def test_chained_mods():
     t = m['tmpls'][0]
     t.changeTemplates("{{cloze:text:Text}}",
                       "{{cloze:text:Text}}")
-    m.save(updateReqs=False)
+    m.save()
     
     f = d.newNote()
     q1 = '<span style=\"color:red\">phrase</span>'
@@ -226,7 +226,7 @@ def test_modelChange():
     t = m.newTemplate("Reverse",
                       "{{Back}}",
                       "{{Front}}")
-    m.save(updateReqs=False)
+    m.save()
     f = deck.newNote()
     f['Front'] = 'f'
     f['Back'] = 'b123'
@@ -316,18 +316,18 @@ def test_availOrds():
     # simple templates
     assert m.availOrds(joinFields(f.fields)) == [0]
     t.changeTemplates("{{Back}}")
-    m.save(templates=True, updateReqs=False)
+    m.save(templates=True)
     assert not m.availOrds(joinFields(f.fields))
     # AND
     t.changeTemplates("{{#Front}}{{#Back}}{{Front}}{{/Back}}{{/Front}}")
-    m.save(templates=True, updateReqs=False)
+    m.save(templates=True)
     assert not m.availOrds(joinFields(f.fields))
     t.changeTemplates("{{#Front}}\n{{#Back}}\n{{Front}}\n{{/Back}}\n{{/Front}}")
-    m.save(templates=True, updateReqs=False)
+    m.save(templates=True)
     assert not m.availOrds(joinFields(f.fields))
     # OR
     t.changeTemplates("{{Front}}\n{{Back}}")
-    m.save(templates=True, updateReqs=False)
+    m.save(templates=True)
     assert m.availOrds(joinFields(f.fields)) == [0]
     t['Front'] = ""
     t['Back'] = "1"

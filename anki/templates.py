@@ -41,7 +41,7 @@ class Template(DictAugmentedInModel):
         if self.model.isStd():
             self.model['req'].append(None)
             self.setReq()
-        self.model.save(updateReqs=False)
+        self.model.save()
 
     def rem(self):
         """Remove the input template from the model model.
@@ -75,7 +75,7 @@ update cards set ord = ord - 1, usn = ?, mod = ?
             # True except for quite new models, especially in tests.
             self.model['req'].pop(self['ord'])
         self.model._updateTemplOrds()
-        self.model.save(updateReqs=False)
+        self.model.save()
         return True
 
     def move(self, newIdx):
@@ -94,7 +94,7 @@ update cards set ord = ord - 1, usn = ?, mod = ?
         map = [("when ord = %d then %d" % (oldidxs[id(self)], self['ord']))
                for self in self.model['tmpls']]
         # apply
-        self.model.save(updateReqs=False)
+        self.model.save()
         self.model.manager.col.db.execute("""
 update cards set ord = (case %s end),usn=?,mod=? where nid in (
 select id from notes where mid = ?)""" % " ".join(map),
