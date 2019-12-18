@@ -99,13 +99,23 @@ class Field(DictAugmentedInModel):
         # restore sort self
         self.model['sortf'] = self.model['flds'].index(sortf)
         self.model._updateFieldOrds()
-        self.model.save(updateReqs=False)
+        for template in self.model['tmpls']:
+            req = template.getReq()[2]
+            for i in range(len(req)):
+                val = req[i]
+                if val == oldidx:
+                    req[i] = newIdx
+                elif newIdx < val < oldidx:
+                    req[i] += 1
+                elif oldidx < val < newIdx:
+                    req[i] -= 1
         def move(fields, oldidx=oldidx):
             val = fields[oldidx]
             del fields[oldidx]
             fields.insert(newIdx, val)
             return fields
         self.model._transformFields(move)
+        self.model.save(updateReqs=False)
 
     def rem(self):
         """Remove a field from a model.
