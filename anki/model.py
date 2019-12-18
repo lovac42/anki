@@ -380,9 +380,8 @@ select id from cards where nid in (select id from notes where mid = ?)""",
             # nothing to do
             return
         req = []
-        flds = [fieldType.getName() for fieldType in self['flds']]
         for template in self['tmpls']:
-            ret = template._req(flds)
+            ret = template._req()
             req.append([template['ord'], ret[0], ret[1]])
         self['req'] = req
 
