@@ -112,13 +112,14 @@ and notes.mid = ? and cards.ord = ?""", self.model.getId(), self['ord'])
     # Required field/text cache
     ##########################################################################
 
-    def _req(self, flds):
+    def _req(self):
         """A rule which is supposed to determine whether a card should be
         generated or not according to its fields.
         See ../documentation/templates_generation_rules.md
         """
-        ankiflagFlds = ["ankiflag"] * len(flds)
-        emptyFlds = [""] * len(flds)
+        nbFlds = len(self.model['flds'])
+        ankiflagFlds = ["ankiflag"] * nbFlds
+        emptyFlds = [""] * nbFlds
         data = [1, 1, self.model.getId(), 1, self['ord'], "", joinFields(ankiflagFlds), 0]
         # The html of the card at position ord where each field's content is "ankiflag"
         full = self.model.manager.col._renderQA(data)['q']
@@ -132,7 +133,7 @@ and notes.mid = ? and cards.ord = ?""", self.model.getId(), self['ord'])
             return "none", [], []
         type = 'all'
         req = []
-        for i in range(len(flds)):
+        for i in range(nbFlds):
             tmp = ankiflagFlds[:]
             tmp[i] = ""
             data[6] = joinFields(tmp)
@@ -144,7 +145,7 @@ and notes.mid = ? and cards.ord = ?""", self.model.getId(), self['ord'])
         # if there are no required fields, switch to any mode
         type = 'any'
         req = []
-        for i in range(len(flds)):
+        for i in range(nbFlds):
             tmp = emptyFlds[:]
             tmp[i] = "1"
             data[6] = joinFields(tmp)
