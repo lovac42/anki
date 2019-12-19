@@ -270,17 +270,6 @@ order by due""" % (self._deckLimit()),
     # New cards
     ##########################################################################
 
-    def _timeForNewCard(self):
-        "True if it's time to display a new card when distributing."
-        if not self.newCount:
-            return False
-        if self.col.conf['newSpread'] == NEW_CARDS_LAST:
-            return False
-        elif self.col.conf['newSpread'] == NEW_CARDS_FIRST:
-            return True
-        elif self.newCardModulus:
-            return self.reps and self.reps % self.newCardModulus == 0
-
     def _deckNewLimit(self, did, fn=None):
         if not fn:
             fn = self._deckNewLimitSingle
