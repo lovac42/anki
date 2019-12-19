@@ -281,10 +281,7 @@ select count() from cards where did in %s and queue = {QUEUE_PREVIEW}
 
     def _resetLrn(self):
         self._updateLrnCutoff(force=True)
-        self._resetLrnCount()
-        self._lrnQueue = []
-        self._lrnDayQueue = []
-        self._lrnDids = self.col.decks.active()[:]
+        super()._resetLrn()
 
     # sub-day learning
     def _fillLrn(self):

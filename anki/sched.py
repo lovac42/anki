@@ -284,12 +284,6 @@ select count() from cards where did in %s and queue = {QUEUE_DAY_LRN}
 and due <= ? limit %d""" % (self._deckLimit(),  self.reportLimit),
                                             self.today)
 
-    def _resetLrn(self):
-        self._resetLrnCount()
-        self._lrnQueue = []
-        self._lrnDayQueue = []
-        self._lrnDids = self.col.decks.active()[:]
-
     # sub-day learning
     def _fillLrn(self):
         if not self.lrnCount:
