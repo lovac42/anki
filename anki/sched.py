@@ -23,13 +23,6 @@ class Scheduler(BothScheduler):
     name = "std"
     _spreadRev = True
 
-    def reset(self):
-        self._updateCutoff()
-        self._resetLrn()
-        self._resetRev()
-        self._resetNew()
-        self._haveQueues = True
-
     def answerCard(self, card, ease):
         """Change the number of card to see in the decks and its
         ancestors. Change the due/interval/ease factor of this card,

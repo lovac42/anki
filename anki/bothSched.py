@@ -42,3 +42,15 @@ class BothScheduler:
             self.reps += 1
             card.startTimer()
             return card
+
+    def reset(self):
+        """
+        Deal with the fact that it's potentially a new day.
+        Reset number of learning, review, new cards according to current decks
+        empty queues. Set haveQueues to true
+        """
+        self._updateCutoff()
+        self._resetLrn()
+        self._resetRev()
+        self._resetNew()
+        self._haveQueues = True
