@@ -21,7 +21,6 @@ from anki.utils import fmtTimeSpan, ids2str, intTime
 
 class Scheduler(BothScheduler):
     name = "std"
-    haveCustomStudy = True
     _spreadRev = True
     _burySiblingsOnAnswer = True
 
