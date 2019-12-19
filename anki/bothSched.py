@@ -233,3 +233,13 @@ select count() from
 select count() from cards where id in (
 select id from cards where did in %s and queue = {QUEUE_NEW} limit ?)"""
             % ids2str(self.col.decks.active()), self.reportLimit)
+
+    # Learning queues
+    ##########################################################################
+
+    def _resetLrn(self):
+        """Set lrnCount and _lrnDids. Empty _lrnQueue, lrnDayQueu."""
+        self._resetLrnCount()
+        self._lrnQueue = []
+        self._lrnDayQueue = []
+        self._lrnDids = self.col.decks.active()[:]
