@@ -28,3 +28,17 @@ class BothScheduler:
         self.today = None
         self._haveQueues = False
         self._updateCutoff()
+
+    def getCard(self):
+        "Pop the next card from the queue. None if finished."
+        self._checkDay()
+        if not self._haveQueues:
+            self.reset()
+        card = self._getCard()
+        if card:
+            self.col.log(card)
+            if not self._burySiblingsOnAnswer:
+                self._burySiblings(card)
+            self.reps += 1
+            card.startTimer()
+            return card
