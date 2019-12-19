@@ -449,21 +449,6 @@ select count() from cards where did in %s and queue = {QUEUE_PREVIEW}
         card.type = CARD_DUE
         card.queue = QUEUE_REV
 
-    def _logLrn(self, card, ease, conf, leaving, type, lastLeft):
-        lastIvl = -(self._delayForGrade(conf, lastLeft))
-        ivl = card.ivl if leaving else -(self._delayForGrade(conf, card.left))
-        def log():
-            self.col.db.execute(
-                "insert into revlog values (?,?,?,?,?,?,?,?,?)",
-                int(time.time()*1000), card.id, self.col.usn(), ease,
-                ivl, lastIvl, card.factor, card.timeTaken(), type)
-        try:
-            log()
-        except:
-            # duplicate pk; retry in 10ms
-            time.sleep(0.01)
-            log()
-
     def _lrnForDeck(self, did):
         cnt = self.col.db.scalar(
             f"""

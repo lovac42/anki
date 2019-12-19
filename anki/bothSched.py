@@ -3,6 +3,7 @@
 # License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
 
 import random
+import time
 from operator import itemgetter
 
 from anki.consts import *
@@ -342,3 +343,18 @@ did = ? and queue = {QUEUE_DAY_LRN} and due <= ? limit ?""",
         card.ivl = self._graduatingIvl(card, conf, early)
         card.due = self.today+card.ivl
         card.factor = conf['initialFactor']
+
+    def _logLrn(self, card, ease, conf, leaving, type, lastLeft):
+        lastIvl = -(self._delayForGrade(conf, lastLeft))
+        ivl = card.ivl if leaving else -(self._delayForGrade(conf, card.left))
+        def log():
+            self.col.db.execute(
+                "insert into revlog values (?,?,?,?,?,?,?,?,?)",
+                int(time.time()*1000), card.id, self.col.usn(), ease,
+                ivl, lastIvl, card.factor, card.timeTaken(), type)
+        try:
+            log()
+        except:
+            # duplicate pk; retry in 10ms
+            time.sleep(0.01)
+            log()

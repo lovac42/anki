@@ -455,21 +455,6 @@ and due <= ? limit %d""" % (self._deckLimit(),  self.reportLimit),
         else:
             return ideal
 
-    def _logLrn(self, card, ease, conf, leaving, type, lastLeft):
-        lastIvl = -(self._delayForGrade(conf, lastLeft))
-        ivl = card.ivl if leaving else -(self._delayForGrade(conf, card.left))
-        def log():
-            self.col.db.execute(
-                "insert into revlog values (?,?,?,?,?,?,?,?,?)",
-                int(time.time()*1000), card.id, self.col.usn(), ease,
-                ivl, lastIvl, card.factor, card.timeTaken(), type)
-        try:
-            log()
-        except:
-            # duplicate pk; retry in 10ms
-            time.sleep(0.01)
-            log()
-
     def removeLrn(self, ids=None):
         "Remove cards from the learning queues."
         if ids:
