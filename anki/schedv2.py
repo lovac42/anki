@@ -634,11 +634,6 @@ limit ?""" % ids2str(self.col.decks.active()),
         ivl = min(ivl, conf['maxIvl'])
         return int(ivl)
 
-    def _daysLate(self, card):
-        "Number of days later than scheduled."
-        due = card.odue if card.odid else card.due
-        return max(0, self.today - due)
-
     def _updateRevIvl(self, card, ease):
         card.ivl = self._nextRevIvl(card, ease, fuzz=True)
 

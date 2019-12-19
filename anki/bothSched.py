@@ -427,3 +427,8 @@ select id from cards where did in %s and queue = {QUEUE_REV} and due <= ? limit 
         # fuzz at least a day
         fuzz = max(fuzz, 1)
         return [ivl-fuzz, ivl+fuzz]
+
+    def _daysLate(self, card):
+        "Number of days later than scheduled."
+        due = card.odue if card.odid else card.due
+        return max(0, self.today - due)
