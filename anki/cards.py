@@ -228,7 +228,7 @@ lapses=?, left=?, odue=?, odid=?, did=? where id = ?""",
                 args = (template.get('bqfmt'), template.get('bafmt'))
             else:
                 args = tuple()
-            self._qa = self.col._renderQA(model.getId(), self.ord, note.joinedFields(), self.id, note.id, self.originalDid(), note.stringTags(), self.flags, *args)
+            self._qa = self.col._renderQA(model, self.ord, note.joinedFields(), self.id, note.id, self.originalDid(), note.stringTags(), self.flags, *args)
         return self._qa
 
     def note(self, reload=False):

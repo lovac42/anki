@@ -719,13 +719,13 @@ where card.nid = note.id and card.id in %s group by nid""" % ids2str(cids)):
             where = ""
         else:
             raise Exception()
-        return [self._renderQA(mid, ord, flds, cid, nid, did, tags, cardFlags)
+        return [self._renderQA(self.models.get(mid, orNone=False), ord, flds, cid, nid, did, tags, cardFlags)
                 for [cid, nid, mid, did, ord, tags, flds, cardFlags] in self._qaData(where)]
 
-    def _renderQA(self, mid, ord, flds, cid=1, nid=1, did=1, tags="", cardFlags=0, qfmt=None, afmt=None):
+    def _renderQA(self, model, ord, flds, cid=1, nid=1, did=1, tags="", cardFlags=0, qfmt=None, afmt=None):
         """Returns hash of id, question, answer.
         Keyword arguments:
-        mid -- id of the note type
+        model -- the note type
         ord -- card type ordinal
         flds -- field, together as in database
         cid -- id of card to render
@@ -740,14 +740,13 @@ where card.nid = note.id and card.id in %s group by nid""" % ids2str(cids)):
         Return a dictionnary associating the question, the answer and the card id
         """
 
-        model = self.models.get(mid, orNone=False)
         template = model.getTemplate(ord)
         fields = self._extendedFields(flds, tags, ord, cardFlags, model, template, did)
         # render q & a
         d = dict()
         d['id'] = cid
-        d['q'] = self._renderQuestion(mid, cid, nid, did, tags, cardFlags, fields, flds, ord, template, model, qfmt)
-        d['a'] = self._renderAnswer(mid, flds, cid, nid, did, tags, cardFlags, fields, ord, template, model, afmt)
+        d['q'] = self._renderQuestion(cid, nid, did, tags, cardFlags, fields, flds, ord, template, model, qfmt)
+        d['a'] = self._renderAnswer(flds, cid, nid, did, tags, cardFlags, fields, ord, template, model, afmt)
         return d
 
     def _basicFields(self, flds, model):
@@ -778,14 +777,14 @@ where card.nid = note.id and card.id in %s group by nid""" % ids2str(cids)):
         fields['c%d' % (ord+1)] = "1"
         return fields
 
-    def _renderQuestion(self, mid, cid, nid, did, tags, cardFlags, fields, flds, ord, template, model, qfmt=None):
+    def _renderQuestion(self, cid, nid, did, tags, cardFlags, fields, flds, ord, template, model, qfmt=None):
         """The question for this template, given those fields."""
         format = qfmt or template['qfmt']
         #Replace {{'foo'cloze: by {{'foo'cq-(ord+1), where 'foo' does not begins with "type:"
         format = re.sub("{{(?!type:)(.*?)cloze:", r"{{\1cq-%d:" % (ord+1), format)
         #Replace <%cloze: by <%%cq:(ord+1)
         format = format.replace("<%cloze:", "<%%cq:%d:" % (ord+1))
-        question = self.__renderQA(fields, model, mid, ord, flds, cid, nid, did, tags, cardFlags, format, "q")
+        question = self.__renderQA(fields, model, ord, flds, cid, nid, did, tags, cardFlags, format, "q")
         fields['FrontSide'] = stripSounds(question)
         # empty cloze?
         if model['type'] == MODEL_CLOZE and not model._availClozeOrds(flds, False, onlyFirst=True):
@@ -794,21 +793,21 @@ where card.nid = note.id and card.id in %s group by nid""" % ids2str(cids)):
                     "<a href=%s#cloze>%s</a>" % (HELP_SITE, _("help"))))
         return question
 
-    def _renderAnswer(self, mid, flds, cid, nid, did, tags, cardFlags, fields, ord, template, model, afmt=None):
+    def _renderAnswer(self, flds, cid, nid, did, tags, cardFlags, fields, ord, template, model, afmt=None):
         """The answer for this template, given those fields."""
         format = afmt or template['afmt']
         #Replace {{'foo'cloze: by {{'foo'ca-(ord+1)
         format = re.sub("{{(.*?)cloze:", r"{{\1ca-%d:" % (ord+1), format)
         #Replace <%cloze: by <%%ca:(ord+1)
         format = format.replace("<%cloze:", "<%%ca:%d:" % (ord+1))
-        return self.__renderQA(fields, model, mid, ord, flds, cid, nid, did, tags, cardFlags, format, "a")
+        return self.__renderQA(fields, model, ord, flds, cid, nid, did, tags, cardFlags, format, "a")
 
-    def __renderQA(self, fields, model, mid, ord, flds, cid, nid, did, tags, cardFlags, format, type):
+    def __renderQA(self, fields, model, ord, flds, cid, nid, did, tags, cardFlags, format, type):
         """apply fields to format. Use munge hooks before and after"""
-        fields = runFilter("mungeFields", fields, model, [cid, nid, mid, did, ord, tags, flds, cardFlags], self)
+        fields = runFilter("mungeFields", fields, model, [cid, nid, model.getId(), did, ord, tags, flds, cardFlags], self)
         html = anki.template.render(format, fields)
         return runFilter(
-            "mungeQA", html, type, fields, model, [cid, nid, mid, did, ord, tags, flds, cardFlags], self)
+            "mungeQA", html, type, fields, model, [cid, nid, model.getId(), did, ord, tags, flds, cardFlags], self)
 
     def _qaData(self, where=""):
         """The list of [cid, nid, mid, did, ord, tags, flds, cardFlags] for each pair cards satisfying where.
