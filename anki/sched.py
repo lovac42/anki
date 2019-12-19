@@ -140,40 +140,6 @@ order by due""" % (self._deckLimit()),
             f"update cards set mod=?,usn=?,queue=type where queue = {QUEUE_SCHED_BURIED} and did in %s"
             % (sids), intTime(), self.col.usn())
 
-    # Rev/lrn/time daily stats
-    ##########################################################################
-
-    def _walkingCount(self, limFn=None, cntFn=None):
-        tot = 0
-        pcounts = {}
-        # for each of the active decks
-        nameMap = self.col.decks.nameMap()
-        for did in self.col.decks.active():
-            # early alphas were setting the active ids as a str
-            did = int(did)
-            # get the individual deck's limit
-            lim = limFn(self.col.decks.get(did))
-            if not lim:
-                continue
-            # check the parents
-            ancestors = self.col.decks.parents(did, nameMap)
-            for ancestor in ancestors:
-                # add if missing
-                if ancestor['id'] not in pcounts:
-                    pcounts[ancestor['id']] = limFn(ancestor)
-                # take minimum of child and parent
-                lim = min(pcounts[ancestor['id']], lim)
-            # see how many cards we actually have
-            cnt = cntFn(did, lim)
-            # if non-zero, decrement from parent counts
-            for ancestor in ancestors:
-                pcounts[ancestor['id']] -= cnt
-            # we may also be a parent
-            pcounts[did] = lim - cnt
-            # and add to running total
-            tot += cnt
-        return tot
-
     # Deck list
     ##########################################################################
 
