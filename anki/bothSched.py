@@ -210,3 +210,12 @@ did = ? and queue = {QUEUE_NEW} limit ?)""", did, lim)
             else:
                 lim = min(rem, lim)
         return lim
+
+    def _newForDeck(self, did, lim):
+        "New count for a single deck."
+        if not lim:
+            return 0
+        lim = min(lim, self.reportLimit)
+        return self.col.db.scalar(f"""
+select count() from
+(select 1 from cards where did = ? and queue = {QUEUE_NEW} limit ?)""", did, lim)
