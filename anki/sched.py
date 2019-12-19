@@ -436,19 +436,6 @@ and due <= ? limit %d""" % (self._deckLimit(),  self.reportLimit),
         tod = self._leftToday(conf['delays'], tot)
         return tot + tod*1000
 
-    def _leftToday(self, delays, left, now=None):
-        "The number of steps that can be completed by the day cutoff."
-        if not now:
-            now = intTime()
-        delays = delays[-left:]
-        ok = 0
-        for i in range(len(delays)):
-            now += delays[i]*60
-            if now > self.dayCutoff:
-                break
-            ok = i
-        return ok+1
-
     def _graduatingIvl(self, card, conf, early, adj=True):
         """
         The interval before the next review.
