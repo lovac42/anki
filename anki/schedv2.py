@@ -31,13 +31,6 @@ class Scheduler(BothScheduler):
         self._lrnCutoff = 0
         super().__init__(col)
 
-    def reset(self):
-        self._updateCutoff()
-        self._resetLrn()
-        self._resetRev()
-        self._resetNew()
-        self._haveQueues = True
-
     def answerCard(self, card, ease):
         self.col.log()
         assert 1 <= ease <= 4
