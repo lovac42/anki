@@ -558,11 +558,6 @@ did = ? and queue = {QUEUE_REV} and due <= ? limit ?""",
             self._resetRev()
             return self._fillRev()
 
-    def _getRevCard(self):
-        if self._fillRev():
-            self.revCount -= 1
-            return self.col.getCard(self._revQueue.pop())
-
     def totalRevForCurrentDeck(self):
         return self.col.db.scalar(
             """

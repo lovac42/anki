@@ -378,3 +378,8 @@ did = ? and queue = {QUEUE_DAY_LRN} and due <= ? limit ?""",
         """Set revCount, empty _revQueue, _revDids"""
         self._resetRevCount()
         self._revQueue = []
+
+    def _getRevCard(self):
+        if self._fillRev():
+            self.revCount -= 1
+            return self.col.getCard(self._revQueue.pop())
