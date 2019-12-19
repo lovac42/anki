@@ -299,31 +299,6 @@ and due <= ? limit %d""" % (self._deckLimit(),  self.reportLimit),
                 self.lrnCount -= card.left // 1000
                 return card
 
-    # daily learning
-    def _fillLrnDay(self):
-        if not self.lrnCount:
-            return False
-        if self._lrnDayQueue:
-            return True
-        while self._lrnDids:
-            did = self._lrnDids[0]
-            # fill the queue with the current did
-            self._lrnDayQueue = self.col.db.list(f"""
-select id from cards where
-did = ? and queue = {QUEUE_DAY_LRN} and due <= ? limit ?""",
-                                    did, self.today, self.queueLimit)
-            if self._lrnDayQueue:
-                # order
-                rand = random.Random()
-                rand.seed(self.today)
-                rand.shuffle(self._lrnDayQueue)
-                # is the current did empty?
-                if len(self._lrnDayQueue) < self.queueLimit:
-                    self._lrnDids.pop(0)
-                return True
-            # nothing left in the deck; move to next
-            self._lrnDids.pop(0)
-
     def _getLrnDayCard(self):
         if self._fillLrnDay():
             self.lrnCount -= 1
