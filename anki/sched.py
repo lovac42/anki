@@ -494,12 +494,6 @@ and due <= ? limit ?)""" ,
     def _deckRevLimit(self, did):
         return self._deckNewLimit(did, self._deckRevLimitSingle)
 
-    def _deckRevLimitSingle(self, deck):
-        if deck['dyn']:
-            return self.reportLimit
-        conf = self.col.decks.confForDid(deck['id'])
-        return max(0, conf['rev']['perDay'] - deck['revToday'][1])
-
     def _revForDeck(self, did, lim):
         """number of cards to review today for deck did
 

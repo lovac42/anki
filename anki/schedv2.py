@@ -474,11 +474,7 @@ and due <= ? limit ?)""",
         if not deck:
             return 0
 
-        if deck['dyn']:
-            return self.dynReportLimit
-
-        conf = self.col.decks.confForDid(deck['id'])
-        lim = max(0, conf['rev']['perDay'] - deck['revToday'][1])
+        lim = super()._deckRevLimitSingle(deck)
 
         if parentLimit is not None:
             return min(parentLimit, lim)
