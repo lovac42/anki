@@ -224,13 +224,12 @@ lapses=?, left=?, odue=?, odid=?, did=? where id = ?""",
             note = self.note(reload)
             model = self.model()
             template = self.template()
-            data = [model.getId(), self.ord,
-                    note.stringTags(), note.joinedFields()]
+            data = [model.getId(), self.ord, note.joinedFields()]
             if browser:
                 args = (template.get('bqfmt'), template.get('bafmt'))
             else:
                 args = tuple()
-            self._qa = self.col._renderQA(data, self.id, note.id, self.originalDid(), self.flags, *args)
+            self._qa = self.col._renderQA(data, self.id, note.id, self.originalDid(), note.stringTags(), self.flags, *args)
         return self._qa
 
     def note(self, reload=False):
