@@ -391,3 +391,16 @@ select count() from cards where id in (
 select id from cards where did in %s and queue = {QUEUE_REV} and due <= ? limit ?)"""
             % ids2str(self.col.decks.active()), self.today, self.reportLimit
 )
+
+    # Interval management
+    ##########################################################################
+
+    def _fuzzedIvl(self, ivl):
+        """Return a randomly chosen number of day for the interval,
+        not far from ivl.
+
+        See ../documentation/computing_intervals for a clearer version
+        of this documentation
+        """
+        min, max = self._fuzzIvlRange(ivl)
+        return random.randint(min, max)

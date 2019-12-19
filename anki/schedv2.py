@@ -626,10 +626,6 @@ limit ?""" % ids2str(self.col.decks.active()),
             (card.ivl + delay) * fct * conf['ease4'], conf, ivl3, fuzz)
         return ivl4
 
-    def _fuzzedIvl(self, ivl):
-        min, max = self._fuzzIvlRange(ivl)
-        return random.randint(min, max)
-
     def _fuzzIvlRange(self, ivl):
         if ivl < 2:
             return [1, 1]
