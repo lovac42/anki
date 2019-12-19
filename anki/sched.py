@@ -270,17 +270,6 @@ order by due""" % (self._deckLimit()),
     # New cards
     ##########################################################################
 
-    def _updateNewCardRatio(self):
-        if self.col.conf['newSpread'] == NEW_CARDS_DISTRIBUTE:
-            if self.newCount:
-                self.newCardModulus = (
-                    (self.newCount + self.revCount) // self.newCount)
-                # if there are cards to review, ensure modulo >= 2
-                if self.revCount:
-                    self.newCardModulus = max(2, self.newCardModulus)
-                return
-        self.newCardModulus = 0
-
     def _timeForNewCard(self):
         "True if it's time to display a new card when distributing."
         if not self.newCount:

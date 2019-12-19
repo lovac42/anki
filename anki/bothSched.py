@@ -174,3 +174,14 @@ did = ? and queue = {QUEUE_NEW} limit ?)""", did, lim)
         if self._fillNew():
             self.newCount -= 1
             return self.col.getCard(self._newQueue.pop())
+
+    def _updateNewCardRatio(self):
+        if self.col.conf['newSpread'] == NEW_CARDS_DISTRIBUTE:
+            if self.newCount:
+                self.newCardModulus = (
+                    (self.newCount + self.revCount) // self.newCount)
+                # if there are cards to review, ensure modulo >= 2
+                if self.revCount:
+                    self.newCardModulus = max(2, self.newCardModulus)
+                return
+        self.newCardModulus = 0
