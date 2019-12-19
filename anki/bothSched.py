@@ -373,3 +373,8 @@ did = ? and queue = {QUEUE_DAY_LRN} and due <= ? limit ?""",
             return self.reportLimit
         conf = self.col.decks.confForDid(deck['id'])
         return max(0, conf['rev']['perDay'] - deck['revToday'][1])
+
+    def _resetRev(self):
+        """Set revCount, empty _revQueue, _revDids"""
+        self._resetRevCount()
+        self._revQueue = []

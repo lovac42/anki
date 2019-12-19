@@ -518,8 +518,7 @@ did = ? and queue = {QUEUE_REV} and due <= ? limit %d)""" % (lim),
             self._deckRevLimitSingle, cntFn)
 
     def _resetRev(self):
-        self._resetRevCount()
-        self._revQueue = []
+        super()._resetRev()
         self._revDids = self.col.decks.active()[:]
 
     def _fillRev(self):
