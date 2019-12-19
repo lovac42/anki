@@ -270,11 +270,6 @@ order by due""" % (self._deckLimit()),
     # New cards
     ##########################################################################
 
-    def _getNewCard(self):
-        if self._fillNew():
-            self.newCount -= 1
-            return self.col.getCard(self._newQueue.pop())
-
     def _updateNewCardRatio(self):
         if self.col.conf['newSpread'] == NEW_CARDS_DISTRIBUTE:
             if self.newCount:

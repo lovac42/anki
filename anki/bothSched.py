@@ -169,3 +169,8 @@ did = ? and queue = {QUEUE_NEW} limit ?)""", did, lim)
             # removed from the queue but not buried
             self._resetNew()
             return self._fillNew()
+
+    def _getNewCard(self):
+        if self._fillNew():
+            self.newCount -= 1
+            return self.col.getCard(self._newQueue.pop())
