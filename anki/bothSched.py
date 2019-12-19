@@ -12,3 +12,4 @@
 
 class BothScheduler:
     haveCustomStudy = True
+    _burySiblingsOnAnswer = True
