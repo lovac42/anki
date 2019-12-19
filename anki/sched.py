@@ -270,30 +270,6 @@ order by due""" % (self._deckLimit()),
     # New cards
     ##########################################################################
 
-    def _fillNew(self):
-        if self._newQueue:
-            return True
-        if not self.newCount:
-            return False
-        while self._newDids:
-            did = self._newDids[0]
-            lim = min(self.queueLimit, self._deckNewLimit(did))
-            if lim:
-                # fill the queue with the current did
-                self._newQueue = self.col.db.list(f"""
-                select id from cards where did = ? and queue = {QUEUE_NEW} order by due,ord limit ?""", did, lim)
-                if self._newQueue:
-                    self._newQueue.reverse()
-                    return True
-            # nothing left in the deck; move to next
-            self._newDids.pop(0)
-        if self.newCount:
-            # if we didn't get a card but the count is non-zero,
-            # we need to check again for any cards that were
-            # removed from the queue but not buried
-            self._resetNew()
-            return self._fillNew()
-
     def _getNewCard(self):
         if self._fillNew():
             self.newCount -= 1
