@@ -219,3 +219,10 @@ did = ? and queue = {QUEUE_NEW} limit ?)""", did, lim)
         return self.col.db.scalar(f"""
 select count() from
 (select 1 from cards where did = ? and queue = {QUEUE_NEW} limit ?)""", did, lim)
+
+    def _deckNewLimitSingle(self, deck):
+        "Limit for deck without parent limits."
+        if deck['dyn']:
+            return self.reportLimit
+        conf = self.col.decks.confForDid(deck['id'])
+        return max(0, conf['new']['perDay'] - deck['newToday'][1])
