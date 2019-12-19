@@ -445,9 +445,7 @@ select count() from cards where did in %s and queue = {QUEUE_PREVIEW}
 
     def _rescheduleNew(self, card, conf, early):
         "Reschedule a new card that's graduated for the first time."
-        card.ivl = self._graduatingIvl(card, conf, early)
-        card.due = self.today+card.ivl
-        card.factor = conf['initialFactor']
+        super()._rescheduleNew(card, conf, early)
         card.type = CARD_DUE
         card.queue = QUEUE_REV
 
