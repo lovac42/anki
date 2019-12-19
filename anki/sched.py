@@ -270,15 +270,6 @@ order by due""" % (self._deckLimit()),
     # New cards
     ##########################################################################
 
-    def _newForDeck(self, did, lim):
-        "New count for a single deck."
-        if not lim:
-            return 0
-        lim = min(lim, self.reportLimit)
-        return self.col.db.scalar(f"""
-select count() from
-(select 1 from cards where did = ? and queue = {QUEUE_NEW} limit ?)""", did, lim)
-
     def _deckNewLimitSingle(self, deck):
         "Limit for deck without parent limits."
         if deck['dyn']:
