@@ -270,12 +270,6 @@ order by due""" % (self._deckLimit()),
     # New cards
     ##########################################################################
 
-    def _resetNewCount(self):
-        cntFn = lambda did, lim: self.col.db.scalar(f"""
-select count() from (select 1 from cards where
-did = ? and queue = {QUEUE_NEW} limit ?)""", did, lim)
-        self.newCount = self._walkingCount(self._deckNewLimitSingle, cntFn)
-
     def _resetNew(self):
         self._resetNewCount()
         self._newDids = self.col.decks.active()[:]
