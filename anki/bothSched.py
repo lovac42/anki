@@ -185,3 +185,14 @@ did = ? and queue = {QUEUE_NEW} limit ?)""", did, lim)
                     self.newCardModulus = max(2, self.newCardModulus)
                 return
         self.newCardModulus = 0
+
+    def _timeForNewCard(self):
+        "True if it's time to display a new card when distributing."
+        if not self.newCount:
+            return False
+        if self.col.conf['newSpread'] == NEW_CARDS_LAST:
+            return False
+        elif self.col.conf['newSpread'] == NEW_CARDS_FIRST:
+            return True
+        elif self.newCardModulus:
+            return self.reps and self.reps % self.newCardModulus == 0
