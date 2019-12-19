@@ -2,6 +2,8 @@
 # Copyright: Ankitects Pty Ltd and contributors
 # License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
 
+from operator import itemgetter
+
 # it uses the following elements from anki.consts
 # card types: 0=new, 1=lrn, 2=rev, 3=relrn
 # queue types: 0=new, 1=(re)lrn, 2=rev, 3=day (re)lrn,
@@ -107,3 +109,22 @@ class BothScheduler:
             # and add to running total
             tot += cnt
         return tot
+
+    # Deck list
+    ##########################################################################
+
+    def _groupChildren(self, decks):
+        """[subdeck name without parent parts,
+        did, rev, lrn, new (counting subdecks)
+        [recursively the same things for the children]]
+
+        Keyword arguments:
+        decks -- [deckname, did, rev, lrn, new]
+        """
+        # first, split the group names into components
+        for deck in decks:
+            deck[0] = deck[0].split("::")
+        # and sort based on those components
+        decks.sort(key=itemgetter(0))
+        # then run main function
+        return self._groupChildrenMain(decks)
