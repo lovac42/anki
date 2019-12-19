@@ -129,14 +129,6 @@ order by due""" % (self._deckLimit()),
     # Rev/lrn/time daily stats
     ##########################################################################
 
-    def _updateStats(self, card, type, cnt=1):
-        key = type+"Today"
-        for ancestor in ([self.col.decks.get(card.did)] +
-                  self.col.decks.parents(card.did)):
-            # add
-            ancestor[key][1] += cnt
-            self.col.decks.save(ancestor)
-
     def extendLimits(self, new, rev):
         cur = self.col.decks.current()
         ancestors = self.col.decks.parents(cur['id'])
