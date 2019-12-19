@@ -626,21 +626,6 @@ limit ?""" % ids2str(self.col.decks.active()),
             (card.ivl + delay) * fct * conf['ease4'], conf, ivl3, fuzz)
         return ivl4
 
-    def _fuzzIvlRange(self, ivl):
-        if ivl < 2:
-            return [1, 1]
-        elif ivl == 2:
-            return [2, 3]
-        elif ivl < 7:
-            fuzz = int(ivl*0.25)
-        elif ivl < 30:
-            fuzz = max(2, int(ivl*0.15))
-        else:
-            fuzz = max(4, int(ivl*0.05))
-        # fuzz at least a day
-        fuzz = max(fuzz, 1)
-        return [ivl-fuzz, ivl+fuzz]
-
     def _constrainedIvl(self, ivl, conf, prev, fuzz):
         ivl = int(ivl * conf.get('ivlFct', 1))
         if fuzz:

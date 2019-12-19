@@ -710,21 +710,6 @@ did = ? and queue = {QUEUE_REV} and due <= ? limit ?""",
         # interval capped?
         return min(interval, conf['maxIvl'])
 
-    def _fuzzIvlRange(self, ivl):
-        if ivl < 2:
-            return [1, 1]
-        elif ivl == 2:
-            return [2, 3]
-        elif ivl < 7:
-            fuzz = int(ivl*0.25)
-        elif ivl < 30:
-            fuzz = max(2, int(ivl*0.15))
-        else:
-            fuzz = max(4, int(ivl*0.05))
-        # fuzz at least a day
-        fuzz = max(fuzz, 1)
-        return [ivl-fuzz, ivl+fuzz]
-
     def _constrainedIvl(self, ivl, conf, prev):
         """A new interval. Ivl multiplie by the interval
         factor of this conf. Greater than prev.

@@ -404,3 +404,26 @@ select id from cards where did in %s and queue = {QUEUE_REV} and due <= ? limit 
         """
         min, max = self._fuzzIvlRange(ivl)
         return random.randint(min, max)
+
+    def _fuzzIvlRange(self, ivl):
+        """Return an increasing pair of numbers.  The new interval will be a
+        number randomly selected between the first and the second
+        element.
+
+        See ../documentation/computing_intervals for a clearer version
+        of this documentation
+
+        """
+        if ivl < 2:
+            return [1, 1]
+        elif ivl == 2:
+            return [2, 3]
+        elif ivl < 7:
+            fuzz = int(ivl*0.25)
+        elif ivl < 30:
+            fuzz = max(2, int(ivl*0.15))
+        else:
+            fuzz = max(4, int(ivl*0.05))
+        # fuzz at least a day
+        fuzz = max(fuzz, 1)
+        return [ivl-fuzz, ivl+fuzz]
