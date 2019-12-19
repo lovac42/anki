@@ -250,12 +250,6 @@ order by due""" % (self._deckLimit()),
     # New cards
     ##########################################################################
 
-    def _resetNew(self):
-        self._resetNewCount()
-        self._newDids = self.col.decks.active()[:]
-        self._newQueue = []
-        self._updateNewCardRatio()
-
     def _fillNew(self):
         if self._newQueue:
             return True
