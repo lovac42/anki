@@ -129,17 +129,6 @@ order by due""" % (self._deckLimit()),
     # Rev/lrn/time daily stats
     ##########################################################################
 
-    def extendLimits(self, new, rev):
-        cur = self.col.decks.current()
-        ancestors = self.col.decks.parents(cur['id'])
-        children = [self.col.decks.get(did) for (name, did) in
-                    self.col.decks.children(cur['id'])]
-        for ancestor in [cur] + ancestors + children:
-            # add
-            ancestor['newToday'][1] -= new
-            ancestor['revToday'][1] -= rev
-            self.col.decks.save(ancestor)
-
     def _walkingCount(self, limFn=None, cntFn=None):
         tot = 0
         pcounts = {}
