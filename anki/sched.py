@@ -193,15 +193,6 @@ order by due""" % (self._deckLimit()),
         nodes=self._groupChildren(nodes_)
         return nodes
 
-    def _groupChildren(self, decks):
-        # first, split the group names into components
-        for deck in decks:
-            deck[0] = deck[0].split("::")
-        # and sort based on those components
-        decks.sort(key=itemgetter(0))
-        # then run main function
-        return self._groupChildrenMain(decks)
-
     def _groupChildrenMain(self, decks):
         """
         [subdeck name without parent parts,

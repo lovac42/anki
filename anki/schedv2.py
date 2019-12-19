@@ -169,15 +169,6 @@ order by due""" % (self._deckLimit()),
     def deckDueTree(self):
         return self._groupChildren(self.deckDueList())
 
-    def _groupChildren(self, decks):
-        # first, split the group names into components
-        for deck in decks:
-            deck[0] = deck[0].split("::")
-        # and sort based on those components
-        decks.sort(key=itemgetter(0))
-        # then run main function
-        return self._groupChildrenMain(decks)
-
     def _groupChildrenMain(self, decks):
         tree = []
         # group and recurse
