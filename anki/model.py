@@ -27,6 +27,7 @@ defaultModel = {
     'req': [],
     'vers': [], # FIXME: remove when other clients have caught up
     'type': MODEL_STD,
+    'req': [],
     'css': """\
 .card {
  font-family: arial;
