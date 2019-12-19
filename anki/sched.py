@@ -286,17 +286,7 @@ and due <= ? limit %d""" % (self._deckLimit(),  self.reportLimit),
 
     # sub-day learning
     def _fillLrn(self):
-        if not self.lrnCount:
-            return False
-        if self._lrnQueue:
-            return True
-        self._lrnQueue = self.col.db.all(f"""
-select due, id from cards where
-did in %s and queue = {QUEUE_LRN} and due < :lim
-limit %d""" % (self._deckLimit(), self.reportLimit), lim=self.dayCutoff)
-        # as it arrives sorted by did first, we need to sort it
-        self._lrnQueue.sort()
-        return self._lrnQueue
+        return super()._fillLrn(self.dayCutoff, f" queue = {QUEUE_LRN} ")
 
     def _getLrnCard(self, collapse=False):
         if self._fillLrn():

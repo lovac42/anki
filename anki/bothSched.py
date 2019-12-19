@@ -243,3 +243,17 @@ select id from cards where did in %s and queue = {QUEUE_NEW} limit ?)"""
         self._lrnQueue = []
         self._lrnDayQueue = []
         self._lrnDids = self.col.decks.active()[:]
+
+    # sub-day learning
+    def _fillLrn(self, cutoff, queue):
+        if not self.lrnCount:
+            return False
+        if self._lrnQueue:
+            return True
+        self._lrnQueue = self.col.db.all(f"""
+select due, id from cards where
+did in %s and {queue} and due < :lim
+limit %d""" % (self._deckLimit(), self.reportLimit), lim=cutoff)
+        # as it arrives sorted by did first, we need to sort it
+        self._lrnQueue.sort()
+        return self._lrnQueue

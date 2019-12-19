@@ -285,18 +285,8 @@ select count() from cards where did in %s and queue = {QUEUE_PREVIEW}
 
     # sub-day learning
     def _fillLrn(self):
-        if not self.lrnCount:
-            return False
-        if self._lrnQueue:
-            return True
         cutoff = intTime() + self.col.conf['collapseTime']
-        self._lrnQueue = self.col.db.all(f"""
-select due, id from cards where
-did in %s and queue in ({QUEUE_LRN},{QUEUE_PREVIEW}) and due < :lim
-limit %d""" % (self._deckLimit(), self.reportLimit), lim=cutoff)
-        # as it arrives sorted by did first, we need to sort it
-        self._lrnQueue.sort()
-        return self._lrnQueue
+        return super()._fillLrn(cutoff, f"queue in ({QUEUE_LRN},{QUEUE_PREVIEW})")
 
     def _getLrnCard(self, collapse=False):
         self._maybeResetLrn(force=collapse and self.lrnCount == 0)
