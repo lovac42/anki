@@ -432,3 +432,20 @@ select id from cards where did in %s and queue = {QUEUE_REV} and due <= ? limit 
         "Number of days later than scheduled."
         due = card.odue if card.odid else card.due
         return max(0, self.today - due)
+
+    # Dynamic deck handling
+    ##########################################################################
+
+    def rebuildDyn(self, did=None):
+        "Rebuild a dynamic deck."
+        did = did or self.col.decks.selected()
+        deck = self.col.decks.get(did)
+        assert deck['dyn']
+        # move any existing cards back first, then fill
+        self.emptyDyn(did)
+        ids = self._fillDyn(deck)
+        if not ids:
+            return
+        # and change to our new deck
+        self.col.decks.select(did)
+        return ids
