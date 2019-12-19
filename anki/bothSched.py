@@ -327,3 +327,18 @@ did = ? and queue = {QUEUE_DAY_LRN} and due <= ? limit ?""",
                 # user deleted final step; use dummy value
                 delay = 1
         return delay*60
+
+    def _rescheduleNew(self, card, conf, early):
+        """Reschedule a new card that's graduated for the first time.
+
+        Set its factor according to conf.
+        Set its interval. If it's lapsed in dynamic deck, use
+        _dynIvlBoost.
+        Otherwise, the interval is found in conf['ints'][1 if early
+        else 0].
+        Change due date according to the interval.
+        Put initial factor.
+        """
+        card.ivl = self._graduatingIvl(card, conf, early)
+        card.due = self.today+card.ivl
+        card.factor = conf['initialFactor']

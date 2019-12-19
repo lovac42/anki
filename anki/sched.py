@@ -455,12 +455,6 @@ and due <= ? limit %d""" % (self._deckLimit(),  self.reportLimit),
         else:
             return ideal
 
-    def _rescheduleNew(self, card, conf, early):
-        "Reschedule a new card that's graduated for the first time."
-        card.ivl = self._graduatingIvl(card, conf, early)
-        card.due = self.today+card.ivl
-        card.factor = conf['initialFactor']
-
     def _logLrn(self, card, ease, conf, leaving, type, lastLeft):
         lastIvl = -(self._delayForGrade(conf, lastLeft))
         ivl = card.ivl if leaving else -(self._delayForGrade(conf, card.left))
