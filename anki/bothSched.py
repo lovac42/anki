@@ -4,6 +4,9 @@
 
 from operator import itemgetter
 
+from anki.consts import *
+
+
 # it uses the following elements from anki.consts
 # card types: 0=new, 1=lrn, 2=rev, 3=relrn
 # queue types: 0=new, 1=(re)lrn, 2=rev, 3=day (re)lrn,
@@ -128,3 +131,12 @@ class BothScheduler:
         decks.sort(key=itemgetter(0))
         # then run main function
         return self._groupChildrenMain(decks)
+
+    # New cards
+    ##########################################################################
+
+    def _resetNewCount(self):
+        cntFn = lambda did, lim: self.col.db.scalar(f"""
+select count() from (select 1 from cards where
+did = ? and queue = {QUEUE_NEW} limit ?)""", did, lim)
+        self.newCount = self._walkingCount(self._deckNewLimitSingle, cntFn)
