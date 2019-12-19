@@ -504,10 +504,6 @@ did in %s and queue = {QUEUE_REV} and due <= ? limit {lim})""" %
                                            ids2str(self.col.decks.active()),
                                            self.today)
 
-    def _resetRev(self):
-        self._resetRevCount()
-        self._revQueue = []
-
     def _fillRev(self):
         if self._revQueue:
             return True
