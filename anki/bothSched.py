@@ -6,7 +6,6 @@ from operator import itemgetter
 
 from anki.consts import *
 
-
 # it uses the following elements from anki.consts
 # card types: 0=new, 1=lrn, 2=rev, 3=relrn
 # queue types: 0=new, 1=(re)lrn, 2=rev, 3=day (re)lrn,
@@ -146,3 +145,27 @@ did = ? and queue = {QUEUE_NEW} limit ?)""", did, lim)
         self._newDids = self.col.decks.active()[:]
         self._newQueue = []
         self._updateNewCardRatio()
+
+    def _fillNew(self):
+        if self._newQueue:
+            return True
+        if not self.newCount:
+            return False
+        while self._newDids:
+            did = self._newDids[0]
+            lim = min(self.queueLimit, self._deckNewLimit(did))
+            if lim:
+                # fill the queue with the current did
+                self._newQueue = self.col.db.list(f"""
+                select id from cards where did = ? and queue = {QUEUE_NEW} order by due,ord limit ?""", did, lim)
+                if self._newQueue:
+                    self._newQueue.reverse()
+                    return True
+            # nothing left in the deck; move to next
+            self._newDids.pop(0)
+        if self.newCount:
+            # if we didn't get a card but the count is non-zero,
+            # we need to check again for any cards that were
+            # removed from the queue but not buried
+            self._resetNew()
+            return self._fillNew()
