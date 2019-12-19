@@ -358,3 +358,18 @@ did = ? and queue = {QUEUE_DAY_LRN} and due <= ? limit ?""",
             # duplicate pk; retry in 10ms
             time.sleep(0.01)
             log()
+
+    # Reviews
+    ##########################################################################
+
+    def _deckRevLimitSingle(self, deck):
+        """Maximum number of card to review today in deck d.
+
+        self.reportLimit for dynamic deck. Otherwise the number of review according to deck option, plus the number of review added in custom study today.
+        keyword arguments:
+        d -- a deck object"""
+        # invalid deck selected?
+        if deck['dyn']:
+            return self.reportLimit
+        conf = self.col.decks.confForDid(deck['id'])
+        return max(0, conf['rev']['perDay'] - deck['revToday'][1])
