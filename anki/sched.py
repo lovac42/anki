@@ -717,11 +717,6 @@ did = ? and queue = {QUEUE_REV} and due <= ? limit ?""",
         new = ivl * conf.get('ivlFct', 1)
         return int(max(new, prev+1))
 
-    def _daysLate(self, card):
-        "Number of days later than scheduled."
-        due = card.odue if card.odid else card.due
-        return max(0, self.today - due)
-
     def _updateRevIvl(self, card, ease):
         """ Compute the next interval, fuzzy it, ensure ivl increase
         and is at most maxIvl.
