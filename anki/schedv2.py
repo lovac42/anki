@@ -2,6 +2,7 @@
 # Copyright: Ankitects Pty Ltd and contributors
 # License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
 
+
 import datetime
 import itertools
 import random
@@ -9,6 +10,7 @@ import time
 from heapq import *
 from operator import itemgetter
 
+from anki.bothSched import BothScheduler
 from anki.consts import *
 from anki.hooks import runHook
 from anki.lang import _
@@ -21,7 +23,7 @@ from anki.utils import fmtTimeSpan, ids2str, intTime
 # positive revlog intervals are in days (rev), negative in seconds (lrn)
 # odue/odid store original due/did when cards moved to filtered deck
 
-class Scheduler:
+class Scheduler(BothScheduler):
     name = "std2"
     haveCustomStudy = True
     _burySiblingsOnAnswer = True
