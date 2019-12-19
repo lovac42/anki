@@ -8,6 +8,7 @@ import time
 from heapq import *
 from operator import itemgetter
 
+from anki.bothSched import BothScheduler
 from anki.consts import *
 from anki.hooks import runHook
 from anki.lang import _
@@ -18,7 +19,7 @@ from anki.utils import fmtTimeSpan, ids2str, intTime
 # revlog types: 0=lrn, 1=rev, 2=relrn, 3=cram
 # positive revlog intervals are in days (rev), negative in seconds (lrn)
 
-class Scheduler:
+class Scheduler(BothScheduler):
     name = "std"
     haveCustomStudy = True
     _spreadRev = True
