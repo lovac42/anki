@@ -719,8 +719,8 @@ where card.nid = note.id and card.id in %s group by nid""" % ids2str(cids)):
             where = ""
         else:
             raise Exception()
-        return [self._renderQA(row)
-                for row in self._qaData(where)]
+        return [self._renderQA([cid, nid, mid, did, ord, tags, flds, cardFlags])
+                for [cid, nid, mid, did, ord, tags, flds, cardFlags] in self._qaData(where)]
 
     def _renderQA(self, data, qfmt=None, afmt=None):
         """Returns hash of id, question, answer.
@@ -801,10 +801,11 @@ where card.nid = note.id and card.id in %s group by nid""" % ids2str(cids)):
 
     def __renderQA(self, fields, model, data, format, type):
         """apply fields to format. Use munge hooks before and after"""
-        fields = runFilter("mungeFields", fields, model, data, self)
+        cid, nid, mid, did, ord, tags, flds, cardFlags = data
+        fields = runFilter("mungeFields", fields, model, [cid, nid, mid, did, ord, tags, flds, cardFlags], self)
         html = anki.template.render(format, fields)
         return runFilter(
-            "mungeQA", html, type, fields, model, data, self)
+            "mungeQA", html, type, fields, model, [cid, nid, mid, did, ord, tags, flds, cardFlags], self)
 
     def _qaData(self, where=""):
         """The list of [cid, nid, mid, did, ord, tags, flds, cardFlags] for each pair cards satisfying where.
