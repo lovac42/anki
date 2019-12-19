@@ -299,11 +299,6 @@ and due <= ? limit %d""" % (self._deckLimit(),  self.reportLimit),
                 self.lrnCount -= card.left // 1000
                 return card
 
-    def _getLrnDayCard(self):
-        if self._fillLrnDay():
-            self.lrnCount -= 1
-            return self.col.getCard(self._lrnDayQueue.pop())
-
     def _answerLrnCard(self, card, ease):
         # ease 1=no, 2=yes, 3=remove
         conf = self._lrnConf(card)

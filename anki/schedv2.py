@@ -300,11 +300,6 @@ select count() from cards where did in %s and queue = {QUEUE_PREVIEW}
                 self.lrnCount -= 1
                 return card
 
-    def _getLrnDayCard(self):
-        if self._fillLrnDay():
-            self.lrnCount -= 1
-            return self.col.getCard(self._lrnDayQueue.pop())
-
     def _answerLrnCard(self, card, ease):
         conf = self._lrnConf(card)
         if card.type in (CARD_DUE,CARD_RELRN):

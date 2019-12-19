@@ -283,3 +283,8 @@ did = ? and queue = {QUEUE_DAY_LRN} and due <= ? limit ?""",
                 return True
             # nothing left in the deck; move to next
             self._lrnDids.pop(0)
+
+    def _getLrnDayCard(self):
+        if self._fillLrnDay():
+            self.lrnCount -= 1
+            return self.col.getCard(self._lrnDayQueue.pop())
