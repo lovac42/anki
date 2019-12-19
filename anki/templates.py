@@ -120,10 +120,10 @@ and notes.mid = ? and cards.ord = ?""", self.model.getId(), self['ord'])
         nbFlds = len(self.model['flds'])
         ankiflagFlds = ["ankiflag"] * nbFlds
         emptyFlds = [""] * nbFlds
-        data = [1, 1, self.model.getId(), 1, self['ord'], "", joinFields(ankiflagFlds), 0]
+        data = [1, 1, self.model.getId(), 1, self['ord'], "", joinFields(ankiflagFlds)]
         # The html of the card at position ord where each field's content is "ankiflag"
         full = self.model.manager.col._renderQA(data)['q']
-        data = [1, 1, self.model.getId(), 1, self['ord'], "", joinFields(emptyFlds), 0]
+        data = [1, 1, self.model.getId(), 1, self['ord'], "", joinFields(emptyFlds)]
         # The html of the card at position ord where each field's content is the empty string ""
         empty = self.model.manager.col._renderQA(data)['q']
 
