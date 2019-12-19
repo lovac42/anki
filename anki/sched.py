@@ -743,20 +743,6 @@ did = ? and queue = {QUEUE_REV} and due <= ? limit ?""",
     # Dynamic deck handling
     ##########################################################################
 
-    def rebuildDyn(self, did=None):
-        "Rebuild a dynamic deck."
-        did = did or self.col.decks.selected()
-        deck = self.col.decks.get(did)
-        assert deck['dyn']
-        # move any existing cards back first, then fill
-        self.emptyDyn(did)
-        ids = self._fillDyn(deck)
-        if not ids:
-            return
-        # and change to our new deck
-        self.col.decks.select(did)
-        return ids
-
     def _fillDyn(self, deck):
         search, limit, order = deck['terms'][0]
         orderlimit = self._dynOrder(order, limit)

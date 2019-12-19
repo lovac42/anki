@@ -679,20 +679,6 @@ limit ?""" % ids2str(self.col.decks.active()),
     # Dynamic deck handling
     ##########################################################################
 
-    def rebuildDyn(self, did=None):
-        "Rebuild a dynamic deck."
-        did = did or self.col.decks.selected()
-        deck = self.col.decks.get(did)
-        assert deck['dyn']
-        # move any existing cards back first, then fill
-        self.emptyDyn(did)
-        cnt = self._fillDyn(deck)
-        if not cnt:
-            return
-        # and change to our new deck
-        self.col.decks.select(did)
-        return cnt
-
     def _fillDyn(self, deck):
         start = -100000
         total = 0
