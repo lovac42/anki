@@ -310,3 +310,20 @@ did = ? and queue = {QUEUE_DAY_LRN} and due <= ? limit ?""",
                 break
             ok = i
         return ok+1
+
+    def _delayForGrade(self, conf, left):
+        """The number of second for the delay until the next time the card can
+        be reviewed. Assuming the number of left steps is left,
+        according to configuration conf
+
+        """
+        left = left % 1000
+        try:
+            delay = conf['delays'][-left]
+        except IndexError:
+            if conf['delays']:
+                delay = conf['delays'][0]
+            else:
+                # user deleted final step; use dummy value
+                delay = 1
+        return delay*60
