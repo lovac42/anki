@@ -247,16 +247,6 @@ order by due""" % (self._deckLimit()),
         # collapse or finish
         return self._getLrnCard(collapse=True)
 
-    # New cards
-    ##########################################################################
-
-    def totalNewForCurrentDeck(self):
-        return self.col.db.scalar(
-            f"""
-select count() from cards where id in (
-select id from cards where did in %s and queue = {QUEUE_NEW} limit ?)"""
-            % ids2str(self.col.decks.active()), self.reportLimit)
-
     # Learning queues
     ##########################################################################
 
