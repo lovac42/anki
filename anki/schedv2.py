@@ -25,7 +25,6 @@ from anki.utils import fmtTimeSpan, ids2str, intTime
 
 class Scheduler(BothScheduler):
     name = "std2"
-    _burySiblingsOnAnswer = True
 
     def __init__(self, col):
         self.col = col
