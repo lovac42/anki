@@ -361,18 +361,6 @@ and due <= ? limit %d""" % (self._deckLimit(),  self.reportLimit),
                 card.queue = QUEUE_DAY_LRN
         self._logLrn(card, ease, conf, leaving, type, lastLeft)
 
-    def _delayForGrade(self, conf, left):
-        left = left % 1000
-        try:
-            delay = conf['delays'][-left]
-        except IndexError:
-            if conf['delays']:
-                delay = conf['delays'][0]
-            else:
-                # user deleted final step; use dummy value
-                delay = 1
-        return delay*60
-
     def _lrnConf(self, card):
         """ lapse configuration if the card was due(i.e. review card
         ?), otherwise new configuration.  I don't get the point"""

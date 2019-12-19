@@ -385,18 +385,6 @@ select count() from cards where did in %s and queue = {QUEUE_PREVIEW}
             card.queue = QUEUE_DAY_LRN
         return delay
 
-    def _delayForGrade(self, conf, left):
-        left = left % 1000
-        try:
-            delay = conf['delays'][-left]
-        except IndexError:
-            if conf['delays']:
-                delay = conf['delays'][0]
-            else:
-                # user deleted final step; use dummy value
-                delay = 1
-        return delay*60
-
     def _delayForRepeatingGrade(self, conf, left):
         # halfway between last and next
         delay1 = self._delayForGrade(conf, left)
