@@ -11,4 +11,4 @@
 # odue/odid store original due/did when cards moved to filtered deck
 
 class BothScheduler:
-    pass
+    haveCustomStudy = True
