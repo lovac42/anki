@@ -23,15 +23,6 @@ class Scheduler(BothScheduler):
     name = "std"
     _spreadRev = True
 
-    def __init__(self, col):
-        self.col = col
-        self.queueLimit = 50
-        self.reportLimit = 1000
-        self.reps = 0
-        self.today = None
-        self._haveQueues = False
-        self._updateCutoff()
-
     def getCard(self):
         "Pop the next card id from the queue. None if finished."
         self._checkDay()

@@ -13,3 +13,18 @@
 class BothScheduler:
     haveCustomStudy = True
     _burySiblingsOnAnswer = True
+
+    """
+    queueLimit -- maximum number of cards to queue simultaneously. Always 50 unless changed by an addon.
+    reportLimit -- the maximal number to show in main windows
+    today -- difference between the last time scheduler is seen and creation of the collection.
+    _haveQueues -- whether the number of cards to see today for current decks have been set.
+    """
+    def __init__(self, col):
+        self.col = col
+        self.queueLimit = 50
+        self.reportLimit = 1000
+        self.reps = 0
+        self.today = None
+        self._haveQueues = False
+        self._updateCutoff()
