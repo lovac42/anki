@@ -140,3 +140,9 @@ class BothScheduler:
 select count() from (select 1 from cards where
 did = ? and queue = {QUEUE_NEW} limit ?)""", did, lim)
         self.newCount = self._walkingCount(self._deckNewLimitSingle, cntFn)
+
+    def _resetNew(self):
+        self._resetNewCount()
+        self._newDids = self.col.decks.active()[:]
+        self._newQueue = []
+        self._updateNewCardRatio()
