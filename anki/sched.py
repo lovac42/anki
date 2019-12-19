@@ -270,13 +270,6 @@ order by due""" % (self._deckLimit()),
     # New cards
     ##########################################################################
 
-    def _deckNewLimitSingle(self, deck):
-        "Limit for deck without parent limits."
-        if deck['dyn']:
-            return self.reportLimit
-        conf = self.col.decks.confForDid(deck['id'])
-        return max(0, conf['new']['perDay'] - deck['newToday'][1])
-
     def totalNewForCurrentDeck(self):
         return self.col.db.scalar(
             f"""
