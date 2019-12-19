@@ -6,6 +6,7 @@ import random
 from operator import itemgetter
 
 from anki.consts import *
+from anki.utils import intTime
 
 # it uses the following elements from anki.consts
 # card types: 0=new, 1=lrn, 2=rev, 3=relrn
@@ -288,3 +289,24 @@ did = ? and queue = {QUEUE_DAY_LRN} and due <= ? limit ?""",
         if self._fillLrnDay():
             self.lrnCount -= 1
             return self.col.getCard(self._lrnDayQueue.pop())
+
+    def _leftToday(self, delays, left, now=None):
+        """The number of the last ```left``` steps that can be completed
+        before the day cutoff. Assuming the first step is done
+        ```now```.
+
+        delays -- the list of delays
+        left -- the number of step to consider (at the end of the
+        list)
+        now -- the time at which the first step is done.
+        """
+        if not now:
+            now = intTime()
+        delays = delays[-left:]
+        ok = 0
+        for i in range(len(delays)):
+            now += delays[i]*60
+            if now > self.dayCutoff:
+                break
+            ok = i
+        return ok+1
