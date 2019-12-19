@@ -120,10 +120,10 @@ and notes.mid = ? and cards.ord = ?""", self.model.getId(), self['ord'])
         nbFlds = len(self.model['flds'])
         ankiflagFlds = ["ankiflag"] * nbFlds
         emptyFlds = [""] * nbFlds
-        data = [self.model.getId(), 1, self['ord'], "", joinFields(ankiflagFlds)]
+        data = [self.model.getId(), self['ord'], "", joinFields(ankiflagFlds)]
         # The html of the card at position ord where each field's content is "ankiflag"
         full = self.model.manager.col._renderQA(data)['q']
-        data = [self.model.getId(), 1, self['ord'], "", joinFields(emptyFlds)]
+        data = [self.model.getId(), self['ord'], "", joinFields(emptyFlds)]
         # The html of the card at position ord where each field's content is the empty string ""
         empty = self.model.manager.col._renderQA(data)['q']
 
@@ -135,7 +135,7 @@ and notes.mid = ? and cards.ord = ?""", self.model.getId(), self['ord'])
         for i in range(nbFlds):
             tmp = ankiflagFlds[:]
             tmp[i] = ""
-            data[4] = joinFields(tmp)
+            data[3] = joinFields(tmp)
             # if no field content appeared, field is required
             if "ankiflag" not in self.model.manager.col._renderQA(data)['q']:
                 req.append(i)
@@ -145,7 +145,7 @@ and notes.mid = ? and cards.ord = ?""", self.model.getId(), self['ord'])
         for i in range(nbFlds):
             tmp = emptyFlds[:]
             tmp[i] = "1"
-            data[4] = joinFields(tmp)
+            data[3] = joinFields(tmp)
             # if not the same as empty, this field can make the card non-blank
             if self.model.manager.col._renderQA(data)['q'] != empty:
                 req.append(i)
