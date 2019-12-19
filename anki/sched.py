@@ -710,10 +710,6 @@ did = ? and queue = {QUEUE_REV} and due <= ? limit ?""",
         # interval capped?
         return min(interval, conf['maxIvl'])
 
-    def _fuzzedIvl(self, ivl):
-        min, max = self._fuzzIvlRange(ivl)
-        return random.randint(min, max)
-
     def _fuzzIvlRange(self, ivl):
         if ivl < 2:
             return [1, 1]
