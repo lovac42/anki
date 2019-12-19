@@ -531,13 +531,6 @@ limit ?""" % ids2str(self.col.decks.active()),
             self._resetRev()
             return self._fillRev()
 
-    def totalRevForCurrentDeck(self):
-        return self.col.db.scalar(
-            f"""
-select count() from cards where id in (
-select id from cards where did in %s and queue = {QUEUE_REV} and due <= ? limit ?)"""
-            % ids2str(self.col.decks.active()), self.today, self.reportLimit)
-
     # Answering a review card
     ##########################################################################
 
