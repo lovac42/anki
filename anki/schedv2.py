@@ -27,15 +27,9 @@ class Scheduler(BothScheduler):
     name = "std2"
 
     def __init__(self, col):
-        self.col = col
-        self.queueLimit = 50
-        self.reportLimit = 1000
         self.dynReportLimit = 99999
-        self.reps = 0
-        self.today = None
-        self._haveQueues = False
         self._lrnCutoff = 0
-        self._updateCutoff()
+        super().__init__(col)
 
     def getCard(self):
         "Pop the next card id from the queue. None if finished."
