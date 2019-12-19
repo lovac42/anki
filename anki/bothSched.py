@@ -383,3 +383,11 @@ did = ? and queue = {QUEUE_DAY_LRN} and due <= ? limit ?""",
         if self._fillRev():
             self.revCount -= 1
             return self.col.getCard(self._revQueue.pop())
+
+    def totalRevForCurrentDeck(self):
+        return self.col.db.scalar(
+            f"""
+select count() from cards where id in (
+select id from cards where did in %s and queue = {QUEUE_REV} and due <= ? limit ?)"""
+            % ids2str(self.col.decks.active()), self.today, self.reportLimit
+)
