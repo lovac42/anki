@@ -539,3 +539,8 @@ select id from cards where did in %s and queue = {QUEUE_REV} and due <= ? limit 
             return conf['rev']
         # dynamic deck
         return self.col.decks.confForDid(card.odid)['rev']
+
+    def _deckLimit(self):
+        """The list of active decks, as comma separated parenthesized
+        string"""
+        return ids2str(self.col.decks.active())
