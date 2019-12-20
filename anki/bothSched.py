@@ -527,3 +527,15 @@ select id from cards where did in %s and queue = {QUEUE_REV} and due <= ? limit 
             # overrides
             resched=conf['resched'],
         )
+
+    def _revConf(self, card):
+        """The configuration for "review" of this card's deck.See decks.py
+        documentation to read more about them.
+
+        """
+        conf = self._cardConf(card)
+        # normal deck
+        if not card.odid:
+            return conf['rev']
+        # dynamic deck
+        return self.col.decks.confForDid(card.odid)['rev']

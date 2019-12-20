@@ -862,14 +862,6 @@ did = ?, queue = %s, due = ?, usn = ? where id = ?""" % queue, data)
     def _getDelay(conf, oconf, kind):
         return conf['delays'] or oconf[kind]['delays']
 
-    def _revConf(self, card):
-        conf = self._cardConf(card)
-        # normal deck
-        if not card.odid:
-            return conf['rev']
-        # dynamic deck
-        return self.col.decks.confForDid(card.odid)['rev']
-
     def _deckLimit(self):
         return ids2str(self.col.decks.active())
 
