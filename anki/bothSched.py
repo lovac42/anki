@@ -452,3 +452,25 @@ select id from cards where did in %s and queue = {QUEUE_REV} and due <= ? limit 
 
     def remFromDyn(self, cids):
         self.emptyDyn(None, "id in %s and odid" % ids2str(cids))
+
+    def _dynOrder(self, order, limit, default):
+        if order == DYN_OLDEST:
+            sort = "(select max(id) from revlog where cid=card.id)"
+        elif order == DYN_RANDOM:
+            sort = "random()"
+        elif order == DYN_SMALLINT:
+            sort = "ivl"
+        elif order == DYN_BIGINT:
+            sort = "ivl desc"
+        elif order == DYN_LAPSES:
+            sort = "lapses desc"
+        elif order == DYN_ADDED:
+            sort = "note.id"
+        elif order == DYN_REVADDED:
+            sort = "note.id desc"
+        elif order == DYN_DUEPRIORITY:
+            sort = f"(case when queue={QUEUE_REV} and due <= %d then (ivl / cast(%d-due+0.001 as real)) else 100000+due end)" % (
+                    self.today, self.today)
+        else:# DYN_DUE or unknown
+            sort = default
+        return sort + " limit %d" % limit
