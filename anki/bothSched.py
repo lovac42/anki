@@ -561,3 +561,30 @@ select id from cards where did in %s and queue = {QUEUE_REV} and due <= ? limit 
         return ("<b>"+_(
             "Congratulations! You have finished this deck for now.")+
             "</b><br><br>" + self._nextDueMsg())
+
+    def _nextDueMsg(self):
+        line = []
+        # the new line replacements are so we don't break translations
+        # in a point release
+        if self.revDue():
+            line.append(_("""\
+Today's review limit has been reached, but there are still cards
+waiting to be reviewed. For optimum memory, consider increasing
+the daily limit in the options.""").replace("\n", " "))
+        if self.newDue():
+            line.append(_("""\
+There are more new cards available, but the daily limit has been
+reached. You can increase the limit in the options, but please
+bear in mind that the more new cards you introduce, the higher
+your short-term review workload will become.""").replace("\n", " "))
+        if self.haveBuried():
+            if self.haveCustomStudy:
+                now = " " +  _("To see them now, click the Unbury button below.")
+            else:
+                now = ""
+            line.append(_("""\
+Some related or buried cards were delayed until a later session.""")+now)
+        if self.haveCustomStudy and not self.col.decks.current()['dyn']:
+            line.append(_("""\
+To study outside of the normal schedule, click the Custom Study button below."""))
+        return "<p>".join(line)
