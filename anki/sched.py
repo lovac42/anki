@@ -979,12 +979,6 @@ did = ?, queue = %s, due = ?, usn = ? where id = ?""" % queue, data)
         update cards set queue={QUEUE_SCHED_BURIED},mod=?,usn=? where id in """)+ids2str(cids),
                             intTime(), self.col.usn())
 
-    def buryNote(self, nid):
-        "Bury all cards for note until next session."
-        cids = self.col.db.list(
-            "select id from cards where nid = ? and queue >= 0", nid)
-        self.buryCards(cids)
-
     # Sibling spacing
     ##########################################################################
 
