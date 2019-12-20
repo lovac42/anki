@@ -544,3 +544,11 @@ select id from cards where did in %s and queue = {QUEUE_REV} and due <= ? limit 
         """The list of active decks, as comma separated parenthesized
         string"""
         return ids2str(self.col.decks.active())
+
+    # Daily cutoff
+    ##########################################################################
+
+    def _checkDay(self):
+        # check if the day has rolled over
+        if time.time() > self.dayCutoff:
+            self.reset()
