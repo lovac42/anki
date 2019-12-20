@@ -703,3 +703,46 @@ usn=:usn,mod=:mod,factor=:fact where id=:id""",
         # and forget any non-new cards, changing their due numbers
         self.forgetCards(nonNew)
         self.col.log(ids)
+
+    # Repositioning new cards
+    ##########################################################################
+
+    def sortCards(self, cids, start=1, step=1, shuffle=False, shift=False):
+        scids = ids2str(cids)
+        now = intTime()
+        nids = []
+        nidsSet = set()
+        for id in cids:
+            nid = self.col.db.scalar("select nid from cards where id = ?", id)
+            if nid not in nidsSet:
+                nids.append(nid)
+                nidsSet.add(nid)
+        if not nids:
+            # no new cards
+            return
+        # determine nid ordering
+        due = {}
+        if shuffle:
+            random.shuffle(nids)
+        for index, nid in enumerate(nids):
+            due[nid] = start+index*step
+        # pylint: disable=undefined-loop-variable
+        high = start+index*step
+        # shift?
+        if shift:
+            low = self.col.db.scalar(
+                f"select min(due) from cards where due >= ? and type = {CARD_NEW} "
+                "and id not in %s" % (scids),
+                start)
+            if low is not None:
+                shiftby = high - low + 1
+                self.col.db.execute(f"""
+update cards set mod=?, usn=?, due=due+? where id not in %s
+and due >= ? and queue = {QUEUE_NEW}""" % (scids), now, self.col.usn(), shiftby, low)
+        # reorder cards
+        cardData = []
+        for id, nid in self.col.db.execute(
+            (f"select id, nid from cards where type = {CARD_NEW} and id in ")+scids):
+            cardData.append(dict(now=now, due=due[nid], usn=self.col.usn(), cid=id))
+        self.col.db.executemany(
+            "update cards set due=:due,mod=:now,usn=:usn where id = :cid", cardData)
