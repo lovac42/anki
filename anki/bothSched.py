@@ -624,3 +624,36 @@ To study outside of the normal schedule, click the Custom Study button below."""
         cids = self.col.db.list(
             "select id from cards where nid = ? and queue >= 0", nid)
         self.buryCards(cids)
+
+    # Sibling spacing
+    ##########################################################################
+
+    def _burySiblings(self, card):
+        toBury = []
+        nconf = self._newConf(card)
+        buryNew = nconf.get("bury", True)
+        rconf = self._revConf(card)
+        buryRev = rconf.get("bury", True)
+        # loop through and remove from queues
+        for cid,queue in self.col.db.execute(f"""
+select id, queue from cards where nid=? and id!=?
+and (queue={QUEUE_NEW} or (queue={QUEUE_REV} and due<=?))""",
+                card.nid, card.id, self.today):
+            if queue == QUEUE_REV:
+                if buryRev:
+                    toBury.append(cid)
+                # if bury disabled, we still discard to give same-day spacing
+                try:
+                    self._revQueue.remove(cid)
+                except ValueError:
+                    pass
+            else:#Queue new Cram
+                # if bury disabled, we still discard to give same-day spacing
+                if buryNew:
+                    toBury.append(cid)
+                try:
+                    self._newQueue.remove(cid)
+                except ValueError:
+                    pass
+        # burying is done by the concrete class
+        return toBury
