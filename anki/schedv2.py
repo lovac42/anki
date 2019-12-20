@@ -972,15 +972,6 @@ update cards set queue=?,mod=?,usn=? where id in """+ids2str(cids),
     # Repositioning new cards
     ##########################################################################
 
-    # for post-import
-    def maybeRandomizeDeck(self, did=None):
-        if not did:
-            did = self.col.decks.selected()
-        conf = self.col.decks.confForDid(did)
-        # in order due?
-        if conf['new']['order'] == NEW_CARDS_RANDOM:
-            self.randomizeCards(did)
-
     # Changing scheduler versions
     ##########################################################################
 
