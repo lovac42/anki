@@ -38,7 +38,10 @@ class Template(DictAugmentedInModel):
         self['ord'] = len(self.model['tmpls'])
         self.model['tmpls'].append(self)
         self.model._updateTemplOrds()
-        self.model.save()
+        if self.model.isStd():
+            self.model['req'].append(None)
+            self.setReq()
+        self.model.save(updateReqs=False)
 
     def rem(self):
         """Remove the input template from the model model.
