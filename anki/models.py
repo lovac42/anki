@@ -119,6 +119,8 @@ class ModelManager:
     def flush(self):
         "Flush the registry if any models were changed."
         if self.changed:
+            for model in self.models.values():
+                model.flush()
             self.ensureNotEmpty()
             self.col.db.execute("update col set models = ?",
                                  json.dumps(self.models, default=lambda model: model.dumps()))

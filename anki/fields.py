@@ -55,7 +55,7 @@ class Field(DictAugmentedInModel):
         """
         for template in self.model['tmpls']:
             if self.getName() in template['qfmt']:
-                template.setReq()
+                template.markReqChanged()
 
     def rename(self, newName):
         """Rename the field. In each template, find the mustache related to
