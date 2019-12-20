@@ -676,6 +676,7 @@ def test_filt_reviewing_early_normal():
     # grab it and check estimates
     c = d.sched.getCard()
     assert d.sched.answerButtons(c) == 4
+    assert d.sched._lapseConf(c)['delays'][0] == 10
     assert d.sched.nextIvl(c, 1) == 600
     assert d.sched.nextIvl(c, 2) == int(75*1.2)*86400
     assert d.sched.nextIvl(c, 3) == int(75*2.5)*86400
