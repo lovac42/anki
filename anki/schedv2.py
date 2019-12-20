@@ -839,12 +839,6 @@ where id = ?
     # Deck finished state
     ##########################################################################
 
-    def newDue(self):
-        "True if there are any new cards due."
-        return self.col.db.scalar(
-            (f"select 1 from cards where did in %s and queue = {QUEUE_NEW} "
-             "limit 1") % self._deckLimit())
-
     def haveBuriedSiblings(self):
         sdids = ids2str(self.col.decks.active())
         cnt = self.col.db.scalar(
