@@ -40,6 +40,10 @@ defaultModel = {
 }
 
 class Model(DictAugmentedIdUsn):
+    def flush(self):
+        for tmpl in self['tmpls']:
+            tmpl.flush()
+
     def load(self, manager, dict):
         super().load(manager, dict)
         self['tmpls'] = [Template(self, templateType) for templateType in self['tmpls']]
