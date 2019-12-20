@@ -994,13 +994,6 @@ did = ?, queue = %s, due = ?, usn = ? where id = ?""" % queue, data)
     # Repositioning new cards
     ##########################################################################
 
-    def resortConf(self, conf):
-        for did in self.col.decks.didsForConf(conf):
-            if conf['new']['order'] == NEW_CARDS_RANDOM:
-                self.randomizeCards(did)
-            else:
-                self.orderCards(did)
-
     # for post-import
     def maybeRandomizeDeck(self, did=None):
         if not did:

@@ -754,3 +754,10 @@ and due >= ? and queue = {QUEUE_NEW}""" % (scids), now, self.col.usn(), shiftby,
     def orderCards(self, did):
         cids = self.col.db.list("select id from cards where did = ? order by id", did)
         self.sortCards(cids)
+
+    def resortConf(self, conf):
+        for did in self.col.decks.didsForConf(conf):
+            if conf['new']['order'] == NEW_CARDS_RANDOM:
+                self.randomizeCards(did)
+            else:
+                self.orderCards(did)
