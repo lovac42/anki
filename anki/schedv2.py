@@ -839,11 +839,6 @@ where id = ?
     # Deck finished state
     ##########################################################################
 
-    def finishedMsg(self):
-        return ("<b>"+_(
-            "Congratulations! You have finished this deck for now.")+
-            "</b><br><br>" + self._nextDueMsg())
-
     def _nextDueMsg(self):
         line = []
         # the new line replacements are so we don't break translations

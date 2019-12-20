@@ -7,6 +7,7 @@ import time
 from operator import itemgetter
 
 from anki.consts import *
+from anki.lang import _
 from anki.utils import ids2str, intTime
 
 # it uses the following elements from anki.consts
@@ -552,3 +553,11 @@ select id from cards where did in %s and queue = {QUEUE_REV} and due <= ? limit 
         # check if the day has rolled over
         if time.time() > self.dayCutoff:
             self.reset()
+
+    # Deck finished state
+    ##########################################################################
+
+    def finishedMsg(self):
+        return ("<b>"+_(
+            "Congratulations! You have finished this deck for now.")+
+            "</b><br><br>" + self._nextDueMsg())
