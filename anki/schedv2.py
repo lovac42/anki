@@ -781,9 +781,6 @@ where id = ?
     # Tools
     ##########################################################################
 
-    def _cardConf(self, card):
-        return self.col.decks.confForDid(card.did)
-
     @staticmethod
     def _getDelay(conf, oconf, kind):
         return oconf[kind]['delays']

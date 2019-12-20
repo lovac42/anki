@@ -474,3 +474,11 @@ select id from cards where did in %s and queue = {QUEUE_REV} and due <= ? limit 
         else:# DYN_DUE or unknown
             sort = default
         return sort + " limit %d" % limit
+
+    # Tools
+    ##########################################################################
+
+    def _cardConf(self, card):
+        """The configuration of this card's deck. See decks.py
+        documentation to read more about them."""
+        return self.col.decks.confForDid(card.did)

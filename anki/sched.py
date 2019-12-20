@@ -858,9 +858,6 @@ did = ?, queue = %s, due = ?, usn = ? where id = ?""" % queue, data)
     # Tools
     ##########################################################################
 
-    def _cardConf(self, card):
-        return self.col.decks.confForDid(card.did)
-
     @staticmethod
     def _getDelay(conf, oconf, kind):
         return conf['delays'] or oconf[kind]['delays']
