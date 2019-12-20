@@ -862,25 +862,6 @@ did = ?, queue = %s, due = ?, usn = ? where id = ?""" % queue, data)
     def _getDelay(conf, oconf, kind):
         return conf['delays'] or oconf[kind]['delays']
 
-    def _newConf(self, card):
-        conf = self._cardConf(card)
-        # normal deck
-        if not card.odid:
-            return conf['new']
-        # dynamic deck; override some attributes, use original deck for others
-        oconf = self.col.decks.confForDid(card.odid)
-        return dict(
-            # original deck
-            ints=oconf['new']['ints'],
-            initialFactor=oconf['new']['initialFactor'],
-            bury=oconf['new'].get("bury", True),
-            # overrides
-            delays=self._getDelay(conf, oconf, 'new'),
-            separate=conf['separate'],
-            order=NEW_CARDS_DUE,
-            perDay=self.reportLimit
-        )
-
     def _lapseConf(self, card):
         conf = self._cardConf(card)
         # normal deck
