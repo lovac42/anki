@@ -969,25 +969,6 @@ update cards set queue=?,mod=?,usn=? where id in """+ids2str(cids),
         if toBury:
             self.buryCards(toBury, manual=False)
 
-    # Resetting
-    ##########################################################################
-
-    def resetCards(self, ids):
-        "Completely reset cards for export."
-        sids = ids2str(ids)
-        # we want to avoid resetting due number of existing new cards on export
-        nonNew = self.col.db.list(
-            f"select id from cards where id in %s and (queue != {QUEUE_NEW} or type != {CARD_NEW})"
-            % sids)
-        # reset all cards
-        self.col.db.execute(
-            f"update cards set reps=0,lapses=0,odid=0,odue=0,queue={QUEUE_NEW}"
-            " where id in %s" % sids
-        )
-        # and forget any non-new cards, changing their due numbers
-        self.forgetCards(nonNew)
-        self.col.log(ids)
-
     # Repositioning new cards
     ##########################################################################
 
