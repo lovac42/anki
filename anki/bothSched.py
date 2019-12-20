@@ -7,7 +7,7 @@ import time
 from operator import itemgetter
 
 from anki.consts import *
-from anki.utils import intTime
+from anki.utils import ids2str, intTime
 
 # it uses the following elements from anki.consts
 # card types: 0=new, 1=lrn, 2=rev, 3=relrn
@@ -449,3 +449,6 @@ select id from cards where did in %s and queue = {QUEUE_REV} and due <= ? limit 
         # and change to our new deck
         self.col.decks.select(did)
         return ids
+
+    def remFromDyn(self, cids):
+        self.emptyDyn(None, "id in %s and odid" % ids2str(cids))
