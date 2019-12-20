@@ -862,24 +862,6 @@ did = ?, queue = %s, due = ?, usn = ? where id = ?""" % queue, data)
     def _getDelay(conf, oconf, kind):
         return conf['delays'] or oconf[kind]['delays']
 
-    def _lapseConf(self, card):
-        conf = self._cardConf(card)
-        # normal deck
-        if not card.odid:
-            return conf['lapse']
-        # dynamic deck; override some attributes, use original deck for others
-        oconf = self.col.decks.confForDid(card.odid)
-        return dict(
-            # original deck
-            minInt=oconf['lapse']['minInt'],
-            leechFails=oconf['lapse']['leechFails'],
-            leechAction=oconf['lapse']['leechAction'],
-            mult=oconf['lapse']['mult'],
-            # overrides
-            delays=self._getDelay(conf, oconf, 'lapse'),
-            resched=conf['resched'],
-        )
-
     def _revConf(self, card):
         conf = self._cardConf(card)
         # normal deck

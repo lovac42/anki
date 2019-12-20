@@ -505,3 +505,25 @@ select id from cards where did in %s and queue = {QUEUE_REV} and due <= ? limit 
             order=NEW_CARDS_DUE,
             perDay=self.reportLimit
         )
+
+    def _lapseConf(self, card):
+        """The configuration for "lapse" of this card's deck.See decks.py
+        documentation to read more about them.
+
+        """
+        conf = self._cardConf(card)
+        # normal deck
+        if not card.odid:
+            return conf['lapse']
+        # dynamic deck; override some attributes, use original deck for others
+        oconf = self.col.decks.confForDid(card.odid)
+        return dict(
+            # original deck
+            minInt=oconf['lapse']['minInt'],
+            leechFails=oconf['lapse']['leechFails'],
+            leechAction=oconf['lapse']['leechAction'],
+            mult=oconf['lapse']['mult'],
+            delays=self._getDelay(conf, oconf, 'lapse'),
+            # overrides
+            resched=conf['resched'],
+        )
