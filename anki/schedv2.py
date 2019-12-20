@@ -818,11 +818,6 @@ where id = ?
             self.unburyCards()
             self.col.conf['lastUnburied'] = self.today
 
-    def _checkDay(self):
-        # check if the day has rolled over
-        if time.time() > self.dayCutoff:
-            self.reset()
-
     def _dayCutoff(self):
         rolloverTime = self.col.conf.get("rollover", 4)
         if rolloverTime < 0:

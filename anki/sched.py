@@ -902,11 +902,6 @@ did = ?, queue = %s, due = ?, usn = ? where id = ?""" % queue, data)
         if unburied < self.today:
             self.unburyCards()
 
-    def _checkDay(self):
-        # check if the day has rolled over
-        if time.time() > self.dayCutoff:
-            self.reset()
-
     # Deck finished state
     ##########################################################################
 
