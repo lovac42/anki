@@ -862,9 +862,6 @@ did = ?, queue = %s, due = ?, usn = ? where id = ?""" % queue, data)
     def _getDelay(conf, oconf, kind):
         return conf['delays'] or oconf[kind]['delays']
 
-    def _deckLimit(self):
-        return ids2str(self.col.decks.active())
-
     def _resched(self, card):
         """Whether this review must be taken into account when this
         card to reschedule the card"""

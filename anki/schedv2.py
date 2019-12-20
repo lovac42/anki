@@ -785,9 +785,6 @@ where id = ?
     def _getDelay(conf, oconf, kind):
         return oconf[kind]['delays']
 
-    def _deckLimit(self):
-        return ids2str(self.col.decks.active())
-
     def _previewingCard(self, card):
         conf = self._cardConf(card)
         return conf['dyn'] and not conf['resched']
