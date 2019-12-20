@@ -20,6 +20,14 @@ class Template(DictAugmentedInModel):
     for example)
 
     """
+    def __init__(self, *args, **kwargs):
+        self.reqChanged = False
+        super().__init__(*args, **kwargs)
+
+    def flush(self):
+        if self.model.isStd() and self.reqChanged:
+            self.setReq()
+            self.reqChanged = False
 
     def new(self, model, name):
         """A new template, whose content is the one of
@@ -39,8 +47,8 @@ class Template(DictAugmentedInModel):
         self.model['tmpls'].append(self)
         self.model._updateTemplOrds()
         if self.model.isStd():
-            self.model['req'].append(None)
-            self.setReq()
+            self.model['req'].append([self['ord'], 'none', []])
+            self.markReqChanged()
         self.model.save()
 
     def rem(self):
@@ -151,6 +159,9 @@ and notes.mid = ? and cards.ord = ?""", self.model.getId(), self['ord'])
                 req.append(i)
         return 'any', req
 
+    def markReqChanged(self):
+        self.reqChanged = True
+
     def setReq(self):
         type, req = self._req()
         self.model['req'][self['ord']] = [self['ord'], type, req]
@@ -158,13 +169,14 @@ and notes.mid = ? and cards.ord = ?""", self.model.getId(), self['ord'])
 
     def getReq(self):
         assert self.model.isStd()
+        self.flush()# ensure we have current req
         return self.model['req'][self['ord']]
 
     def changeTemplates(self, question=None, answer=None, css=None):
         if question is not None and question != self['qfmt']:
             self['qfmt'] = question
             if self.model.isStd():
-                self.setReq()
+                self.markReqChanged()
         if answer is not None:
             self['afmt'] = answer
         if css is not None:
