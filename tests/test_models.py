@@ -114,12 +114,10 @@ def test_cloze_ordinals():
     m = d.models.current(); mm = d.models
     
     #We replace the default Cloze template
-    t = mm.newTemplate("ChainedCloze")
+    t = m['tmpls'][0]
     t['qfmt'] = "{{text:cloze:Text}}"
     t['afmt'] = "{{text:cloze:Text}}"
-    mm.addTemplate(m, t)
     mm.save(m)
-    d.models.remTemplate(m, m['tmpls'][0])
     
     f = d.newNote()
     f['Text'] = '{{c1::firstQ::firstA}}{{c2::secondQ::secondA}}'
@@ -206,12 +204,10 @@ def test_chained_mods():
     m = d.models.current(); mm = d.models
     
     #We replace the default Cloze template
-    t = mm.newTemplate("ChainedCloze")
+    t = m['tmpls'][0]
     t['qfmt'] = "{{cloze:text:Text}}"
     t['afmt'] = "{{cloze:text:Text}}"
-    mm.addTemplate(m, t)
     mm.save(m)
-    d.models.remTemplate(m, m['tmpls'][0])
     
     f = d.newNote()
     q1 = '<span style=\"color:red\">phrase</span>'
