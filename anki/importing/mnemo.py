@@ -128,7 +128,7 @@ acq_reps+ret_reps, lapses, card_type_id from cards"""):
             model = addBasicModel(self.col)
             model.setName("Mnemosyne-FrontOnly")
         mm = self.col.models
-        model.save()
+        model.save(updateReqs=False)
         model.setCurrent()
         self.model = model
         self._fields = len(model['flds'])
