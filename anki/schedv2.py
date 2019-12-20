@@ -936,12 +936,6 @@ end)
 update cards set queue=?,mod=?,usn=? where id in """+ids2str(cids),
                             queue, intTime(), self.col.usn())
 
-    def buryNote(self, nid):
-        "Bury all cards for note until next session."
-        cids = self.col.db.list(
-            "select id from cards where nid = ? and queue >= 0", nid)
-        self.buryCards(cids)
-
     def unburyCards(self):
         "Unbury all buried cards in all decks."
         self.col.log(

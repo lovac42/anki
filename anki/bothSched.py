@@ -616,3 +616,11 @@ To study outside of the normal schedule, click the Custom Study button below."""
             ivlStr = "<"+ivlStr
         return ivlStr
 
+    # Suspending
+    ##########################################################################
+
+    def buryNote(self, nid):
+        "Bury all cards for note until next session."
+        cids = self.col.db.list(
+            "select id from cards where nid = ? and queue >= 0", nid)
+        self.buryCards(cids)
