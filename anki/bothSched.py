@@ -746,3 +746,7 @@ and due >= ? and queue = {QUEUE_NEW}""" % (scids), now, self.col.usn(), shiftby,
             cardData.append(dict(now=now, due=due[nid], usn=self.col.usn(), cid=id))
         self.col.db.executemany(
             "update cards set due=:due,mod=:now,usn=:usn where id = :cid", cardData)
+
+    def randomizeCards(self, did):
+        cids = self.col.db.list("select id from cards where did = ?", did)
+        self.sortCards(cids, shuffle=True)
