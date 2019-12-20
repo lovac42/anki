@@ -588,3 +588,10 @@ Some related or buried cards were delayed until a later session.""")+now)
             line.append(_("""\
 To study outside of the normal schedule, click the Custom Study button below."""))
         return "<p>".join(line)
+
+    def revDue(self):
+        "True if there are any rev cards due."
+        return self.col.db.scalar(
+            (f"select 1 from cards where did in %s and queue = {QUEUE_REV} "
+             "and due <= ? limit 1") % self._deckLimit(),
+            self.today)

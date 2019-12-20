@@ -905,13 +905,6 @@ did = ?, queue = %s, due = ?, usn = ? where id = ?""" % queue, data)
     # Deck finished state
     ##########################################################################
 
-    def revDue(self):
-        "True if there are any rev cards due."
-        return self.col.db.scalar(
-            (f"select 1 from cards where did in %s and queue = {QUEUE_REV} "
-             "and due <= ? limit 1") % (self._deckLimit()),
-            self.today)
-
     def newDue(self):
         "True if there are any new cards due."
         return self.col.db.scalar(
