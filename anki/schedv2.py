@@ -708,9 +708,6 @@ due = (case when odue>0 then odue else due end), odue = 0, odid = 0, usn = ? whe
             self._restoreQueueSnippet, lim),
                             self.col.usn())
 
-    def remFromDyn(self, cids):
-        self.emptyDyn(None, "id in %s and odid" % ids2str(cids))
-
     def _dynOrder(self, order, limit):
         if order == DYN_OLDEST:
             sort = "(select max(id) from revlog where cid=card.id)"

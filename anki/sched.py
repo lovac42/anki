@@ -777,9 +777,6 @@ else type end), type = (case when type = {CARD_LRN} then {CARD_NEW} else type en
 due = odue, odue = 0, odid = 0, usn = ? where %s""" % (lim),
                             self.col.usn())
 
-    def remFromDyn(self, cids):
-        self.emptyDyn(None, "id in %s and odid" % ids2str(cids))
-
     def _dynOrder(self, order, limit):
         if order == DYN_OLDEST:
             ord = "(select max(id) from revlog where cid=card.id)"
