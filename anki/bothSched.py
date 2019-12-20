@@ -8,8 +8,7 @@ from operator import itemgetter
 
 from anki.consts import *
 from anki.lang import _
-from anki.utils import ids2str, intTime
-from anki.utils import fmtTimeSpan
+from anki.utils import fmtTimeSpan, ids2str, intTime
 
 # it uses the following elements from anki.consts
 # card types: 0=new, 1=lrn, 2=rev, 3=relrn
@@ -657,3 +656,18 @@ and (queue={QUEUE_NEW} or (queue={QUEUE_REV} and due<=?))""",
                     pass
         # burying is done by the concrete class
         return toBury
+
+    # Resetting
+    ##########################################################################
+
+    def forgetCards(self, ids):
+        "Put cards at the end of the new queue."
+        self.remFromDyn(ids)
+        self.col.db.execute(
+            (f"update cards set type={CARD_NEW},queue={QUEUE_NEW},ivl=0,due=0,odue=0,factor=?"
+             " where id in ")+ids2str(ids), STARTING_FACTOR)
+        pmax = self.col.db.scalar(
+            f"select max(due) from cards where type={CARD_NEW}") or 0
+        # takes care of mod + usn
+        self.sortCards(ids, start=pmax+1)
+        self.col.log(ids)
