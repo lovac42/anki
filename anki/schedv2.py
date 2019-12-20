@@ -784,6 +784,10 @@ where id = ?
     def _cardConf(self, card):
         return self.col.decks.confForDid(card.did)
 
+    @staticmethod
+    def _getDelay(conf, oconf, kind):
+        return oconf[kind]['delays']
+
     def _newConf(self, card):
         conf = self._cardConf(card)
         # normal deck
@@ -796,7 +800,7 @@ where id = ?
             ints=oconf['new']['ints'],
             initialFactor=oconf['new']['initialFactor'],
             bury=oconf['new'].get("bury", True),
-            delays=oconf['new']['delays'],
+            delays=self._getDelay(conf, oconf, 'new'),
             # overrides
             separate=conf['separate'],
             order=NEW_CARDS_DUE,
@@ -816,7 +820,7 @@ where id = ?
             leechFails=oconf['lapse']['leechFails'],
             leechAction=oconf['lapse']['leechAction'],
             mult=oconf['lapse']['mult'],
-            delays=oconf['lapse']['delays'],
+            delays=self._getDelay(conf, oconf, 'lapse'),
             # overrides
             resched=conf['resched'],
         )
