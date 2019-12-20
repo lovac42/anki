@@ -9,6 +9,7 @@ from operator import itemgetter
 from anki.consts import *
 from anki.lang import _
 from anki.utils import ids2str, intTime
+from anki.utils import fmtTimeSpan
 
 # it uses the following elements from anki.consts
 # card types: 0=new, 1=lrn, 2=rev, 3=relrn
@@ -601,3 +602,17 @@ To study outside of the normal schedule, click the Custom Study button below."""
         return self.col.db.scalar(
             (f"select 1 from cards where did in %s and queue = {QUEUE_NEW} "
              "limit 1") % (self._deckLimit(),))
+
+    # Next time reports
+    ##########################################################################
+
+    def nextIvlStr(self, card, ease, short=False):
+        "Return the next interval for CARD as a string."
+        ivl = self.nextIvl(card, ease)
+        if not ivl:
+            return _("(end)")
+        ivlStr = fmtTimeSpan(ivl, short=short)
+        if ivl < self.col.conf['collapseTime']:
+            ivlStr = "<"+ivlStr
+        return ivlStr
+
