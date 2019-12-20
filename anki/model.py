@@ -74,7 +74,8 @@ class Model(DictAugmentedIdUsn):
         self._setID()
         self.update()
         self.setCurrent()
-        self.save()
+        self._updateRequired()
+        self.save(updateReqs=False)
 
     def update(self):
         "Add or update an existing model. Used for syncing and merging."
