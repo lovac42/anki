@@ -671,3 +671,19 @@ and (queue={QUEUE_NEW} or (queue={QUEUE_REV} and due<=?))""",
         # takes care of mod + usn
         self.sortCards(ids, start=pmax+1)
         self.col.log(ids)
+
+    def reschedCards(self, ids, imin, imax):
+        "Put cards in review queue with a new interval in days (min, max)."
+        cardData = []
+        today = self.today
+        mod = intTime()
+        for id in ids:
+            randValue = random.randint(imin, imax)
+            cardData.append(dict(id=id, due=randValue+today, ivl=max(1, randValue), mod=mod,
+                          usn=self.col.usn(), fact=STARTING_FACTOR))
+        self.remFromDyn(ids)
+        self.col.db.executemany(f"""
+update cards set type={CARD_DUE},queue={QUEUE_REV},ivl=:ivl,due=:due,odue=0,
+usn=:usn,mod=:mod,factor=:fact where id=:id""",
+                                cardData)
+        self.col.log(ids)
