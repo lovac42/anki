@@ -857,16 +857,6 @@ where id = ?
     # Next time reports
     ##########################################################################
 
-    def nextIvlStr(self, card, ease, short=False):
-        "Return the next interval for CARD as a string."
-        ivl = self.nextIvl(card, ease)
-        if not ivl:
-            return _("(end)")
-        ivlStr = fmtTimeSpan(ivl, short=short)
-        if ivl < self.col.conf['collapseTime']:
-            ivlStr = "<"+ivlStr
-        return ivlStr
-
     def nextIvl(self, card, ease):
         "Return the next interval for CARD, in seconds."
         # preview mode?
