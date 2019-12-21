@@ -671,7 +671,8 @@ def test_filt_reviewing_early_normal():
     d.sched.rebuildDyn(did)
     d.reset()
     # should appear as normal in the deck list
-    assert sorted(d.sched.deckDueList())[0][2] == 1
+    d.sched.deckDueList()
+    assert d.decks.all(sort=True)[0].count['singleDue']['rev'] == 1
     # and should appear in the counts
     assert d.sched.counts() == (0,0,1)
     # grab it and check estimates
@@ -968,12 +969,15 @@ def test_deckDue():
     d.addNote(f)
     d.reset()
     assert len(d.decks.all()) == 5
-    cnts = d.sched.deckDueList()
-    assert cnts[0] == [["Default"], 1, 1, 0, 1]
-    assert cnts[1] == [["Default", "1"], default1, 1, 0, 0]
-    assert cnts[2] == [["foo"], d.decks.id("foo"), 0, 0, 0]
-    assert cnts[3] == [["foo", "bar"], foobar, 0, 0, 1]
-    assert cnts[4] == [["foo", "baz"], foobaz, 0, 0, 1]
+    d.sched.deckDueList()
+    cnts = d.decks.all(sort=True)
+    def l(deck):
+        return [deck.getPath(), deck.getId(), deck.count['singleDue']['rev'], deck.count['singleDue']['lrn'], deck.count['singleDue']['new']]
+    assert l(cnts[0]) == [["Default"], 1, 1, 0, 1]
+    assert l(cnts[1]) == [["Default", "1"], default1, 1, 0, 0]
+    assert l(cnts[2]) == [["foo"], d.decks.id("foo"), 0, 0, 0]
+    assert l(cnts[3]) == [["foo", "bar"], foobar, 0, 0, 1]
+    assert l(cnts[4]) == [["foo", "baz"], foobaz, 0, 0, 1]
     tree = d.sched.deckDueTree()
     assert tree[0][0] == "Default"
     # sum of child and parent
