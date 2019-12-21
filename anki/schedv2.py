@@ -130,7 +130,6 @@ order by due""" % (self.col.decks._deckLimit()),
     ##########################################################################
 
     def _groupChildrenMain(self, decks, depth=0):
-        tree = []
         # group and recurse
         def key(deck):
             return deck.getPath()[depth]
@@ -141,7 +140,7 @@ order by due""" % (self.col.decks._deckLimit()),
             current.count['due']['lrn'] = current.count['singleDue']['lrn']
             current.count['due']['new'] = current.count['singleDue']['new']
             childrenDecks = tail[1:]
-            children = self._groupChildrenMain(childrenDecks, depth+1)
+            self._groupChildrenMain(childrenDecks, depth+1)
             # tally up children counts
             for ch in childrenDecks:
                 current.count['due']['lrn'] += ch.count['due']['lrn']
@@ -150,8 +149,6 @@ order by due""" % (self.col.decks._deckLimit()),
             conf = current.getConf()
             if conf.isStd():
                 current.count['due']['new'] = max(0, min(current.count['due']['new'], conf['new']['perDay']-current['newToday'][1]))
-            tree.append((head, current.getId(), current.count['due']['rev'], current.count['due']['lrn'], current.count['due']['new'], children))
-        return tuple(tree)
 
     # Getting the next card
     ##########################################################################
