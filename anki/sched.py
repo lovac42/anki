@@ -489,11 +489,7 @@ did = ? and queue = {QUEUE_REV} and due <= ? limit %d)""" % (lim),
         super()._resetRev()
         self._revDids = self.col.decks.active()[:]
 
-    def _fillRev(self):
-        if self._revQueue:
-            return True
-        if not self.revCount:
-            return False
+    def _fillRevInternal(self):
         while self._revDids:
             did = self._revDids[0]
             lim = min(self.queueLimit, self._deckRevLimit(did))
@@ -519,12 +515,6 @@ did = ? and queue = {QUEUE_REV} and due <= ? limit ?""",
                     return True
             # nothing left in the deck; move to next
             self._revDids.pop(0)
-        if self.revCount:
-            # if we didn't get a card but the count is non-zero,
-            # we need to check again for any cards that were
-            # removed from the queue but not buried
-            self._resetRev()
-            return self._fillRev()
 
     # Answering a review card
     ##########################################################################
