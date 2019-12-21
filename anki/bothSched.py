@@ -66,6 +66,12 @@ class BothScheduler:
     # Rev/lrn/time daily stats
     ##########################################################################
 
+    def revCount(self):
+        return self._revCount
+
+    def setRevCount(self, value):
+        self._revCount = value
+
     def _updateStats(self, card, type, cnt=1):
         key = type+"Today"
         for ancestor in card.currentDeck().getAncestors(includeSelf=True):
@@ -216,9 +222,9 @@ did = ? and queue = {QUEUE_NEW} limit ?)""", did, lim)
         if self.col.conf['newSpread'] == NEW_CARDS_DISTRIBUTE:
             if self.newCount():
                 self.newCardModulus = (
-                    (self.newCount() + self.revCount) // self.newCount())
+                    (self.newCount() + self.revCount()) // self.newCount())
                 # if there are cards to review, ensure modulo >= 2
-                if self.revCount:
+                if self.revCount():
                     self.newCardModulus = max(2, self.newCardModulus)
                 return
         self.newCardModulus = 0
@@ -464,7 +470,7 @@ select {count} from
 
     def _getRevCard(self):
         if self._fillRev():
-            self.revCount -= 1
+            self.setRevCount(self.revCount() - 1)
             return self.col.getCard(self._revQueue.pop())
 
     def totalRevForCurrentDeck(self):
@@ -478,11 +484,11 @@ select id from cards where did in %s and queue = {QUEUE_REV} and due <= ? limit 
     def _fillRev(self):
         if self._revQueue:
             return True
-        if not self.revCount:
+        if not self.revCount():
             return False
         if self._fillRevInternal():
             return True
-        if self.revCount:
+        if self.revCount():
             # if we didn't get a card but the count is non-zero,
             # we need to check again for any cards that were
             # removed from the queue but not buried
