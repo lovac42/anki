@@ -401,10 +401,11 @@ def test_review_limits():
         c.due = 0
         c.flush()
 
-    tree = d.sched.deckDueTree()
+    d.reset()
     # (('Default', 1, 0, 0, 0, ()), ('parent', 1514457677462, 5, 0, 0, (('child', 1514457677463, 5, 0, 0, ()),)))
-    assert tree[1][2] == 5 # parent
-    assert tree[1][5][0][2] == 5 # child
+    d.sched.deckDueTree()
+    assert parent.count['due']['rev'] == 5 # parent
+    assert child.count['due']['rev'] == 5 # child
 
     # .counts() should match
     child.select()
@@ -416,9 +417,9 @@ def test_review_limits():
     d.sched.answerCard(c, 3)
     assert d.sched.counts() == (0, 0, 4)
 
-    tree = d.sched.deckDueTree()
-    assert tree[1][2] == 4 # parent
-    assert tree[1][5][0][2] == 4 # child
+    d.sched.deckDueTree()
+    assert parent.count['due']['rev'] == 4
+    assert child.count['due']['rev'] == 4
 
     # switch limits
     parent.setConf(cconf.getId())
@@ -427,9 +428,9 @@ def test_review_limits():
     d.sched.reset()
 
     # child limits do not affect the parent
-    tree = d.sched.deckDueTree()
-    assert tree[1][2] == 9 # parent
-    assert tree[1][5][0][2] == 4 # child
+    d.sched.deckDueTree()
+    assert child.count['due']['rev'] == 4 # child
+    assert parent.count['due']['rev'] == 9 # parent
 
 def test_button_spacing():
     d = getEmptyCol()
@@ -978,21 +979,20 @@ def test_deckDue():
     assert l(cnts[2]) == [["foo"], d.decks.id("foo"), 0, 0, 0]
     assert l(cnts[3]) == [["foo", "bar"], foobar, 0, 0, 1]
     assert l(cnts[4]) == [["foo", "baz"], foobaz, 0, 0, 1]
-    tree = d.sched.deckDueTree()
-    assert tree[0][0] == "Default"
+    d.sched.deckDueTree()
+    tree = d.decks.all(sort=True)
+    assert tree[0].getBaseName() == "Default"
     # sum of child and parent
-    assert tree[0][1] == 1
-    assert tree[0][2] == 1
-    assert tree[0][4] == 1
+    assert tree[0].getId() == 1
+    assert tree[0].count['due']['rev'] == 1
+    assert tree[0].count['due']['new'] == 1
     # child count is just review
-    assert tree[0][5][0][0] == "1"
-    assert tree[0][5][0][1] == default1
-    assert tree[0][5][0][2] == 1
-    assert tree[0][5][0][4] == 0
+    assert tree[0].getChildren()[0].getBaseName() == "1"
+    assert tree[0].getChildren()[0].getId() == default1
+    assert tree[0].getChildren()[0].count['due']['rev'] == 1
+    assert tree[0].getChildren()[0].count['due']['new'] == 0
     # code should not fail if a card has an invalid deck
     c.did = 12345; c.flush()
-    d.sched.deckDueList()
-    d.sched.deckDueTree()
 
 def test_deckTree():
     d = getEmptyCol()
