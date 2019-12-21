@@ -143,7 +143,7 @@ order by due""" % (self.col.decks._deckLimit()),
     # Deck list
     ##########################################################################
 
-    def _groupChildrenMain(self, decks, depth=0):
+    def _groupChildrenMain(self, current):
         """
         [subdeck name without parent parts,
         did, rev, lrn, new (counting subdecks)
@@ -152,26 +152,21 @@ order by due""" % (self.col.decks._deckLimit()),
         keyword arguments:
         grps -- [[subdeck], did, rev, lrn, new] sorted according to the list subdeck. Number for the subdeck precisely"""
         # group and recurse
-        def key(deck):
-            return deck.getPath()[depth]
-        for (head, tail) in itertools.groupby(decks, key=key):
-            tail = list(tail)
-            current = tail[0]
-            current.count['due']['rev'] = current.count['singleDue']['rev']
-            current.count['due']['lrn'] = current.count['singleDue']['lrn']
-            current.count['due']['new'] = current.count['singleDue']['new']
-            childrenDecks = tail[1:]
-            self._groupChildrenMain(childrenDecks, depth+1)
-            # tally up children counts
-            for ch in childrenDecks:
-                current.count['due']['rev'] += ch.count['due']['rev']
-                current.count['due']['lrn'] += ch.count['due']['lrn']
-                current.count['due']['new'] += ch.count['due']['new']
-            # limit the counts to the deck's limits
-            conf = current.getConf()
-            if conf.isStd():
-                current.count['due']['rev'] = max(0, min(current.count['due']['rev'], conf['rev']['perDay']-current['revToday'][1]))
-                current.count['due']['new'] = max(0, min(current.count['due']['new'], conf['new']['perDay']-current['newToday'][1]))
+        current.count['due']['rev'] = current.count['singleDue']['rev']
+        current.count['due']['lrn'] = current.count['singleDue']['lrn']
+        current.count['due']['new'] = current.count['singleDue']['new']
+        childrenDecks = current.getChildren()
+        # tally up children counts
+        for ch in childrenDecks:
+            self._groupChildrenMain(ch)
+            current.count['due']['rev'] += ch.count['due']['rev']
+            current.count['due']['lrn'] += ch.count['due']['lrn']
+            current.count['due']['new'] += ch.count['due']['new']
+        # limit the counts to the deck's limits
+        conf = current.getConf()
+        if conf.isStd():
+            current.count['due']['rev'] = max(0, min(current.count['due']['rev'], conf['rev']['perDay']-current['revToday'][1]))
+            current.count['due']['new'] = max(0, min(current.count['due']['new'], conf['new']['perDay']-current['newToday'][1]))
 
     # Getting the next card
     ##########################################################################
