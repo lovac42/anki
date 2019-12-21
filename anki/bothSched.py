@@ -130,7 +130,7 @@ class BothScheduler:
         [recursively the same things for the children]]
 
         Keyword arguments:
-        decks -- [deckname, did, rev, lrn, new]
+        decks -- [deck path, did, rev, lrn, new]
         """
         # and sort based on those components
         decks.sort(key=itemgetter(0))
