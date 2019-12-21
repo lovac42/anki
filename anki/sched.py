@@ -156,18 +156,16 @@ order by due""" % (self._deckLimit()),
         def key(deck):
             return deck[0][0]
         for (head, tail) in itertools.groupby(decks, key=key):
-            children = []
-            for node in tail:
-                if len(node[0]) == 1:
-                    # current node
-                    did = node[1]
-                    rev = node[2]
-                    lrn = node[3]
-                    new = node[4]
-                else:
-                    # set new string to tail
-                    node[0] = node[0][1:]
-                    children.append(node)
+            tail = list(tail)
+            current = tail[0]
+            did = current[1]
+            rev = current[2]
+            lrn = current[3]
+            new = current[4]
+            children = tail[1:]
+            for node in children:
+                # set new string to tail
+                node[0] = node[0][1:]
             children = self._groupChildrenMain(children)
             # tally up children counts
             for ch in children:
