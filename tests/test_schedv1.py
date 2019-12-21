@@ -982,6 +982,11 @@ def test_deckDue():
     assert tree[0][2] == 1
     assert tree[0][4] == 1
     # child count is just review
+    #print(f"tree[0][5][0][0] is {tree[0][5][0][0]}")
+    tree[0]
+    tree[0][5]
+    tree[0][5][0]
+    tree[0][5][0][0]
     assert tree[0][5][0][0] == "1"
     assert tree[0][5][0][1] == default1
     assert tree[0][5][0][2] == 1
