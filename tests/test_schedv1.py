@@ -576,7 +576,8 @@ def test_cram():
     d.sched.rebuildDyn(cram.getId())
     d.reset()
     # should appear as new in the deck list
-    assert sorted(d.sched.deckDueList())[0][4] == 1
+    d.sched.deckDueList()
+    assert d.decks.all(sort=True)[0].count['singleDue']['new'] == 1
     # and should appear in the counts
     assert d.sched.counts() == (1,0,0)
     # grab it and check estimates
@@ -634,7 +635,7 @@ def test_cram():
     assert d.sched.nextIvl(c, 3) == 86400
     # delete the deck, returning the card mid-study
     d.decks.get(d.decks.selected()).rem()
-    assert len(d.sched.deckDueList()) == 1
+    d.sched.deckDueList()
     c.load()
     assert c.ivl == 1
     assert c.due == d.sched.today+1
@@ -965,12 +966,15 @@ def test_deckDue():
     d.addNote(f)
     d.reset()
     assert len(d.decks.all()) == 5
-    cnts = d.sched.deckDueList()
-    assert cnts[0] == [["Default"], 1, 0, 0, 1]
-    assert cnts[1] == [["Default", "1"], default1, 1, 0, 0]
-    assert cnts[2] == [["foo"], d.decks.id("foo"), 0, 0, 0]
-    assert cnts[3] == [["foo", "bar"], foobar, 0, 0, 1]
-    assert cnts[4] == [["foo", "baz"], foobaz, 0, 0, 1]
+    d.sched.deckDueList()
+    def l(deck):
+        return [deck.getPath(), deck.getId(), deck.count['singleDue']['rev'], deck.count['singleDue']['lrn'], deck.count['singleDue']['new']]
+    cnts = d.decks.all(sort=True)
+    assert l(cnts[0]) == [["Default"], 1, 0, 0, 1]
+    assert l(cnts[1]) == [["Default", "1"], default1, 1, 0, 0]
+    assert l(cnts[2]) == [["foo"], d.decks.id("foo"), 0, 0, 0]
+    assert l(cnts[3]) == [["foo", "bar"], foobar, 0, 0, 1]
+    assert l(cnts[4]) == [["foo", "baz"], foobaz, 0, 0, 1]
     tree = d.sched.deckDueTree()
     assert tree[0][0] == "Default"
     # sum of child and parent
