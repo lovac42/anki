@@ -83,14 +83,14 @@ class Scheduler(BothScheduler):
             # repeat after delay
             card.queue = QUEUE_PREVIEW
             card.due = intTime() + self._previewDelay(card)
-            self.lrnCount += 1
+            self.setLrnCount(self.lrnCount() + 1)
         else: #BUTTON_TWO
             # restore original card state and remove from filtered deck
             self._restorePreviewCard(card)
             self._removeFromFiltered(card)
 
     def counts(self, card=None):
-        counts = [self.newCount(), self.lrnCount, self.revCount()]
+        counts = [self.newCount(), self.lrnCount(), self.revCount()]
         if card:
             idx = self.countIdx(card)
             counts[idx] += 1
@@ -181,20 +181,20 @@ order by due""" % (self.col.decks._deckLimit()),
 
     def _resetLrnCount(self):
         # sub-day
-        self.lrnCount = self.col.db.scalar(f"""
+        self.setLrnCount(self.col.db.scalar(f"""
 select count() from cards where did in %s and queue = {QUEUE_LRN}
 and due < ?""" %
             self.col.decks._deckLimit(),
-            self._lrnCutoff) or 0
+            self._lrnCutoff) or 0)
         # day
-        self.lrnCount += self.col.db.scalar(f"""
+        self.setLrnCount(self.lrnCount() + self.col.db.scalar(f"""
 select count() from cards where did in %s and queue = {QUEUE_DAY_LRN}
 and due <= ?""" % self.col.decks._deckLimit(),
-                                            self.today)
+                                            self.today))
         # previews
-        self.lrnCount += self.col.db.scalar(f"""
+        self.setLrnCount(self.lrnCount() + self.col.db.scalar(f"""
 select count() from cards where did in %s and queue = {QUEUE_PREVIEW}
-""" % self.col.decks._deckLimit())
+""" % self.col.decks._deckLimit()))
 
     def _resetLrn(self):
         self._updateLrnCutoff(force=True)
@@ -206,7 +206,7 @@ select count() from cards where did in %s and queue = {QUEUE_PREVIEW}
         return super()._fillLrn(cutoff, f"queue in ({QUEUE_LRN},{QUEUE_PREVIEW})")
 
     def _getLrnCard(self, collapse=False):
-        self._maybeResetLrn(force=collapse and self.lrnCount == 0)
+        self._maybeResetLrn(force=collapse and self.lrnCount() == 0)
         if self._fillLrn():
             cutoff = time.time()
             if collapse:
@@ -214,7 +214,7 @@ select count() from cards where did in %s and queue = {QUEUE_PREVIEW}
             if self._lrnQueue[0][0] < cutoff:
                 id = heappop(self._lrnQueue)[1]
                 card = self.col.getCard(id)
-                self.lrnCount -= 1
+                self.setLrnCount(self.lrnCount() - 1)
                 return card
 
     def _answerLrnCard(self, card, ease):
@@ -286,7 +286,7 @@ select count() from cards where did in %s and queue = {QUEUE_PREVIEW}
             card.due = min(self.dayCutoff-1, card.due + fuzz)
             card.queue = QUEUE_LRN
             if card.due < (intTime() + self.col.conf['collapseTime']):
-                self.lrnCount += 1
+                self.setLrnCount(self.lrnCount() + 1)
                 # if the queue is not empty and there's nothing else to do, make
                 # sure we don't put it at the head of the queue and end up showing
                 # it twice in a row
