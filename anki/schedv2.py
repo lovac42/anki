@@ -465,12 +465,7 @@ did in %s and queue = {QUEUE_REV} and due <= ? limit {lim})""" %
                                            ids2str(self.col.decks.active()),
                                            self.today)
 
-    def _fillRev(self):
-        if self._revQueue:
-            return True
-        if not self.revCount:
-            return False
-
+    def _fillRevInternal(self):
         lim = min(self.queueLimit, self._currentRevLimit())
         if lim:
             self._revQueue = self.col.db.list(f"""
@@ -484,13 +479,6 @@ limit ?""" % ids2str(self.col.decks.active()),
                 # preserve order
                 self._revQueue.reverse()
                 return True
-
-        if self.revCount:
-            # if we didn't get a card but the count is non-zero,
-            # we need to check again for any cards that were
-            # removed from the queue but not buried
-            self._resetRev()
-            return self._fillRev()
 
     # Answering a review card
     ##########################################################################

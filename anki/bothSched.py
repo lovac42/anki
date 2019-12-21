@@ -440,6 +440,20 @@ select id from cards where did in %s and queue = {QUEUE_REV} and due <= ? limit 
             % ids2str(self.col.decks.active()), self.today, self.reportLimit
 )
 
+    def _fillRev(self):
+        if self._revQueue:
+            return True
+        if not self.revCount:
+            return False
+        if self._fillRevInternal():
+            return True
+        if self.revCount:
+            # if we didn't get a card but the count is non-zero,
+            # we need to check again for any cards that were
+            # removed from the queue but not buried
+            self._resetRev()
+            return self._fillRev()
+
     # Interval management
     ##########################################################################
 
