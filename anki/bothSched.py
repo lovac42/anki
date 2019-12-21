@@ -319,6 +319,12 @@ select id from cards where did in %s and queue = {QUEUE_NEW} limit ?)"""
     # Learning queues
     ##########################################################################
 
+    def lrnCount(self):
+        return self._lrnCount
+
+    def setLrnCount(self, value):
+        self._lrnCount = value
+
     def _resetLrn(self):
         """Set lrnCount and _lrnDids. Empty _lrnQueue, lrnDayQueu."""
         self._resetLrnCount()
@@ -328,7 +334,7 @@ select id from cards where did in %s and queue = {QUEUE_NEW} limit ?)"""
 
     # sub-day learning
     def _fillLrn(self, cutoff, queue):
-        if not self.lrnCount:
+        if not self.lrnCount():
             return False
         if self._lrnQueue:
             return True
@@ -342,7 +348,7 @@ limit %d""" % (self.col.decks._deckLimit(), self.reportLimit), lim=cutoff)
 
     # daily learning
     def _fillLrnDay(self):
-        if not self.lrnCount:
+        if not self.lrnCount():
             return False
         if self._lrnDayQueue:
             return True
@@ -367,7 +373,7 @@ did = ? and queue = {QUEUE_DAY_LRN} and due <= ? limit ?""",
 
     def _getLrnDayCard(self):
         if self._fillLrnDay():
-            self.lrnCount -= 1
+            self.setLrnCount(self.lrnCount() - 1)
             return self.col.getCard(self._lrnDayQueue.pop())
 
     def _leftToday(self, delays, left, now=None):

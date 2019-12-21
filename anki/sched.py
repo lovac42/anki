@@ -74,7 +74,7 @@ class Scheduler(BothScheduler):
 
         If cards, then the tuple takes into account the card.
         """
-        counts = [self.newCount(), self.lrnCount, self.revCount()]
+        counts = [self.newCount(), self.lrnCount(), self.revCount()]
         if card:
             idx = self.countIdx(card)
             if idx == QUEUE_LRN:
@@ -193,16 +193,16 @@ order by due""" % (self.col.decks._deckLimit()),
     def _resetLrnCount(self):
         """Set lrnCount"""
         # Number of reps which are due today, last seen today caped by report limit, in the selected decks
-        self.lrnCount = self.col.db.scalar(f"""
+        self.setLrnCount(self.col.db.scalar(f"""
 select sum(left/1000) from (select left from cards where
 did in %s and queue = {QUEUE_LRN} and due < ? limit %d)""" % (
             self.col.decks._deckLimit(), self.reportLimit),
-            self.dayCutoff) or 0
+            self.dayCutoff) or 0)
         # Number of cards in learning which are due today, last seen another day caped by report limit, in the selected decks
-        self.lrnCount += self.col.db.scalar(f"""
+        self.setLrnCount(self.lrnCount() + self.col.db.scalar(f"""
 select count() from cards where did in %s and queue = {QUEUE_DAY_LRN}
 and due <= ? limit %d""" % (self.col.decks._deckLimit(),  self.reportLimit),
-                                            self.today)
+                                            self.today))
 
     # sub-day learning
     def _fillLrn(self):
@@ -216,7 +216,7 @@ and due <= ? limit %d""" % (self.col.decks._deckLimit(),  self.reportLimit),
             if self._lrnQueue[0][0] < cutoff:
                 id = heappop(self._lrnQueue)[1]
                 card = self.col.getCard(id)
-                self.lrnCount -= card.left // 1000
+                self.setLrnCount(self.lrnCount() - card.left // 1000)
                 return card
 
     def _answerLrnCard(self, card, ease):
@@ -264,7 +264,7 @@ and due <= ? limit %d""" % (self.col.decks._deckLimit(),  self.reportLimit),
             card.due = int(time.time() + delay)
             # due today?
             if card.due < self.dayCutoff:
-                self.lrnCount += card.left // 1000
+                self.setLrnCount(self.lrnCount() + card.left // 1000)
                 # if the queue is not empty and there's nothing else to do, make
                 # sure we don't put it at the head of the queue and end up showing
                 # it twice in a row
@@ -527,7 +527,7 @@ did = ? and queue = {QUEUE_REV} and due <= ? limit ?""",
         card.left = self._startingLeft(card)
         # queue LRN
         if card.due < self.dayCutoff:
-            self.lrnCount += card.left // 1000
+            self.setLrnCount(self.lrnCount() + card.left // 1000)
             card.queue = QUEUE_LRN
             heappush(self._lrnQueue, (card.due, card.id))
         else:
