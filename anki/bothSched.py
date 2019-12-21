@@ -145,16 +145,16 @@ class BothScheduler:
             deck.count['lim']['new'] = self._deckNewLimitSingle(deck)
             if parentName:
                 deck.count['lim']['new'] = min(deck.count['lim']['new'], lims[parentName][0])
-            new = self._newForDeck(deck.getId(), deck.count['lim']['new'])
+            deck.count['singleDue']['new'] = self._newForDeck(deck.getId(), deck.count['lim']['new'])
             # learning
-            lrn = self._lrnForDeck(deck.getId())
+            deck.count['singleDue']['lrn'] = self._lrnForDeck(deck.getId())
             # reviews
             deck.count['lim']['rev'] = self._deckRevLimitSingle(deck)
             if parentName:
                 deck.count['lim']['rev'] = min(deck.count['lim']['rev'], lims[parentName][1])
-            rev = self._revForDeck(deck.getId(), deck.count['lim']['rev'])
+            deck.count['singleDue']['rev'] = self._revForDeck(deck.getId(), deck.count['lim']['rev'])
             # save to list
-            data.append([self.col.decks._path(deck.getName()), deck.getId(), rev, lrn, new])
+            data.append([self.col.decks._path(deck.getName()), deck.getId(), deck.count['singleDue']['rev'], deck.count['singleDue']['lrn'], deck.count['singleDue']['new']])
             # add deck as a parent
             lims[deck.getName()] = [deck.count['lim']['new'], deck.count['lim']['rev']]
         return data
