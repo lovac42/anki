@@ -142,23 +142,21 @@ class BothScheduler:
         for deck in decks:
             parentName = self.col.decks.parentName(deck.getName())
             # new
-            #nlim -- maximal number of new card, taking parent into account
-            nlim = self._deckNewLimitSingle(deck)
+            deck.count['lim']['new'] = self._deckNewLimitSingle(deck)
             if parentName:
-                nlim = min(nlim, lims[parentName][0])
-            new = self._newForDeck(deck.getId(), nlim)
+                deck.count['lim']['new'] = min(deck.count['lim']['new'], lims[parentName][0])
+            new = self._newForDeck(deck.getId(), deck.count['lim']['new'])
             # learning
             lrn = self._lrnForDeck(deck.getId())
             # reviews
-            #rlim -- maximal number of review, taking parent into account
-            rlim = self._deckRevLimitSingle(deck)
+            deck.count['lim']['rev'] = self._deckRevLimitSingle(deck)
             if parentName:
-                rlim = min(rlim, lims[parentName][1])
-            rev = self._revForDeck(deck.getId(), rlim)
+                deck.count['lim']['rev'] = min(deck.count['lim']['rev'], lims[parentName][1])
+            rev = self._revForDeck(deck.getId(), deck.count['lim']['rev'])
             # save to list
             data.append([self.col.decks._path(deck.getName()), deck.getId(), rev, lrn, new])
             # add deck as a parent
-            lims[deck.getName()] = [nlim, rlim]
+            lims[deck.getName()] = [deck.count['lim']['new'], deck.count['lim']['rev']]
         return data
 
     def _deckLimitSingle(self, deck, kind):
