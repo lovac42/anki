@@ -169,7 +169,13 @@ class BothScheduler:
         cntFn = lambda did, lim: self.col.db.scalar(f"""
 select count() from (select 1 from cards where
 did = ? and queue = {QUEUE_NEW} limit ?)""", did, lim)
-        self.newCount = self._walkingCount(self._deckNewLimitSingle, cntFn)
+        self.setNewCount(self._walkingCount(self._deckNewLimitSingle, cntFn))
+
+    def newCount(self):
+        return self._newCount
+
+    def setNewCount(self, value):
+        self._newCount = value
 
     def _resetNew(self):
         self._resetNewCount()
@@ -180,7 +186,7 @@ did = ? and queue = {QUEUE_NEW} limit ?)""", did, lim)
     def _fillNew(self):
         if self._newQueue:
             return True
-        if not self.newCount:
+        if not self.newCount():
             return False
         while self._newDids:
             did = self._newDids[0]
@@ -194,7 +200,7 @@ did = ? and queue = {QUEUE_NEW} limit ?)""", did, lim)
                     return True
             # nothing left in the deck; move to next
             self._newDids.pop(0)
-        if self.newCount:
+        if self.newCount():
             # if we didn't get a card but the count is non-zero,
             # we need to check again for any cards that were
             # removed from the queue but not buried
@@ -203,14 +209,14 @@ did = ? and queue = {QUEUE_NEW} limit ?)""", did, lim)
 
     def _getNewCard(self):
         if self._fillNew():
-            self.newCount -= 1
+            self.setNewCount(self.newCount() - 1)
             return self.col.getCard(self._newQueue.pop())
 
     def _updateNewCardRatio(self):
         if self.col.conf['newSpread'] == NEW_CARDS_DISTRIBUTE:
-            if self.newCount:
+            if self.newCount():
                 self.newCardModulus = (
-                    (self.newCount + self.revCount) // self.newCount)
+                    (self.newCount() + self.revCount) // self.newCount())
                 # if there are cards to review, ensure modulo >= 2
                 if self.revCount:
                     self.newCardModulus = max(2, self.newCardModulus)
@@ -219,7 +225,7 @@ did = ? and queue = {QUEUE_NEW} limit ?)""", did, lim)
 
     def _timeForNewCard(self):
         "True if it's time to display a new card when distributing."
-        if not self.newCount:
+        if not self.newCount():
             return False
         if self.col.conf['newSpread'] == NEW_CARDS_LAST:
             return False
