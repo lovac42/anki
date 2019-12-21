@@ -90,7 +90,7 @@ class Scheduler(BothScheduler):
             self._removeFromFiltered(card)
 
     def counts(self, card=None):
-        counts = [self.newCount(), self.lrnCount, self.revCount]
+        counts = [self.newCount(), self.lrnCount, self.revCount()]
         if card:
             idx = self.countIdx(card)
             counts[idx] += 1
@@ -290,7 +290,7 @@ select count() from cards where did in %s and queue = {QUEUE_PREVIEW}
                 # if the queue is not empty and there's nothing else to do, make
                 # sure we don't put it at the head of the queue and end up showing
                 # it twice in a row
-                if self._lrnQueue and not self.revCount and not self.newCount():
+                if self._lrnQueue and not self.revCount() and not self.newCount():
                     smallestDue = self._lrnQueue[0][0]
                     card.due = max(card.due, smallestDue+1)
                 heappush(self._lrnQueue, (card.due, card.id))
@@ -403,11 +403,11 @@ and due <= ? limit ?)""" % ids2str(dids),
 
     def _resetRevCount(self):
         lim = self._currentRevLimit()
-        self.revCount = self.col.db.scalar(f"""
+        self.setRevCount(self.col.db.scalar(f"""
 select count() from (select id from cards where
 did in %s and queue = {QUEUE_REV} and due <= ? limit {lim})""" %
                                            ids2str(self.col.decks.active()),
-                                           self.today)
+                                           self.today))
 
     def _fillRevInternal(self):
         lim = min(self.queueLimit, self._currentRevLimit())

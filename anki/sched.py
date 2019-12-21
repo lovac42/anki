@@ -74,7 +74,7 @@ class Scheduler(BothScheduler):
 
         If cards, then the tuple takes into account the card.
         """
-        counts = [self.newCount(), self.lrnCount, self.revCount]
+        counts = [self.newCount(), self.lrnCount, self.revCount()]
         if card:
             idx = self.countIdx(card)
             if idx == QUEUE_LRN:
@@ -269,7 +269,7 @@ and due <= ? limit %d""" % (self.col.decks._deckLimit(),  self.reportLimit),
                 # sure we don't put it at the head of the queue and end up showing
                 # it twice in a row
                 card.queue = QUEUE_LRN
-                if self._lrnQueue and not self.revCount and not self.newCount():
+                if self._lrnQueue and not self.revCount() and not self.newCount():
                     smallestDue = self._lrnQueue[0][0]
                     card.due = max(card.due, smallestDue+1)
                 heappush(self._lrnQueue, (card.due, card.id))
@@ -424,8 +424,8 @@ and due <= ? limit ?)""",
 select count() from (select id from cards where
 did = ? and queue = {QUEUE_REV} and due <= ? limit %d)""" % (lim),
                                       did, self.today)
-        self.revCount = self._walkingCount(
-            self._deckRevLimitSingle, cntFn)
+        self.setRevCount(self._walkingCount(
+            self._deckRevLimitSingle, cntFn))
 
     def _resetRev(self):
         super()._resetRev()
