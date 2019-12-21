@@ -135,19 +135,14 @@ order by due""" % (self._deckLimit()),
         def key(deck):
             return deck[0][0]
         for (head, tail) in itertools.groupby(decks, key=key):
-            tail = list(tail)
-            did = None
-            rev = 0
-            new = 0
-            lrn = 0
             children = []
             for node in tail:
                 if len(node[0]) == 1:
                     # current node
                     did = node[1]
-                    rev += node[2]
-                    lrn += node[3]
-                    new += node[4]
+                    rev = node[2]
+                    lrn = node[3]
+                    new = node[4]
                 else:
                     # set new string to tail
                     node[0] = node[0][1:]
