@@ -24,6 +24,7 @@ class Deck(DictAugmentedDyn):
         self.exporting = exporting
         self.count = {
             'lim': {},
+            'due': {},
             'singleDue': {},
         }
         super().__init__(manager, dict)
