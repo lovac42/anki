@@ -184,15 +184,6 @@ order by due""" % (self._deckLimit()),
             lims[deck['name']] = [nlim, rlim]
         return data
 
-    def deckDueTree(self):
-        """Generate the node of the main deck. See deckbroser introduction to see what a node is
-        """
-        #something similar to nodes, but without the recursive part
-        nodes_=self.deckDueList()
-        #the actual nodes
-        nodes=self._groupChildren(nodes_)
-        return nodes
-
     def _groupChildrenMain(self, decks):
         """
         [subdeck name without parent parts,

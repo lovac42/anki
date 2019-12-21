@@ -166,9 +166,6 @@ order by due""" % (self._deckLimit()),
             lims[deck['name']] = [nlim, rlim]
         return data
 
-    def deckDueTree(self):
-        return self._groupChildren(self.deckDueList())
-
     def _groupChildrenMain(self, decks):
         tree = []
         # group and recurse
