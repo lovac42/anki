@@ -129,33 +129,28 @@ order by due""" % (self.col.decks._deckLimit()),
     # Deck list
     ##########################################################################
 
-    def _groupChildrenMain(self, decks):
+    def _groupChildrenMain(self, decks, depth=0):
         tree = []
         # group and recurse
         def key(deck):
-            return deck[0][0]
+            return deck.getPath()[depth]
         for (head, tail) in itertools.groupby(decks, key=key):
             tail = list(tail)
             current = tail[0]
-            did = current[1]
-            rev = current[2]
-            lrn = current[3]
-            new = current[4]
+            rev = current.count['singleDue']['rev']
+            lrn = current.count['singleDue']['lrn']
+            new = current.count['singleDue']['new']
             children = tail[1:]
-            for node in tail:
-                # set new string to tail
-                node[0] = node[0][1:]
-            children = self._groupChildrenMain(children)
+            children = self._groupChildrenMain(children, depth+1)
             # tally up children counts
             for ch in children:
                 lrn += ch[3]
                 new += ch[4]
             # limit the counts to the deck's limits
-            conf = self.col.decks.get(did).getConf()
-            deck = self.col.decks.get(did)
+            conf = current.getConf()
             if conf.isStd():
-                new = max(0, min(new, conf['new']['perDay']-deck['newToday'][1]))
-            tree.append((head, did, rev, lrn, new, children))
+                new = max(0, min(new, conf['new']['perDay']-current['newToday'][1]))
+            tree.append((head, current.getId(), rev, lrn, new, children))
         return tuple(tree)
 
     # Getting the next card
