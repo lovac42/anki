@@ -997,7 +997,7 @@ def test_deckTree():
     d.decks.id("new::b::c")
     d.decks.id("new2")
     # new should not appear twice in tree
-    names = [x[0] for x in d.sched.deckDueTree()]
+    names = d.decks.allNames()
     names.remove("new")
     assert "new" not in names
 
