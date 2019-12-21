@@ -5,6 +5,17 @@ from anki.utils import DictAugmentedDyn
 
 
 class Deck(DictAugmentedDyn):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._path = None
+
+    def _setPath(self):
+        self._path = self.manager._path(self.getName())
+
+    def setName(self, newName):
+        super().setName(newName)
+        self._setPath()
+
     def addInManager(self):
         """Adding or replacing the deck with our id in the manager"""
         self.manager.decks[str(self.getId())] = self
@@ -22,7 +33,9 @@ class Deck(DictAugmentedDyn):
         return self.manager._basename(self.getName())
 
     def getPath(self):
-        return self.manager._path(self.getName())
+        if self._path is None:
+            self._setPath()
+        return self._path
 
     # Getter/Setter
     #############################################################
