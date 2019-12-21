@@ -232,31 +232,8 @@ order by due""" % (self._deckLimit()),
     # Getting the next card
     ##########################################################################
 
-    def _getCard(self):
-        "Return the next due card id, or None."
-        # learning card due?
-        card = self._getLrnCard()
-        if card:
-            return card
-        # new first, or time for one?
-        if self._timeForNewCard():
-            card = self._getNewCard()
-            if card:
-                return card
-        # card due for review?
-        card = self._getRevCard()
-        if card:
-            return card
-        # day learning card due?
-        card = self._getLrnDayCard()
-        if card:
-            return card
-        # new cards left?
-        card = self._getNewCard()
-        if card:
-            return card
-        # collapse or finish
-        return self._getLrnCard(collapse=True)
+    def dayLearnFirst(self):
+        return False
 
     # Learning queues
     ##########################################################################
