@@ -150,8 +150,11 @@ class ModelManager:
         self.changed = False
         self.models = dict()
         for model in json.loads(json_).values():
-            model = Model(self, model)
-            self.models[str(model['id'])] = model
+            self.models[str(model['id'])] = self.createModel(model)
+            
+
+    def createModel(self, model):
+        return Model(self, model)
 
     def save(self, model=None, templates=False, updateReqs=True):
         """

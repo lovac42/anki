@@ -460,6 +460,7 @@ from notes where %s""" % (self.maxUsn, lim))
                         raise UnexpectedSchemaChange()
                     if len(localModel['tmpls']) != len(serverModel['tmpls']):
                         raise UnexpectedSchemaChange()
+                serverModel = self.col.models.createModel(serverModel)
                 self.col.models.update(serverModel)
 
     # Decks
