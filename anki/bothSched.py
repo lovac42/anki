@@ -243,6 +243,48 @@ select count() from cards where id in (
 select id from cards where did in %s and queue = {QUEUE_NEW} limit ?)"""
             % ids2str(self.col.decks.active()), self.reportLimit)
 
+    # Getting the next card
+    ##########################################################################
+
+    def _getCard(self):
+        "Return the next due card id, or None."
+        # learning card due?
+        card = self._getLrnCard()
+        if card:
+            return card
+
+        # new first, or time for one?
+        if self._timeForNewCard():
+            card = self._getNewCard()
+            if card:
+                return card
+
+        # day learning first and card due?
+        dayLearnFirst = self.col.conf.get("dayLearnFirst", False)
+        if dayLearnFirst:
+            card = self._getLrnDayCard()
+            if card:
+                return card
+
+        # card due for review?
+        card = self._getRevCard()
+        if card:
+            return card
+
+        # day learning card due?
+        if not dayLearnFirst:
+            card = self._getLrnDayCard()
+            if card:
+                return card
+
+        # new cards left?
+        card = self._getNewCard()
+        if card:
+            return card
+
+        # collapse or finish
+        return self._getLrnCard(collapse=True)
+
     # Learning queues
     ##########################################################################
 
