@@ -158,22 +158,22 @@ order by due""" % (self.col.decks._deckLimit()),
         for (head, tail) in itertools.groupby(decks, key=key):
             tail = list(tail)
             current = tail[0]
-            rev = current.count['singleDue']['rev']
-            lrn = current.count['singleDue']['lrn']
-            new = current.count['singleDue']['new']
-            children = tail[1:]
-            children = self._groupChildrenMain(children, depth+1)
+            current.count['due']['rev'] = current.count['singleDue']['rev']
+            current.count['due']['lrn'] = current.count['singleDue']['lrn']
+            current.count['due']['new'] = current.count['singleDue']['new']
+            childrenDecks = tail[1:]
+            children = self._groupChildrenMain(childrenDecks, depth+1)
             # tally up children counts
-            for ch in children:
-                rev += ch[2]
-                lrn += ch[3]
-                new += ch[4]
+            for ch in childrenDecks:
+                current.count['due']['rev'] += ch.count['due']['rev']
+                current.count['due']['lrn'] += ch.count['due']['lrn']
+                current.count['due']['new'] += ch.count['due']['new']
             # limit the counts to the deck's limits
             conf = current.getConf()
             if conf.isStd():
-                rev = max(0, min(rev, conf['rev']['perDay']-current['revToday'][1]))
-                new = max(0, min(new, conf['new']['perDay']-current['newToday'][1]))
-            tree.append((head, current.getId(), rev, lrn, new, children))
+                current.count['due']['rev'] = max(0, min(current.count['due']['rev'], conf['rev']['perDay']-current['revToday'][1]))
+                current.count['due']['new'] = max(0, min(current.count['due']['new'], conf['new']['perDay']-current['newToday'][1]))
+            tree.append((head, current.getId(), current.count['due']['rev'], current.count['due']['lrn'], current.count['due']['new'], children))
         return tuple(tree)
 
     # Getting the next card
