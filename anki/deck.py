@@ -22,6 +22,7 @@ class Deck(DictAugmentedDyn):
         self.childrenBaseNames = []
         self.childrenDict = {}
         self.exporting = exporting
+        self.count = {}
         super().__init__(manager, dict)
         if self.parent is not None:
             self.parent.addChild(self, loading=loading)
