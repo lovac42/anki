@@ -187,11 +187,6 @@ where id > ?""", (self.mw.col.sched.dayCutoff-86400)*1000)
             # if the default deck is empty, hide it
             if not self.mw.col.db.scalar("select 1 from cards where did = 1 limit 1"):
                 return ""
-        # parent toggled for collapsing
-        for ancestor in deck.getAncestors():
-            if ancestor['collapsed']:
-                buff = ""
-                return buff
         prefix = "-"
         if deck['collapsed']:
             prefix = "+"
@@ -248,7 +243,8 @@ where id > ?""", (self.mw.col.sched.dayCutoff-86400)*1000)
     </td>
   </tr>""" % did)
         # children
-        buf += self._renderDeckTree(children, depth+1)
+        if not deck['collapsed']:
+            buf += self._renderDeckTree(children, depth+1)
         return buf
 
     def _topLevelDragRow(self):
