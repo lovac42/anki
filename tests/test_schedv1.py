@@ -975,22 +975,18 @@ def test_deckDue():
     assert l(cnts[2]) == [["foo"], d.decks.id("foo"), 0, 0, 0]
     assert l(cnts[3]) == [["foo", "bar"], foobar, 0, 0, 1]
     assert l(cnts[4]) == [["foo", "baz"], foobaz, 0, 0, 1]
-    tree = d.sched.deckDueTree()
-    assert tree[0][0] == "Default"
+    d.sched.deckDueTree()
+    tree = d.decks.topLevel.getChildren()
+    assert tree[0].getBaseName() == "Default"
     # sum of child and parent
-    assert tree[0][1] == 1
-    assert tree[0][2] == 1
-    assert tree[0][4] == 1
+    assert tree[0].getId() == 1
+    assert tree[0].count['due']['rev'] == 1
+    assert tree[0].count['due']['new'] == 1
     # child count is just review
-    #print(f"tree[0][5][0][0] is {tree[0][5][0][0]}")
-    tree[0]
-    tree[0][5]
-    tree[0][5][0]
-    tree[0][5][0][0]
-    assert tree[0][5][0][0] == "1"
-    assert tree[0][5][0][1] == default1
-    assert tree[0][5][0][2] == 1
-    assert tree[0][5][0][4] == 0
+    assert tree[0].getChildren()[0].getBaseName() == "1"
+    assert tree[0].getChildren()[0].getId() == default1
+    assert tree[0].getChildren()[0].count['due']['rev'] == 1
+    assert tree[0].getChildren()[0].count['due']['new'] == 0
     # code should not fail if a card has an invalid deck
     c.did = 12345; c.flush()
     d.sched.deckDueList()
