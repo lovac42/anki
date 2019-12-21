@@ -183,18 +183,17 @@ where id > ?""", (self.mw.col.sched.dayCutoff-86400)*1000)
         lrn = deck.count['due']['lrn']
         new = deck.count['due']['new']
         children = deck.getChildren()
-        deck = self.mw.col.decks.get(did)
         if deck.isDefault() and cnt > 1 and not children:
             # if the default deck is empty, hide it
             if not self.mw.col.db.scalar("select 1 from cards where did = 1 limit 1"):
                 return ""
         # parent toggled for collapsing
-        for ancestor in self.mw.col.decks.get(did).getAncestors():
+        for ancestor in deck.getAncestors():
             if ancestor['collapsed']:
                 buff = ""
                 return buff
         prefix = "-"
-        if self.mw.col.decks.get(did)['collapsed']:
+        if deck['collapsed']:
             prefix = "+"
         due = rev + lrn
         def indent():
