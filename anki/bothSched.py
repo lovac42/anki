@@ -126,7 +126,8 @@ class BothScheduler:
         """Generate the node of the main deck. See deckbroser introduction to see what a node is
         """
         self.deckDueList()
-        self._groupChildrenMain(self.col.decks.all())
+        for top in self.col.decks.topLevel.getChildren():
+            self._groupChildrenMain(top)
 
     def deckDueList(self):
         """
