@@ -130,16 +130,13 @@ class BothScheduler:
 
     def deckDueList(self):
         """
-        Similar to nodes, without the recursive counting, with the full deck name
-
-        [deckname (with ::),
-        did, rev, lrn, new (not counting subdeck)]"""
+        Set singleDue and lim for values we need to compute for the browser
+        """
         self._checkDay()
         self.col.decks.checkIntegrity()
         decks = self.col.decks.all(sort=True)
         #lims -- associating to each deck maximum number of new card and of review. Taking custom study into account
         lims = {}
-        data = []
         for deck in decks:
             parentName = self.col.decks.parentName(deck.getName())
             # new
@@ -154,11 +151,8 @@ class BothScheduler:
             if parentName:
                 deck.count['lim']['rev'] = min(deck.count['lim']['rev'], lims[parentName][1])
             deck.count['singleDue']['rev'] = self._revForDeck(deck.getId(), deck.count['lim']['rev'])
-            # save to list
-            data.append([self.col.decks._path(deck.getName()), deck.getId(), deck.count['singleDue']['rev'], deck.count['singleDue']['lrn'], deck.count['singleDue']['new']])
             # add deck as a parent
             lims[deck.getName()] = [deck.count['lim']['new'], deck.count['lim']['rev']]
-        return data
 
     def _deckLimitSingle(self, deck, kind):
         "Limit for deck without parent limits."
