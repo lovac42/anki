@@ -119,6 +119,11 @@ class BothScheduler:
     # Deck list
     ##########################################################################
 
+    def deckDueTree(self):
+        """Generate the node of the main deck. See deckbroser introduction to see what a node is
+        """
+        return self._groupChildren(self.deckDueList())
+
     def _groupChildren(self, decks):
         """[subdeck name without parent parts,
         did, rev, lrn, new (counting subdecks)
