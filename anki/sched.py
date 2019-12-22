@@ -396,11 +396,7 @@ where queue in ({QUEUE_LRN},{QUEUE_DAY_LRN}) and type = {CARD_DUE}
 
     def _todayLrnForDeck(self, did):
         """Number of review of cards in learing of deck did. """
-        return self.col.db.scalar(
-            f"""
-select sum(left/1000) from
-(select left from cards where did = ? and queue = {QUEUE_LRN} and due < ? limit ?)""",
-            did, intTime() + self.col.conf['collapseTime'], self.reportLimit) or 0
+        return super()._todayLrnForDeck(did, "sum(left/1000)")
 
     # Reviews
     ##########################################################################

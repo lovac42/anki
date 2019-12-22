@@ -367,11 +367,7 @@ select count() from cards where did in %s and queue = {QUEUE_PREVIEW}
         card.queue = QUEUE_REV
 
     def _todayLrnForDeck(self, did):
-        return self.col.db.scalar(
-            f"""
-select count() from
-(select null from cards where did = ? and queue = {QUEUE_LRN} and due < ? limit ?)""",
-            did, intTime() + self.col.conf['collapseTime'], self.reportLimit) or 0
+        return super()._todayLrnForDeck(did, "count()")
 
     # Reviews
     ##########################################################################
