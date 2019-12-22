@@ -428,7 +428,7 @@ and due <= ? limit ?)""",
 
     def _currentRevLimit(self):
         deck = self.col.decks.get(self.col.decks.selected(), default=False)
-        return self._deckRevLimitSingle(deck)
+        return self._deckRevLimitSingleCurrent(deck)
 
     def _deckRevLimitSingle(self, deck, parentLimit=None):
         # invalid deck selected?
@@ -439,7 +439,17 @@ and due <= ? limit ?)""",
 
         if parentLimit is not None:
             return min(parentLimit, lim)
-        elif '::' not in deck['name']:
+        else: # '::' not in deck['name']
+            return lim
+
+    def _deckRevLimitSingleCurrent(self, deck):
+        # invalid deck selected?
+        if not deck:
+            return 0
+
+        lim = super()._deckRevLimitSingle(deck)
+
+        if '::' not in deck['name']:
             return lim
         else:
             for ancestor in self.col.decks.parents(deck['id']):
