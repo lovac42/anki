@@ -182,6 +182,13 @@ class BothScheduler:
             lims[deck['name']] = [nlim, rlim]
         return data
 
+    def _deckLimitSingle(self, deck, kind):
+        "Limit for deck without parent limits."
+        if deck['dyn']:
+            return self.reportLimit
+        conf = self.col.decks.confForDid(deck['id'])
+        return max(0, conf[kind]['perDay'] - deck[kind+'Today'][1])
+
     # New cards
     ##########################################################################
 
@@ -273,10 +280,7 @@ select count() from
 
     def _deckNewLimitSingle(self, deck):
         "Limit for deck without parent limits."
-        if deck['dyn']:
-            return self.reportLimit
-        conf = self.col.decks.confForDid(deck['id'])
-        return max(0, conf['new']['perDay'] - deck['newToday'][1])
+        return self._deckLimitSingle(deck, 'new')
 
     def totalNewForCurrentDeck(self):
         return self.col.db.scalar(
@@ -453,16 +457,7 @@ did = ? and queue = {QUEUE_DAY_LRN} and due <= ? limit ?""",
     ##########################################################################
 
     def _deckRevLimitSingle(self, deck):
-        """Maximum number of card to review today in deck d.
-
-        self.reportLimit for dynamic deck. Otherwise the number of review according to deck option, plus the number of review added in custom study today.
-        keyword arguments:
-        d -- a deck object"""
-        # invalid deck selected?
-        if deck['dyn']:
-            return self.reportLimit
-        conf = self.col.decks.confForDid(deck['id'])
-        return max(0, conf['rev']['perDay'] - deck['revToday'][1])
+        return self._deckLimitSingle(deck, 'rev')
 
     def _resetRev(self):
         """Set revCount, empty _revQueue, _revDids"""
