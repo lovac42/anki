@@ -132,9 +132,6 @@ class BothScheduler:
         Keyword arguments:
         decks -- [deckname, did, rev, lrn, new]
         """
-        # first, split the group names into components
-        for deck in decks:
-            deck[0] = deck[0].split("::")
         # and sort based on those components
         decks.sort(key=itemgetter(0))
         # then run main function
@@ -177,7 +174,7 @@ class BothScheduler:
                 rlim = min(rlim, lims[parentName][1])
             rev = self._revForDeck(deck['id'], rlim, childMap)
             # save to list
-            data.append([deck['name'], deck['id'], rev, lrn, new])
+            data.append([self.col.decks._path(deck['name']), deck['id'], rev, lrn, new])
             # add deck as a parent
             lims[deck['name']] = [nlim, rlim]
         return data
