@@ -453,6 +453,13 @@ did = ? and queue = {QUEUE_DAY_LRN} and due <= ? limit ?""",
             time.sleep(0.01)
             log()
 
+    def _dayLrnForDeck(self, did):
+        return self.col.db.scalar(
+            f"""
+select count() from
+(select null from cards where did = ? and queue = {QUEUE_DAY_LRN}
+and due <= ? limit ?)""",
+            did, self.today, self.reportLimit)
     # Reviews
     ##########################################################################
 
