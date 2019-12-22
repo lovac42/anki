@@ -464,6 +464,14 @@ and due <= ? limit ?)""",
     def _lrnForDeck(self, did):
         return self._dayLrnForDeck(did) + self._todayLrnForDeck(did)
 
+    def _todayLrnForDeck(self, did, count):
+        """Number of review of cards in learing of deck did. """
+        return self.col.db.scalar(
+            f"""
+select {count} from
+(select left from cards where did = ? and queue = {QUEUE_LRN} and due < ? limit ?)""",
+            did, intTime() + self.col.conf['collapseTime'], self.reportLimit) or 0
+
     # Reviews
     ##########################################################################
 
