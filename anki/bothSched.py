@@ -140,6 +140,48 @@ class BothScheduler:
         # then run main function
         return self._groupChildrenMain(decks)
 
+    def deckDueList(self):
+        """
+        Similar to nodes, without the recursive counting, with the full deck name
+
+        [deckname (with ::),
+        did, rev, lrn, new (not counting subdeck)]"""
+        self._checkDay()
+        self.col.decks.checkIntegrity()
+        decks = self.col.decks.all()
+        decks.sort(key=itemgetter('name'))
+        #lims -- associating to each deck maximum number of new card and of review. Taking custom study into account
+        lims = {}
+        data = []
+        def parent(name):
+            parts = name.split("::")
+            if len(parts) < 2:
+                return None
+            parts = parts[:-1]
+            return "::".join(parts)
+        childMap = self.col.decks.childMap()
+        for deck in decks:
+            parentName = parent(deck['name'])
+            # new
+            #nlim -- maximal number of new card, taking parent into account
+            nlim = self._deckNewLimitSingle(deck)
+            if parentName:
+                nlim = min(nlim, lims[parentName][0])
+            new = self._newForDeck(deck['id'], nlim)
+            # learning
+            lrn = self._lrnForDeck(deck['id'])
+            # reviews
+            #rlim -- maximal number of review, taking parent into account
+            rlim = self._deckRevLimitSingle(deck)
+            if parentName:
+                rlim = min(rlim, lims[parentName][1])
+            rev = self._revForDeck(deck['id'], rlim, childMap)
+            # save to list
+            data.append([deck['name'], deck['id'], rev, lrn, new])
+            # add deck as a parent
+            lims[deck['name']] = [nlim, rlim]
+        return data
+
     # New cards
     ##########################################################################
 
