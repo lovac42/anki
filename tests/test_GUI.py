@@ -1,8 +1,11 @@
 import os
 import shutil
+from os import path
 
 
 def test_gui():
+    if path.exists("tests/notGUI"):
+        return
     orig = "tests/support"
     copy = "tests/supportCopy"
     try:
