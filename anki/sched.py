@@ -401,12 +401,7 @@ where queue in ({QUEUE_LRN},{QUEUE_DAY_LRN}) and type = {CARD_DUE}
 select sum(left/1000) from
 (select left from cards where did = ? and queue = {QUEUE_LRN} and due < ? limit ?)""",
             did, intTime() + self.col.conf['collapseTime'], self.reportLimit) or 0
-        return cnt + self.col.db.scalar(
-            f"""
-select count() from
-(select 1 from cards where did = ? and queue = {QUEUE_DAY_LRN}
-and due <= ? limit ?)""" ,
-            did, self.today, self.reportLimit)
+        return cnt + self._dayLrnForDeck(did)
 
     # Reviews
     ##########################################################################
