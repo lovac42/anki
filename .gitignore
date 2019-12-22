@@ -21,3 +21,4 @@ tests/supportCopy
 /tests/support/crash.log
 /tests/support/TEST/deleted.txt
 /tests/support/TEST/collection.log
+/tests/notGUI
