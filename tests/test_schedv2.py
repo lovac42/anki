@@ -965,11 +965,11 @@ def test_deckDue():
     d.reset()
     assert len(d.decks.decks) == 5
     cnts = d.sched.deckDueList()
-    assert cnts[0] == ["Default", 1, 1, 0, 1]
-    assert cnts[1] == ["Default::1", default1, 1, 0, 0]
-    assert cnts[2] == ["foo", d.decks.id("foo"), 0, 0, 0]
-    assert cnts[3] == ["foo::bar", foobar, 0, 0, 1]
-    assert cnts[4] == ["foo::baz", foobaz, 0, 0, 1]
+    assert cnts[0] == [["Default"], 1, 1, 0, 1]
+    assert cnts[1] == [["Default", "1"], default1, 1, 0, 0]
+    assert cnts[2] == [["foo"], d.decks.id("foo"), 0, 0, 0]
+    assert cnts[3] == [["foo", "bar"], foobar, 0, 0, 1]
+    assert cnts[4] == [["foo", "baz"], foobaz, 0, 0, 1]
     tree = d.sched.deckDueTree()
     assert tree[0][0] == "Default"
     # sum of child and parent
