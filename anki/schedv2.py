@@ -154,11 +154,9 @@ order by due""" % (self._deckLimit()),
             # learning
             lrn = self._lrnForDeck(deck['id'])
             # reviews
+            rlim = self._deckRevLimitSingle(deck)
             if parentName:
-                plim = lims[parentName][1]
-            else:
-                plim = None
-            rlim = self._deckRevLimitSingle(deck, parentLimit=plim)
+                rlim = min(rlim, lims[parentName][1])
             rev = self._revForDeck(deck['id'], rlim, childMap)
             # save to list
             data.append([deck['name'], deck['id'], rev, lrn, new])
@@ -430,18 +428,6 @@ and due <= ? limit ?)""",
         deck = self.col.decks.get(self.col.decks.selected(), default=False)
         return self._deckRevLimitSingleCurrent(deck)
 
-    def _deckRevLimitSingle(self, deck, parentLimit=None):
-        # invalid deck selected?
-        if not deck:
-            return 0
-
-        lim = super()._deckRevLimitSingle(deck)
-
-        if parentLimit is not None:
-            return min(parentLimit, lim)
-        else: # '::' not in deck['name']
-            return lim
-
     def _deckRevLimitSingleCurrent(self, deck):
         # invalid deck selected?
         if not deck:
@@ -454,7 +440,7 @@ and due <= ? limit ?)""",
         else:
             for ancestor in self.col.decks.parents(deck['id']):
                 # pass in dummy parentLimit so we don't do parent lookup again
-                lim = min(lim, self._deckRevLimitSingle(ancestor, parentLimit=lim))
+                lim = min(lim, self._deckRevLimitSingle(ancestor))
             return lim
 
     def _revForDeck(self, did, lim, childMap):
