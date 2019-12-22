@@ -460,6 +460,10 @@ select count() from
 (select null from cards where did = ? and queue = {QUEUE_DAY_LRN}
 and due <= ? limit ?)""",
             did, self.today, self.reportLimit)
+
+    def _lrnForDeck(self, did):
+        return self._dayLrnForDeck(did) + self._todayLrnForDeck(did)
+
     # Reviews
     ##########################################################################
 
