@@ -20,7 +20,7 @@ class Deck(anki.deck.Deck):
         </a>
       </td>"""
 
-    def _renderDeckTree(self):
+    def _renderDeckTree(self, columns):
         """Html used to show the deck tree.
 
         keyword arguments
@@ -28,10 +28,10 @@ class Deck(anki.deck.Deck):
         decks -- A list of decks, to render, with the same parent. See top of this file for detail"""
         if self.isLeaf():
             return ""
-        buf = "".join(child._deckRow() for child in self.getChildren())
+        buf = "".join(child._deckRow(columns) for child in self.getChildren())
         return buf
 
-    def _deckRow(self):
+    def _deckRow(self, columns):
         """The HTML for a single deck (and its descendant)
 
         Keyword arguments:
@@ -40,46 +40,15 @@ class Deck(anki.deck.Deck):
             # if the default deck is empty, hide it
             if not self.manager.col.db.scalar("select 1 from cards where did = 1 limit 1"):
                 return ""
-        due = self.count['due']['rev'] + self.count['due']['lrn']
+        self.count['due']['due'] = self.count['due']['rev'] + self.count['due']['lrn'] # todo: uses a separate commit for this line
         buf = f"""
   <tr class='{'deck current' if self.getId() == self.manager.col.conf['curDeck'] else 'deck'}' id='{self.getId()}'>"""
-        # deck link
-
-        collapse = f"""
-      <a class=collapse href=# onclick='return pycmd(\"collapse:{self.getId()}\")'>{"+" if self['collapsed'] else "-"}</a>""" if not self.isLeaf() else """
-      <span class=collapse></span>"""
-        buf += f"""
-
-    <td class=decktd colspan=5>{"&nbsp;"*6*self.depth()}{collapse}
-       <a class="deck {"filtered" if self.isDyn() else ""}" href=# onclick="return pycmd('open:{self.getId()}')">{self.getBaseName()}
-       </a>
-    </td>"""
-        # due counts
-        def nonzeroColour(cnt, colour):
-            if not cnt:
-                colour = "#e0e0e0"
-            if cnt >= 1000:
-                cnt = "1000+"
-            return f"""
-      <font color='{colour}'>
-         {cnt}
-      </font>"""
-        buf += f"""
-    <td align=right>{nonzeroColour(due, colDue)}
-    </td>
-    <td align=right>{nonzeroColour(self.count['due']['new'], colNew)}
-    </td>"""
-        # options
-        buf += (f"""
-    <td align=center class=opts>
-      <a onclick='return pycmd(\"opts:{self.getId()}\");'>
-        <img src='/_anki/imgs/gears.svg' class=gears>
-      </a>
-    </td>
-  </tr>""")
+        buf += "".join(column.deckRow(self) for column in columns)
+        buf += """
+  </tr>"""
         # children
         if not self['collapsed']:
-            buf += self._renderDeckTree()
+            buf += self._renderDeckTree(columns)
         return buf
 
     def _selDeck(self):

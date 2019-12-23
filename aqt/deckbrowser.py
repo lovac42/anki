@@ -147,22 +147,17 @@ where id > ?""", (self.mw.col.sched.dayCutoff-86400)*1000)
     def _renderDeckTree(self, columns=None):
         """Html used to show the header of the table.
         """
-        buf = """
-  <tr>
-    <th colspan=5 align=left>%s
-    </th>
-    <th class=count>%s
-    </th>
-    <th class=count>%s
-    </th>
-    <th class=optscol>
-    </th>
-  </tr>""" % (
-            _("Deck"), _("Due"), _("New"))
         if columns is None:
             columns = self._defaultColumns()
+        """Html used to show the header of the table.
+        """
+        buf = """
+  <tr>"""
+        buf += "".join(column.topRow() for column in columns)
+        buf += """
+  </tr>"""
         buf += self._topLevelDragRow()
-        buf += self.mw.col.decks.topLevel._renderDeckTree()
+        buf += self.mw.col.decks.topLevel._renderDeckTree(columns)
         buf += self._topLevelDragRow()
         return buf
 
