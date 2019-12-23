@@ -202,17 +202,22 @@ class DeckManager:
         999999 or correct this error.
 
         Keyword arguments:
-        decks -- json dic associating to each id (as string) its deck
+        decks -- json dic associating to each id (as string) its deck.
         dconf -- json dic associating to each id (as string) its configuration(option)
         """
         self.changed = False
         self.loadDeck(decks)
         self.loadConf(dconf)
 
-    def loadDeck(self, decks):
+    def loadDeck(self, decks=None):
+        """If decks is not provided, reload current deck collection"""
+        if decks is None:
+            decks = self.decks
+        else:
+            decks = json.loads(decks)
         self.decks = {}
         self.decksByNames = {}
-        for deck in json.loads(decks).values():
+        for deck in decks.values():
             deck = Deck(self, deck)
             deck.addInManager()
 
@@ -352,13 +357,6 @@ class DeckManager:
         else:
             assert isinstance(deckToCopy, Deck)
             return deckToCopy.copy_(name)
-
-    def update(self, deck):
-        "Add or update an existing deck. Used for syncing and merging."
-        deck.addInManager()
-        self.maybeAddToActive()
-        # mark registry changed, but don't bump mod time
-        self.save()
 
     def _isParent(self, parentDeckName, childDeckName, normalize=True):
         """Whether childDeckName is a direct child of parentDeckName."""
