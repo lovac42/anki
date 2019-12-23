@@ -2,6 +2,7 @@
 # License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
 
 import gc
+import sys
 import time
 
 from anki import Collection
@@ -68,7 +69,8 @@ class SyncManager(QObject):
             self.thread.wait(100)
         self.mw.progress.finish()
         if self.thread.syncMsg:
-            showText(self.thread.syncMsg)
+            #showText(self.thread.syncMsg)
+            print(self.thread.syncMsg, file=sys.stderr)
         if self.thread.uname:
             self.pm.profile['syncUser'] = self.thread.uname
         self.pm.profile['hostNum'] = self.thread.hostNum
@@ -133,8 +135,10 @@ Please visit AnkiWeb, upgrade your deck, then try again."""))
             self._updateLabel()
         elif evt == "error":
             self._didError = True
-            showText(_("Syncing failed:\n%s")%
+            msg = (_("Syncing failed:\n%s")%
                      self._rewriteError(args[0]))
+            #showText(msg)
+            print(msg, file=sys.stderr)
         elif evt == "clockOff":
             self._clockOff()
         elif evt == "checkFailed":
