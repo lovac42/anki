@@ -165,8 +165,7 @@ where id > ?""", (self.mw.col.sched.dayCutoff-86400)*1000)
         else:
             buf = ""
         nameMap = self.mw.col.decks.nameMap()
-        for node in nodes:
-            buf += self._deckRow(node, depth, len(nodes), nameMap)
+        buf += "".join(self._deckRow(node, depth, len(nodes), nameMap) for node in nodes)
         if depth == 0:
             buf += self._topLevelDragRow()
         return buf
