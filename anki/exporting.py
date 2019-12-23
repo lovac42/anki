@@ -237,7 +237,8 @@ class AnkiExporter(Exporter):
                 # scheduling not included, so reset deck settings to default
                 deck = Deck(self.dst.decks, dict(deck))
                 deck.setDefaultConf()
-            self.dst.decks.update(deck)
+            deck.addInManager()
+        self.dst.decks.save()
         # copy used deck confs
         for dc in self.src.decks.allConf():
             if dc.getId() in dconfs:
