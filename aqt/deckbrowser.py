@@ -9,6 +9,7 @@ from anki.consts import *
 from anki.lang import _, ngettext
 from anki.sound import clearAudioQueue
 from anki.utils import fmtTimeSpan, ids2str
+from aqt.deckcolumns import *
 from aqt.qt import *
 from aqt.utils import (askUser, getOnlyText, openHelp, openLink, shortcut,
                        showWarning)
@@ -90,7 +91,7 @@ class DeckBrowser:
         self.web.evalWithCallback("window.pageYOffset", self.__renderPage)
 
     def __renderPage(self, offset):
-        tree = self._renderDeckTree(self.mw.col.decks.topLevel)
+        tree = self._renderDeckTree()
         stats = self._renderStats()
         self.web.stdHtml(self._body%dict(
             tree=tree, stats=stats, countwarn=self._countWarn()),
@@ -135,12 +136,17 @@ where id > ?""", (self.mw.col.sched.dayCutoff-86400)*1000)
                     """
   </div>""")))
 
-    def _renderDeckTree(self, deck):
-        """Html used to show the deck tree.
+    def _defaultColumns(self):
+        return [
+            DeckName(),
+            Number("Due", "due", colDue),
+            Number("New", "new", colNew),
+            Gear(),
+        ]
 
-        keyword arguments
-        depth -- the number of ancestors, excluding itself
-        decks -- A list of decks, to render, with the same parent. See top of this file for detail"""
+    def _renderDeckTree(self, columns=None):
+        """Html used to show the header of the table.
+        """
         buf = """
   <tr>
     <th colspan=5 align=left>%s
@@ -153,6 +159,8 @@ where id > ?""", (self.mw.col.sched.dayCutoff-86400)*1000)
     </th>
   </tr>""" % (
             _("Deck"), _("Due"), _("New"))
+        if columns is None:
+            columns = self._defaultColumns()
         buf += self._topLevelDragRow()
         buf += self.mw.col.decks.topLevel._renderDeckTree()
         buf += self._topLevelDragRow()
