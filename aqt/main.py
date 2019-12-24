@@ -922,6 +922,14 @@ QTreeWidget {
 
     def onBrowse(self):
         """Open the browser window."""
+        choice = self.col.conf.get("browserFromReviewer", "default")
+        if self.state == "review" and self.reviewer.card is not None:
+            if choice == "cid":
+                return aqt.dialogs.open("Browser", self, f"cid:{self.reviewer.card.id}")
+            elif choice == "nid":
+                return aqt.dialogs.open("Browser", self, f"nid:{self.reviewer.card.nid}")
+            elif choice == "nid":
+                return aqt.dialogs.open("Browser", self, f"did:{self.reviewer.card.did}")
         return aqt.dialogs.open("Browser", self)
 
     def onEditCurrent(self):
