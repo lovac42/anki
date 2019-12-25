@@ -448,7 +448,8 @@ and due <= ? limit ?)""",
 
     def _lrnForDeck(self, deck):
         self._dayLrnForDeck(deck)
-        return deck.count['singleDue']['dayLrn'] + self._todayLrnForDeck(deck)
+        self._todayLrnForDeck(deck)
+        return deck.count['singleDue']['dayLrn'] + deck.count['singleDue']['todayLrn']
 
     def _todayLrnForDeck(self, deck, count):
         """Number of review of cards in learing of deck did. """
