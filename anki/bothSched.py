@@ -139,7 +139,8 @@ class BothScheduler:
         #lims -- associating to each deck maximum number of new card and of review. Taking custom study into account
         lims = {}
         for deck in decks:
-            parentName = self.col.decks.parentName(deck.getName())
+            parent = deck.getParent()
+            parentName = parent.getName()
             # new
             deck.count['lim']['new'] = self._deckNewLimitSingle(deck)
             if parentName:
