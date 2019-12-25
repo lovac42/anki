@@ -575,7 +575,7 @@ def test_cram():
     d.sched.rebuildDyn(cram.getId())
     d.reset()
     # should appear as new in the deck list
-    d.sched.deckDueList()
+    d.sched.deckDueTree()
     assert d.decks.all(sort=True)[0].count['singleDue']['new'] == 1
     # and should appear in the counts
     assert d.sched.counts() == (1,0,0)
@@ -634,7 +634,7 @@ def test_cram():
     assert d.sched.nextIvl(c, 3) == 86400
     # delete the deck, returning the card mid-study
     d.decks.get(d.decks.selected()).rem()
-    d.sched.deckDueList()
+    d.sched.deckDueTree()
     c.load()
     assert c.ivl == 1
     assert c.due == d.sched.today+1
@@ -963,7 +963,7 @@ def test_deckDue():
     d.addNote(f)
     d.reset()
     assert len(d.decks.all()) == 5
-    d.sched.deckDueList()
+    d.sched.deckDueTree()
     def l(deck):
         return [deck.getPath(), deck.getId(), deck.count['singleDue']['rev'], deck.count['singleDue']['lrn'], deck.count['singleDue']['new']]
     cnts = d.decks.all(sort=True)
@@ -986,7 +986,7 @@ def test_deckDue():
     assert tree[0].getChildren()[0].count['due']['new'] == 0
     # code should not fail if a card has an invalid deck
     c.did = 12345; c.flush()
-    d.sched.deckDueList()
+    d.sched.deckDueTree()
     d.sched.deckDueTree()
 
 def test_deckTree():

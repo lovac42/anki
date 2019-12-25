@@ -127,16 +127,15 @@ class BothScheduler:
         """
         self._checkDay()
         self.col.decks.checkIntegrity()
+        self.deckLimList()
         self.deckDueList()
         for top in self.col.decks.topLevel.getChildren():
             self._groupChildrenMain(top)
 
-    def deckDueList(self):
+    def deckLimList(self):
         """
         Set singleDue and lim for values we need to compute for the browser
         """
-        self._checkDay()
-        self.col.decks.checkIntegrity()
         decks = self.col.decks.all(sort=True)
         for deck in decks:
             parent = deck.getParent()
@@ -144,7 +143,21 @@ class BothScheduler:
             deck.count['lim']['new'] = self._deckNewLimitSingle(deck)
             if not parent.isAboveTopLevel():
                 deck.count['lim']['new'] = min(deck.count['lim']['new'], parent.count['lim']['new'])
+            # reviews
+            deck.count['lim']['rev'] = self._deckRevLimitSingle(deck)
+            if not parent.isAboveTopLevel():
+                deck.count['lim']['rev'] = min(deck.count['lim']['rev'], parent.count['lim']['rev'])
 
+    def deckDueList(self):
+        """
+        Similar to nodes, without the recursive counting, with the full deck name
+
+        [deckname (with ::),
+        did, rev, lrn, new (not counting subdeck)]"""#todo remove
+        decks = self.col.decks.all(sort=True)
+        for deck in decks:
+            parent = deck.getParent()
+            # new
             deck.count['singleDue']['new'] = self._newForDeck(deck.getId(), deck.count['lim']['new'])
             # learning
             self._dayLrnForDeck(deck)
@@ -152,9 +165,6 @@ class BothScheduler:
             self._todayStepLrnForDeck(deck)
             self._todayLrnForDeck(deck)
             # reviews
-            deck.count['lim']['rev'] = self._deckRevLimitSingle(deck)
-            if not parent.isAboveTopLevel():
-                deck.count['lim']['rev'] = min(deck.count['lim']['rev'], parent.count['lim']['rev'])
             self._dueForDeck(deck)
             deck.count['singleDue']['rev'] = self._revForDeck(deck, deck.count['lim']['rev'])
             # add deck as a parent
