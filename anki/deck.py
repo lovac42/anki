@@ -475,3 +475,7 @@ select {count} from
 
     def randomizeCards(self):
         self.manager.col.sched.sortCards(self.getCids(), shuffle=True)
+
+    def orderCards(self):
+        cids = self.manager.col.db.list("select id from cards where did = ? order by id", self.getId())
+        self.manager.col.sched.sortCards(cids)
