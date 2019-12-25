@@ -143,7 +143,7 @@ class BothScheduler:
             parentName = parent.getName()
             # new
             deck.count['lim']['new'] = self._deckNewLimitSingle(deck)
-            if parentName:
+            if not parent.isAboveTopLevel():
                 deck.count['lim']['new'] = min(deck.count['lim']['new'], lims[parentName][0])
             deck.count['singleDue']['new'] = self._newForDeck(deck.getId(), deck.count['lim']['new'])
             # learning
@@ -153,7 +153,7 @@ class BothScheduler:
             self._todayLrnForDeck(deck)
             # reviews
             deck.count['lim']['rev'] = self._deckRevLimitSingle(deck)
-            if parentName:
+            if not parent.isAboveTopLevel():
                 deck.count['lim']['rev'] = min(deck.count['lim']['rev'], lims[parentName][1])
             deck.count['singleDue']['rev'] = self._revForDeck(deck.getId(), deck.count['lim']['rev'])
             # add deck as a parent
