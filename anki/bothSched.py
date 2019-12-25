@@ -824,13 +824,6 @@ and due >= ? and queue = {QUEUE_NEW}""" % (scids), now, self.col.usn(), shiftby,
         self.col.db.executemany(
             "update cards set due=:due,mod=:now,usn=:usn where id = :cid", cardData)
 
-    def resortConf(self, conf):
-        for deck in conf.getDecks():
-            if conf['new']['order'] == NEW_CARDS_RANDOM:
-                deck.randomizeCards()
-            else:
-                deck.orderCards()
-
     # for post-import
     def maybeRandomizeDeck(self, deck=None):
         if not deck:

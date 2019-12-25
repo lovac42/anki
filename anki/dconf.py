@@ -115,7 +115,7 @@ same id."""
         new.save()
         # if it was previously randomized, resort
         if not oldOrder:
-            self.manager.col.sched.resortConf(new)
+            new.resortConf()
 
     def getDecks(self, conf):
         """The decks of the decks using the configuration conf."""
@@ -124,3 +124,13 @@ same id."""
     def getDids(self, conf):
         """The dids of the decks using the configuration conf."""
         return [deck.getId() for deck in self.decks()]
+
+    # schedulers method
+    ##########################################################
+
+    def resortConf(self):
+        for deck in self.getDecks():
+            if conf['new']['order'] == NEW_CARDS_RANDOM:
+                deck.randomizeCards()
+            else:
+                deck.orderCards()
