@@ -644,7 +644,7 @@ did = ? and queue = {QUEUE_REV} and due <= ? limit ?""",
         self._moveToDyn(deck, ids)
         return ids
 
-    def emptyDyn(self, did, lim=None):
+    def emptyDyn(self, deck, lim=None):
         """Moves cram cards to their deck
         Cards in learning mode move to their previous type.
 
@@ -653,7 +653,7 @@ did = ? and queue = {QUEUE_REV} and due <= ? limit ?""",
         did -- assuming lim is not provided/false, the (filtered) deck concerned by this call
         """
         if not lim:
-            lim = "did = %s" % did
+            lim = "did = %s" % deck.getId()
         self.col.log(self.col.db.list("select id from cards where %s" % lim))
         # move out of cram queue
         self.col.db.execute(f"""

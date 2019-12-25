@@ -575,7 +575,7 @@ and due <= ?)""",
         deck = self.col.decks.get(did)
         assert deck.isDyn()
         # move any existing cards back first, then fill
-        self.emptyDyn(did)
+        self.emptyDyn(deck)
         ids = self._fillDyn(deck)
         if not ids:
             return

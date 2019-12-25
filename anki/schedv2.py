@@ -575,9 +575,9 @@ limit ?""" % ids2str(self.col.decks.active()),
             total += len(ids)
         return total
 
-    def emptyDyn(self, did, lim=None):
+    def emptyDyn(self, deck, lim=None):
         if not lim:
-            lim = "did = %s" % did
+            lim = "did = %s" % deck.getId()
         self.col.log(self.col.db.list("select id from cards where %s" % lim))
 
         self.col.db.execute("""

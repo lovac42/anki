@@ -127,7 +127,7 @@ class CustomStudy(QDialog):
                 return QDialog.accept(self)
             else:
                 # safe to empty
-                self.mw.col.sched.emptyDyn(cur.getId())
+                self.mw.col.sched.emptyDyn(cur)
                 # reuse; don't delete as it may have children
                 dyn = cur
                 cur.select()
