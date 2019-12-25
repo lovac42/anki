@@ -878,10 +878,10 @@ and due >= ? and queue = {QUEUE_NEW}""" % (scids), now, self.col.usn(), shiftby,
                 self.orderCards(did)
 
     # for post-import
-    def maybeRandomizeDeck(self, did=None):
-        if not did:
-            did = self.col.decks.selected()
-        conf = self.col.decks.get(did).getConf()
+    def maybeRandomizeDeck(self, deck=None):
+        if not deck:
+            deck = self.col.decks.current()
+        conf = deck.getConf()
         # in order due?
         if conf['new']['order'] == NEW_CARDS_RANDOM:
-            self.randomizeCards(did)
+            self.randomizeCards(deck.getId())
