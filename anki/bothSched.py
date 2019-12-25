@@ -150,7 +150,6 @@ class BothScheduler:
             self._todayNbCardLrnForDeck(deck)
             self._todayStepLrnForDeck(deck)
             self._todayLrnForDeck(deck)
-            self._lrnForDeck(deck)
             # reviews
             deck.count['lim']['rev'] = self._deckRevLimitSingle(deck)
             if parentName:

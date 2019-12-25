@@ -382,9 +382,7 @@ where queue in ({QUEUE_LRN},{QUEUE_DAY_LRN}) and type = {CARD_DUE}
             f"select id from cards where queue in ({QUEUE_LRN}, {QUEUE_DAY_LRN}) %s" % extra))
 
     def _todayLrnForDeck(self, deck):
-        """Number of review of cards in learing of deck did. """
-        deck.count['singleDue']['todayLrn'] = deck.count['singleDue']['todayStepLrn']
-
+        deck.count['singleDue']['lrn'] = deck.count['singleDue']['dayLrn'] + deck.count['singleDue']['todayStepLrn']
     # Reviews
     ##########################################################################
 
