@@ -140,7 +140,7 @@ class BothScheduler:
         for deck in decks:
             parent = deck.getParent()
             # new
-            deck.count['lim']['new'] = self._deckNewLimitSingle(deck)
+            deck.count['lim']['new'] = deck._deckNewLimitSingle()
             if not parent.isAboveTopLevel():
                 deck.count['lim']['new'] = min(deck.count['lim']['new'], parent.count['lim']['new'])
             # reviews
@@ -175,7 +175,7 @@ class BothScheduler:
         cntFn = lambda did, lim: self.col.db.scalar(f"""
 select count() from (select 1 from cards where
 did = ? and queue = {QUEUE_NEW} limit ?)""", did, lim)
-        self.setNewCount(self._walkingCount(self._deckNewLimitSingle, cntFn))
+        self.setNewCount(self._walkingCount(lambda deck: deck._deckNewLimitSingle(), cntFn))
 
     def newCount(self):
         return self._newCount
@@ -241,7 +241,7 @@ did = ? and queue = {QUEUE_NEW} limit ?)""", did, lim)
             return self.reps and self.reps % self.newCardModulus == 0
 
     def _deckNewLimit(self, did):
-        return self._deckLimit(did, self._deckNewLimitSingle)
+        return self._deckLimit(did, lambda deck: deck._deckNewLimitSingle())
 
     def _deckLimit(self, did, fn):
         lim = -1
@@ -262,10 +262,6 @@ did = ? and queue = {QUEUE_NEW} limit ?)""", did, lim)
         return self.col.db.scalar(f"""
 select count() from
 (select 1 from cards where did = ? and queue = {QUEUE_NEW} limit ?)""", did, lim)
-
-    def _deckNewLimitSingle(self, deck):
-        "Limit for deck without parent limits."
-        return deck._deckLimitSingle('new')
 
     def totalNewForCurrentDeck(self):
         return self.col.db.scalar(
