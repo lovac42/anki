@@ -476,7 +476,7 @@ insert or ignore into revlog values (?,?,?,?,?,?,?,?,?)""", revlog)
 
     def _postImport(self):
         for did in list(self._decks.values()):
-            self.col.sched.maybeRandomizeDeck(self.col.decks.get(did))
+            self.col.decks.get(did).maybeRandomizeDeck()
         # make sure new position is correct
         self.dst.conf['nextPos'] = self.dst.db.scalar(
             "select max(due)+1 from cards where type = 0") or 0
