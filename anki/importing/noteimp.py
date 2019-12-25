@@ -211,11 +211,11 @@ class NoteImporter(Importer):
         self.updateCards()
         # we randomize or order here, to ensure that siblings
         # have the same due#
-        did = self.col.decks.selected()
-        conf = self.col.decks.get(did).getConf()
+        deck = self.col.decks.current()
+        conf = deck.getConf()
         # in order due?
         if conf['new']['order'] == NEW_CARDS_RANDOM:
-            self.col.sched.randomizeCards(did)
+            self.col.sched.randomizeCards(deck)
 
         part1 = ngettext("%d note added", "%d notes added", len(new)) % len(new)
         part2 = ngettext("%d note updated", "%d notes updated",
