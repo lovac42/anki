@@ -381,9 +381,9 @@ where queue in ({QUEUE_LRN},{QUEUE_DAY_LRN}) and type = {CARD_DUE}
         self.forgetCards(self.col.db.list(
             f"select id from cards where queue in ({QUEUE_LRN}, {QUEUE_DAY_LRN}) %s" % extra))
 
-    def _todayLrnForDeck(self, did):
+    def _todayLrnForDeck(self, deck):
         """Number of review of cards in learing of deck did. """
-        return super()._todayLrnForDeck(did, "sum(left/1000)")
+        return super()._todayLrnForDeck(deck, "sum(left/1000)")
 
     # Reviews
     ##########################################################################
