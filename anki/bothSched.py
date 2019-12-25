@@ -440,9 +440,6 @@ did = ? and queue = {QUEUE_DAY_LRN} and due <= ? limit ?""",
             time.sleep(0.01)
             log()
 
-    def _lrnForDeck(self, deck):
-        deck.count['singleDue']['lrn'] = deck.count['singleDue']['dayLrn'] + deck.count['singleDue']['todayLrn']
-
     def _todayLrnForDeckAux(self, deck, count):
         """Number of review of cards in learing of deck did. """
         return self.col.db.scalar(
