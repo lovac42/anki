@@ -158,7 +158,7 @@ class BothScheduler:
         for deck in decks:
             parent = deck.getParent()
             # new
-            deck.count['singleDue']['new'] = self._newForDeck(deck.getId(), deck.count['lim']['new'])
+            deck.count['singleDue']['new'] = self._newForDeck(deck, deck.count['lim']['new'])
             # learning
             deck._dayLrnForDeck()
             deck._todayNbCardLrnForDeck()
@@ -241,14 +241,14 @@ did = ? and queue = {QUEUE_NEW} limit ?)""", did, lim)
         elif self.newCardModulus:
             return self.reps and self.reps % self.newCardModulus == 0
 
-    def _newForDeck(self, did, lim):
+    def _newForDeck(self, deck, lim):
         "New count for a single deck."
         if not lim:
             return 0
         lim = min(lim, self.reportLimit)
         return self.col.db.scalar(f"""
 select count() from
-(select 1 from cards where did = ? and queue = {QUEUE_NEW} limit ?)""", did, lim)
+(select 1 from cards where did = ? and queue = {QUEUE_NEW} limit ?)""", deck.getId(), lim)
 
     def totalNewForCurrentDeck(self):
         return self.col.db.scalar(
