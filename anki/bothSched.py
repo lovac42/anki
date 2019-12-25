@@ -440,20 +440,12 @@ did = ? and queue = {QUEUE_DAY_LRN} and due <= ? limit ?""",
             time.sleep(0.01)
             log()
 
-    def _todayLrnForDeckAux(self, deck, count):
-        """Number of review of cards in learing of deck did. """
-        return self.col.db.scalar(
-            f"""
-select {count} from
-(select left from cards where did = ? and queue = {QUEUE_LRN} and due < ? limit ?)""",
-            deck.getId(), intTime() + self.col.conf['collapseTime'], self.reportLimit) or 0
-
     def _todayStepLrnForDeck(self, deck):
         """Number of review of cards in learing of deck did. """
-        deck.count['singleDue']['todayStepLrn'] = self._todayLrnForDeckAux(deck, "sum(left/1000)")
+        deck.count['singleDue']['todayStepLrn'] = deck._todayLrnForDeckAux("sum(left/1000)")
 
     def _todayNbCardLrnForDeck(self, deck):
-        deck.count['singleDue']['todayNbCardLrn'] = self._todayLrnForDeckAux(deck, "count()")
+        deck.count['singleDue']['todayNbCardLrn'] = deck._todayLrnForDeckAux("count()")
 
     # Reviews
     ##########################################################################
