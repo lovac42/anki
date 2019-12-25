@@ -147,6 +147,8 @@ class BothScheduler:
             deck.count['singleDue']['new'] = self._newForDeck(deck.getId(), deck.count['lim']['new'])
             # learning
             self._dayLrnForDeck(deck)
+            self._todayNbCardLrnForDeck(deck)
+            self._todayStepLrnForDeck(deck)
             self._todayLrnForDeck(deck)
             self._lrnForDeck(deck)
             # reviews
@@ -451,13 +453,20 @@ and due <= ? limit ?)""",
     def _lrnForDeck(self, deck):
         deck.count['singleDue']['lrn'] = deck.count['singleDue']['dayLrn'] + deck.count['singleDue']['todayLrn']
 
-    def _todayLrnForDeck(self, deck, count):
+    def _todayLrnForDeckAux(self, deck, count):
         """Number of review of cards in learing of deck did. """
         return self.col.db.scalar(
             f"""
 select {count} from
 (select left from cards where did = ? and queue = {QUEUE_LRN} and due < ? limit ?)""",
             deck.getId(), intTime() + self.col.conf['collapseTime'], self.reportLimit) or 0
+
+    def _todayStepLrnForDeck(self, deck):
+        """Number of review of cards in learing of deck did. """
+        deck.count['singleDue']['todayStepLrn'] = self._todayLrnForDeckAux(deck, "sum(left/1000)")
+
+    def _todayNbCardLrnForDeck(self, deck):
+        deck.count['singleDue']['todayNbCardLrn'] = self._todayLrnForDeckAux(deck, "count()")
 
     # Reviews
     ##########################################################################
