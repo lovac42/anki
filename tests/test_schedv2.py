@@ -671,7 +671,7 @@ def test_filt_reviewing_early_normal():
     d.sched.rebuildDyn(did)
     d.reset()
     # should appear as normal in the deck list
-    d.sched.deckDueList()
+    d.sched.deckDueTree()
     assert d.decks.all(sort=True)[0].count['singleDue']['rev'] == 1
     # and should appear in the counts
     assert d.sched.counts() == (0,0,1)
@@ -967,7 +967,7 @@ def test_deckDue():
     d.addNote(f)
     d.reset()
     assert len(d.decks.all()) == 5
-    d.sched.deckDueList()
+    d.sched.deckDueTree()
     cnts = d.decks.all(sort=True)
     def l(deck):
         return [deck.getPath(), deck.getId(), deck.count['singleDue']['rev'], deck.count['singleDue']['lrn'], deck.count['singleDue']['new']]
