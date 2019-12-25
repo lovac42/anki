@@ -168,14 +168,6 @@ class BothScheduler:
             self._dueForDeck(deck)
             deck.count['singleDue']['rev'] = self._revForDeck(deck, deck.count['lim']['rev'])
             # add deck as a parent
-
-    def _deckLimitSingle(self, deck, kind):
-        "Limit for deck without parent limits."
-        if deck.isDyn():
-            return self.reportLimit
-        conf = self.col.decks.get(deck.getId()).getConf()
-        return max(0, conf[kind]['perDay'] - deck[kind+'Today'][1])
-
     # New cards
     ##########################################################################
 
@@ -273,7 +265,7 @@ select count() from
 
     def _deckNewLimitSingle(self, deck):
         "Limit for deck without parent limits."
-        return self._deckLimitSingle(deck, 'new')
+        return deck._deckLimitSingle('new')
 
     def totalNewForCurrentDeck(self):
         return self.col.db.scalar(
@@ -482,7 +474,7 @@ select {count} from
     ##########################################################################
 
     def _deckRevLimitSingle(self, deck):
-        return self._deckLimitSingle(deck, 'rev')
+        return deck._deckLimitSingle('rev')
 
     def _resetRev(self):
         """Set revCount, empty _revQueue, _revDids"""
