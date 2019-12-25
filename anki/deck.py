@@ -469,3 +469,9 @@ select {count} from
     def _todayStepLrnForDeck(self):
         """Number of review of cards in learing of deck did. """
         self.count['singleDue']['todayStepLrn'] = self._todayLrnForDeckAux("sum(left/1000)")
+
+    # Repositioning new cards
+    ##########################################################################
+
+    def randomizeCards(self):
+        self.manager.col.sched.sortCards(self.getCids(), shuffle=True)

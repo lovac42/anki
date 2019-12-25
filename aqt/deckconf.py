@@ -258,7 +258,7 @@ class DeckConf(QDialog):
         if self._origNewOrder != conf['order']:
             # order of current deck has changed, so have to resort
             if conf['order'] == NEW_CARDS_RANDOM:
-                self.mw.col.sched.randomizeCards(self.deck)
+                self.deck.randomizeCards()
             else:
                 self.mw.col.sched.orderCards(self.deck)
         # rev
