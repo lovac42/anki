@@ -366,14 +366,14 @@ select count() from cards where did in %s and queue = {QUEUE_PREVIEW}
         if not deck:
             return 0
 
-        lim = super()._deckRevLimitSingle(deck)
+        lim = deck._deckRevLimitSingle()
 
         if '::' not in deck.getName():
             return lim
         else:
             for ancestor in deck.getAncestors():
                 # pass in dummy parentLimit so we don't do parent lookup again
-                lim = min(lim, self._deckRevLimitSingle(ancestor))
+                lim = min(lim, ancestor._deckRevLimitSingle())
             return lim
 
     def _revForDeck(self, deck, lim):
