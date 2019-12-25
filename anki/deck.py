@@ -469,6 +469,9 @@ and due <= ?)""",
         "Limit for deck without parent limits."
         return self._deckLimitSingle('new')
 
+    def _deckNewLimit(self):
+        return self.manager.col.sched._deckLimit(self, lambda deck: deck._deckNewLimitSingle())
+
     # Learning queues
     ##########################################################################
 
