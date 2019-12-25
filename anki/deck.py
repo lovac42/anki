@@ -454,3 +454,6 @@ select count() from
 (select null from cards where did = ? and queue = {QUEUE_DAY_LRN}
 and due <= ? limit ?)""",
             self.getId(), self.manager.col.sched.today, self.manager.col.sched.reportLimit)
+
+    def _lrnForDeck(self):
+        self.count['singleDue']['lrn'] = self.count['singleDue']['dayLrn'] + self.count['singleDue']['todayLrn']
