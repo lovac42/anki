@@ -862,20 +862,19 @@ and due >= ? and queue = {QUEUE_NEW}""" % (scids), now, self.col.usn(), shiftby,
         self.col.db.executemany(
             "update cards set due=:due,mod=:now,usn=:usn where id = :cid", cardData)
 
-    def randomizeCards(self, did):
-        cids = self.col.db.list("select id from cards where did = ?", did)
-        self.sortCards(cids, shuffle=True)
+    def randomizeCards(self, deck):
+        self.sortCards(deck.getCids(), shuffle=True)
 
     def orderCards(self, did):
         cids = self.col.db.list("select id from cards where did = ? order by id", did)
         self.sortCards(cids)
 
     def resortConf(self, conf):
-        for did in conf.getDids():
+        for deck in conf.getDecks():
             if conf['new']['order'] == NEW_CARDS_RANDOM:
-                self.randomizeCards(did)
+                self.randomizeCards(deck)
             else:
-                self.orderCards(did)
+                self.orderCards(deck.getId())
 
     # for post-import
     def maybeRandomizeDeck(self, deck=None):
@@ -884,4 +883,4 @@ and due >= ? and queue = {QUEUE_NEW}""" % (scids), now, self.col.usn(), shiftby,
         conf = deck.getConf()
         # in order due?
         if conf['new']['order'] == NEW_CARDS_RANDOM:
-            self.randomizeCards(deck.getId())
+            self.randomizeCards(deck)
