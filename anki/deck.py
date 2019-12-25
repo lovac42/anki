@@ -101,7 +101,7 @@ class Deck(DictAugmentedDyn):
         if self.isDyn():
             # deleting a cramming deck returns cards to their previous deck
             # rather than deleting the cards
-            self.manager.col.sched.emptyDyn(self.getId())
+            self.manager.col.sched.emptyDyn(self)
             if childrenToo:
                 for id in self.getDescendantsIds():
                     self.manager.rem(id, cardsToo)

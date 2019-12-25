@@ -747,7 +747,7 @@ def test_filt_keep_lrn_state():
     assert c.due - intTime() > 60*60
 
     # emptying the deck preserves learning state
-    d.sched.emptyDyn(did)
+    d.sched.emptyDyn(deck)
     c.load()
     assert c.type == CARD_LRN
     assert c.queue == QUEUE_LRN
@@ -797,7 +797,7 @@ def test_preview():
     assert c.id == orig.id
 
     # emptying the filtered deck should restore card
-    d.sched.emptyDyn(did)
+    d.sched.emptyDyn(deck)
     c.load()
     assert c.queue == QUEUE_NEW
     assert c.reps == 0
@@ -1208,7 +1208,7 @@ def test_negativeDueFilter():
     deck = d.decks.newDyn("Cram")
     did = deck.getId()
     d.sched.rebuildDyn(did)
-    d.sched.emptyDyn(did)
+    d.sched.emptyDyn(deck)
     d.reset()
 
     c.load()
