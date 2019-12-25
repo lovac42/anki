@@ -531,9 +531,8 @@ and due <= ?)""",
     # Dynamic deck handling
     ##########################################################################
 
-    def rebuildDyn(self, deck=None):
+    def rebuildDyn(self, deck):
         "Rebuild a dynamic deck."
-        deck = deck or self.col.decks.current()
         assert deck.isDyn()
         # move any existing cards back first, then fill
         self.emptyDyn(deck)

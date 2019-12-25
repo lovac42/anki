@@ -165,7 +165,7 @@ class CustomStudy(QDialog):
         # add deck limit
         dyn['terms'][0][0] = "deck:\"%s\" %s " % (self.deck.getName(), dyn['terms'][0][0])
         # generate cards
-        if not self.mw.col.sched.rebuildDyn():
+        if not self.mw.col.sched.rebuildDyn(self.mw.col.decks.current()):
             return showWarning(_("No cards matched the criteria you provided."))
         self.mw.moveToState("overview")
         QDialog.accept(self)
