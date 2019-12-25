@@ -483,6 +483,15 @@ and due <= ?)""",
                 lim = min(rem, lim)
         return lim
 
+    def _newForDeck(self, lim):
+        "New count for a single deck."
+        if not lim:
+            return 0
+        lim = min(lim, self.manager.col.sched.reportLimit)
+        return self.manager.col.db.scalar(f"""
+select count() from
+(select 1 from cards where did = ? and queue = {QUEUE_NEW} limit ?)""", self.getId(), lim)
+
     # Learning queues
     ##########################################################################
 
