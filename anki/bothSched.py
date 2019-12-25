@@ -865,8 +865,8 @@ and due >= ? and queue = {QUEUE_NEW}""" % (scids), now, self.col.usn(), shiftby,
     def randomizeCards(self, deck):
         self.sortCards(deck.getCids(), shuffle=True)
 
-    def orderCards(self, did):
-        cids = self.col.db.list("select id from cards where did = ? order by id", did)
+    def orderCards(self, deck):
+        cids = self.col.db.list("select id from cards where did = ? order by id", deck.getId())
         self.sortCards(cids)
 
     def resortConf(self, conf):
@@ -874,7 +874,7 @@ and due >= ? and queue = {QUEUE_NEW}""" % (scids), now, self.col.usn(), shiftby,
             if conf['new']['order'] == NEW_CARDS_RANDOM:
                 self.randomizeCards(deck)
             else:
-                self.orderCards(deck.getId())
+                self.orderCards(deck)
 
     # for post-import
     def maybeRandomizeDeck(self, deck=None):
