@@ -218,7 +218,7 @@ class DeckConf(QDialog):
             return
         self.conf['new']['order'] = new
         self.mw.progress.start()
-        self.mw.col.sched.resortConf(self.conf)
+        self.conf.resortConf()
         self.mw.progress.finish()
 
     # Saving
