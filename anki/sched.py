@@ -90,7 +90,7 @@ select due, count() from cards
 where did in %s and queue = {QUEUE_REV}
 and due between ? and ?
 group by due
-order by due""" % (self.col.decks._deckLimit()),
+order by due""" % (self.col.decks._activeAsString()),
                             self.today,
                             self.today+days-1))
         for day in range(days):
@@ -183,12 +183,12 @@ order by due""" % (self.col.decks._deckLimit()),
         self.setLrnCount(self.col.db.scalar(f"""
 select sum(left/1000) from (select left from cards where
 did in %s and queue = {QUEUE_LRN} and due < ? limit %d)""" % (
-            self.col.decks._deckLimit(), self.reportLimit),
+            self.col.decks._activeAsString(), self.reportLimit),
             self.dayCutoff) or 0)
         # Number of cards in learning which are due today, last seen another day caped by report limit, in the selected decks
         self.setLrnCount(self.lrnCount() + self.col.db.scalar(f"""
 select count() from cards where did in %s and queue = {QUEUE_DAY_LRN}
-and due <= ? limit %d""" % (self.col.decks._deckLimit(),  self.reportLimit),
+and due <= ? limit %d""" % (self.col.decks._activeAsString(),  self.reportLimit),
                                             self.today))
 
     # sub-day learning
