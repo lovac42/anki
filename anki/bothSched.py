@@ -196,7 +196,8 @@ did = ? and queue = {QUEUE_NEW} limit ?)""", did, lim)
             return False
         while self._newDids:
             did = self._newDids[0]
-            lim = min(self.queueLimit, self._deckNewLimit(did))
+            deck = self.col.decks.get(did)
+            lim = min(self.queueLimit, self._deckNewLimit(deck))
             if lim:
                 # fill the queue with the current did
                 self._newQueue = self.col.db.list(f"""
@@ -240,8 +241,8 @@ did = ? and queue = {QUEUE_NEW} limit ?)""", did, lim)
         elif self.newCardModulus:
             return self.reps and self.reps % self.newCardModulus == 0
 
-    def _deckNewLimit(self, did):
-        return self._deckLimit(did, lambda deck: deck._deckNewLimitSingle())
+    def _deckNewLimit(self, deck):
+        return self._deckLimit(deck.getId(), lambda deck: deck._deckNewLimitSingle())
 
     def _deckLimit(self, did, fn):
         lim = -1
