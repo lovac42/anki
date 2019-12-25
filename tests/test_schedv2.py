@@ -1036,13 +1036,14 @@ def test_reorder():
     assert f2.cards()[0].due == 2
     found=False
     # 50/50 chance of being reordered
+    defaultDeck = d.decks.get(1)
     for i in range(20):
-        d.sched.randomizeCards(d.decks.get(1))
+        d.sched.randomizeCards(defaultDeck)
         if f.cards()[0].due != f.id:
             found=True
             break
     assert found
-    d.sched.orderCards(1)
+    d.sched.orderCards(defaultDeck)
     assert f.cards()[0].due == 1
     # shifting
     f3 = d.newNote()
