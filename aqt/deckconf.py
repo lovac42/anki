@@ -260,7 +260,7 @@ class DeckConf(QDialog):
             if conf['order'] == NEW_CARDS_RANDOM:
                 self.deck.randomizeCards()
             else:
-                self.mw.col.sched.orderCards(self.deck)
+                self.deck.orderCards()
         # rev
         conf = self.conf['rev']
         conf['perDay'] = self.form.revPerDay.value()

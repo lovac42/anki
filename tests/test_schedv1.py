@@ -1041,7 +1041,7 @@ def test_reorder():
             found=True
             break
     assert found
-    d.sched.orderCards(defaultDeck)
+    defaultDeck.orderCards()
     assert f.cards()[0].due == 1
     # shifting
     f3 = d.newNote()
