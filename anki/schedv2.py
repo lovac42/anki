@@ -103,7 +103,7 @@ select due, count() from cards
 where did in %s and queue = {QUEUE_REV}
 and due between ? and ?
 group by due
-order by due""" % (self.col.decks._deckLimit()),
+order by due""" % (self.col.decks._activeAsString()),
                             self.today,
                             self.today+days-1))
         for day in range(days):
@@ -170,17 +170,17 @@ order by due""" % (self.col.decks._deckLimit()),
         self.setLrnCount(self.col.db.scalar(f"""
 select count() from cards where did in %s and queue = {QUEUE_LRN}
 and due < ?""" %
-            self.col.decks._deckLimit(),
+            self.col.decks._activeAsString(),
             self._lrnCutoff) or 0)
         # day
         self.setLrnCount(self.lrnCount() + self.col.db.scalar(f"""
 select count() from cards where did in %s and queue = {QUEUE_DAY_LRN}
-and due <= ?""" % self.col.decks._deckLimit(),
+and due <= ?""" % self.col.decks._activeAsString(),
                                             self.today))
         # previews
         self.setLrnCount(self.lrnCount() + self.col.db.scalar(f"""
 select count() from cards where did in %s and queue = {QUEUE_PREVIEW}
-""" % self.col.decks._deckLimit()))
+""" % self.col.decks._activeAsString()))
 
     def _resetLrn(self):
         self._updateLrnCutoff(force=True)
