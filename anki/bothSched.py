@@ -153,7 +153,7 @@ class BothScheduler:
             deck.count['lim']['rev'] = self._deckRevLimitSingle(deck)
             if not parent.isAboveTopLevel():
                 deck.count['lim']['rev'] = min(deck.count['lim']['rev'], parent.count['lim']['rev'])
-            deck.count['singleDue']['rev'] = self._revForDeck(deck.getId(), deck.count['lim']['rev'])
+            deck.count['singleDue']['rev'] = self._revForDeck(deck, deck.count['lim']['rev'])
             # add deck as a parent
 
     def _deckLimitSingle(self, deck, kind):

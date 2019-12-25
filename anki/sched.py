@@ -389,7 +389,7 @@ where queue in ({QUEUE_LRN},{QUEUE_DAY_LRN}) and type = {CARD_DUE}
     def _deckRevLimit(self, did):
         return self._deckLimit(did, self._deckRevLimitSingle)
 
-    def _revForDeck(self, did, lim):
+    def _revForDeck(self, deck, lim):
         """number of cards to review today for deck did
 
         Minimum between this number, self report and limit. Not taking subdeck into account """
@@ -399,7 +399,7 @@ where queue in ({QUEUE_LRN},{QUEUE_DAY_LRN}) and type = {CARD_DUE}
 select count() from
 (select 1 from cards where did = ? and queue = {QUEUE_REV}
 and due <= ? limit ?)""",
-            did, self.today, lim)
+            deck.getId(), self.today, lim)
 
     def _resetRevCount(self):
         """Set revCount"""
