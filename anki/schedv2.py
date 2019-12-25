@@ -571,7 +571,7 @@ limit ?""" % ids2str(self.col.decks.active()),
                 return total
             # move the cards over
             self.col.log(deck.getId(), ids)
-            self._moveToDyn(deck.getId(), ids, start=start+total)
+            self._moveToDyn(deck, ids, start=start+total)
             total += len(ids)
         return total
 
@@ -589,13 +589,12 @@ due = (case when odue>0 then odue else due end), odue = 0, odid = 0, usn = ? whe
     def _dynOrder(self, order, limit):
         return super()._dynOrder(order, limit, "card.due, card.ord")
 
-    def _moveToDyn(self, did, ids, start=-100000):
-        deck = self.col.decks.get(did)
+    def _moveToDyn(self, deck, ids, start=-100000):
         data = []
         usn = self.col.usn()
         due = start
         for id in ids:
-            data.append((did, due, usn, id))
+            data.append((deck.getId(), due, usn, id))
             due += 1
 
         queue = ""
