@@ -439,7 +439,7 @@ did = ? and queue = {QUEUE_DAY_LRN} and due <= ? limit ?""",
             log()
 
     def _dayLrnForDeck(self, deck):
-        return self.col.db.scalar(
+        deck.count['singleDue']['dayLrn'] = self.col.db.scalar(
             f"""
 select count() from
 (select null from cards where did = ? and queue = {QUEUE_DAY_LRN}
@@ -447,7 +447,8 @@ and due <= ? limit ?)""",
             deck.getId(), self.today, self.reportLimit)
 
     def _lrnForDeck(self, deck):
-        return self._dayLrnForDeck(deck) + self._todayLrnForDeck(deck)
+        self._dayLrnForDeck(deck)
+        return deck.count['singleDue']['dayLrn'] + self._todayLrnForDeck(deck)
 
     def _todayLrnForDeck(self, deck, count):
         """Number of review of cards in learing of deck did. """
