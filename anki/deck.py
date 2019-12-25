@@ -465,3 +465,7 @@ and due <= ? limit ?)""",
 select {count} from
 (select left from cards where did = ? and queue = {QUEUE_LRN} and due < ? limit ?)""",
             self.getId(), intTime() + self.manager.col.conf['collapseTime'], self.manager.col.sched.reportLimit) or 0
+
+    def _todayStepLrnForDeck(self):
+        """Number of review of cards in learing of deck did. """
+        self.count['singleDue']['todayStepLrn'] = self._todayLrnForDeckAux("sum(left/1000)")
