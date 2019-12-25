@@ -165,7 +165,7 @@ class BothScheduler:
             deck._todayStepLrnForDeck()
             self._todayLrnForDeck(deck)
             # reviews
-            self._dueForDeck(deck)
+            deck._dueForDeck()
             deck.count['singleDue']['rev'] = self._revForDeck(deck, deck.count['lim']['rev'])
             # add deck as a parent
     # New cards
@@ -461,15 +461,6 @@ select id from cards where did in %s and queue = {QUEUE_REV} and due <= ? limit 
             % ids2str(self.col.decks.active()), self.today, self.reportLimit
 )
 
-    def _dueForDeck(self, deck):
-        """number of cards due today for deck did """
-        deck.count['singleDue']['due'] = self.col.db.scalar(
-            f"""
-select count() from
-(select 1 from cards where did = ? and queue = {QUEUE_REV}
-and due <= ?)""",
-            deck.getId(), self.today)
-
     def _fillRev(self):
         if self._revQueue:
             return True
@@ -483,6 +474,7 @@ and due <= ?)""",
             # removed from the queue but not buried
             self._resetRev()
             return self._fillRev()
+
 
     # Interval management
     ##########################################################################

@@ -453,6 +453,15 @@ class Deck(DictAugmentedDyn):
     def _deckRevLimitSingle(self):
         return self._deckLimitSingle('rev')
 
+    def _dueForDeck(self):
+        """number of cards due today for deck did """
+        self.count['singleDue']['due'] = self.manager.col.db.scalar(
+            f"""
+select count() from
+(select 1 from cards where did = ? and queue = {QUEUE_REV}
+and due <= ?)""",
+            self.getId(), self.manager.col.sched.today)
+
     # New cards
     ##########################################################################
 
