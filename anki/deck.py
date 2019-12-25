@@ -431,6 +431,22 @@ class Deck(DictAugmentedDyn):
         conf = self.manager.col.decks.get(self.getId()).getConf()
         return max(0, conf[kind]['perDay'] - self[kind+'Today'][1])
 
+
+    # Dynamic deck handling
+    ##########################################################################
+
+    def rebuildDyn(self):
+        "Rebuild a dynamic deck."
+        assert self.isDyn()
+        # move any existing cards back first, then fill
+        self.manager.col.sched.emptyDyn(self)
+        ids = self.manager.col.sched._fillDyn(self)
+        if not ids:
+            return
+        # and change to our new deck
+        self.select()
+        return ids
+
     # Reviews
     ##########################################################################
 
