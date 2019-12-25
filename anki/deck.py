@@ -470,7 +470,18 @@ and due <= ?)""",
         return self._deckLimitSingle('new')
 
     def _deckNewLimit(self):
-        return self.manager.col.sched._deckLimit(self, lambda deck: deck._deckNewLimitSingle())
+        return self._deckLimit(lambda deck: deck._deckNewLimitSingle())
+
+    def _deckLimit(self, fn):
+        lim = -1
+        # for the deck and each of its parents
+        for ancestor in self.getAncestors(includeSelf=True):
+            rem = fn(ancestor)
+            if lim == -1:
+                lim = rem
+            else:
+                lim = min(rem, lim)
+        return lim
 
     # Learning queues
     ##########################################################################

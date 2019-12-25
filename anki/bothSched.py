@@ -241,17 +241,6 @@ did = ? and queue = {QUEUE_NEW} limit ?)""", did, lim)
         elif self.newCardModulus:
             return self.reps and self.reps % self.newCardModulus == 0
 
-    def _deckLimit(self, deck, fn):
-        lim = -1
-        # for the deck and each of its parents
-        for ancestor in deck.getAncestors(includeSelf=True):
-            rem = fn(ancestor)
-            if lim == -1:
-                lim = rem
-            else:
-                lim = min(rem, lim)
-        return lim
-
     def _newForDeck(self, did, lim):
         "New count for a single deck."
         if not lim:
