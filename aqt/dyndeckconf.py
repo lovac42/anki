@@ -119,7 +119,7 @@ class DeckConf(QDialog):
     def accept(self):
         if not self.saveConf():
             return
-        if not self.mw.col.sched.rebuildDyn(self.mw.col.decks.current()):
+        if not self.mw.col.decks.current().rebuildDyn():
             if askUser(_("""\
 The provided search did not match any cards. Would you like to revise \
 it?""")):
