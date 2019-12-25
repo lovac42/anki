@@ -383,7 +383,7 @@ where queue in ({QUEUE_LRN},{QUEUE_DAY_LRN}) and type = {CARD_DUE}
 
     def _todayLrnForDeck(self, deck):
         """Number of review of cards in learing of deck did. """
-        return super()._todayLrnForDeck(deck, "sum(left/1000)")
+        deck.count['singleDue']['todayLrn'] = super()._todayLrnForDeck(deck, "sum(left/1000)")
 
     # Reviews
     ##########################################################################

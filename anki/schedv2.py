@@ -353,7 +353,7 @@ select count() from cards where did in %s and queue = {QUEUE_PREVIEW}
         card.queue = QUEUE_REV
 
     def _todayLrnForDeck(self, deck):
-        return super()._todayLrnForDeck(deck, "count()")
+        deck.count['singleDue']['todayLrn'] = super()._todayLrnForDeck(deck, "count()")
 
     # Reviews
     ##########################################################################
