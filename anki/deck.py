@@ -430,3 +430,9 @@ class Deck(DictAugmentedDyn):
             return self.manager.col.sched.reportLimit
         conf = self.manager.col.decks.get(self.getId()).getConf()
         return max(0, conf[kind]['perDay'] - self[kind+'Today'][1])
+
+    # Reviews
+    ##########################################################################
+
+    def _deckRevLimitSingle(self):
+        return self._deckLimitSingle('rev')

@@ -144,7 +144,7 @@ class BothScheduler:
             if not parent.isAboveTopLevel():
                 deck.count['lim']['new'] = min(deck.count['lim']['new'], parent.count['lim']['new'])
             # reviews
-            deck.count['lim']['rev'] = self._deckRevLimitSingle(deck)
+            deck.count['lim']['rev'] = deck._deckRevLimitSingle()
             if not parent.isAboveTopLevel():
                 deck.count['lim']['rev'] = min(deck.count['lim']['rev'], parent.count['lim']['rev'])
 
@@ -472,9 +472,6 @@ select {count} from
 
     # Reviews
     ##########################################################################
-
-    def _deckRevLimitSingle(self, deck):
-        return deck._deckLimitSingle('rev')
 
     def _resetRev(self):
         """Set revCount, empty _revQueue, _revDids"""
