@@ -420,3 +420,13 @@ class Deck(DictAugmentedDyn):
         # and active decks (current + all children)
         self.manager.col.conf['activeDecks'] = self.getDescendantsIds(sort=True, includeSelf=True)
         self.manager.changed = True
+
+    # Scheduling count
+    #############################################################
+
+    def _deckLimitSingle(self, kind):
+        "Limit for deck without parent limits."
+        if self.isDyn():
+            return self.manager.col.sched.reportLimit
+        conf = self.manager.col.decks.get(self.getId()).getConf()
+        return max(0, conf[kind]['perDay'] - self[kind+'Today'][1])
