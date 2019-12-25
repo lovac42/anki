@@ -479,3 +479,10 @@ select {count} from
     def orderCards(self):
         cids = self.manager.col.db.list("select id from cards where did = ? order by id", self.getId())
         self.manager.col.sched.sortCards(cids)
+
+    # for post-import
+    def maybeRandomizeDeck(self):
+        conf = self.getConf()
+        # in order due?
+        if conf['new']['order'] == NEW_CARDS_RANDOM:
+            self.randomizeCards()
