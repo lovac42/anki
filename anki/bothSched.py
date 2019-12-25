@@ -580,7 +580,7 @@ and due <= ?)""",
         if not ids:
             return
         # and change to our new deck
-        self.col.decks.get(did).select()
+        deck.select()
         return ids
 
     def remFromDyn(self, cids):
