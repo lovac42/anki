@@ -146,7 +146,7 @@ class BothScheduler:
                 deck.count['lim']['new'] = min(deck.count['lim']['new'], lims[parentName][0])
             deck.count['singleDue']['new'] = self._newForDeck(deck.getId(), deck.count['lim']['new'])
             # learning
-            deck.count['singleDue']['lrn'] = self._lrnForDeck(deck)
+            self._lrnForDeck(deck)
             # reviews
             deck.count['lim']['rev'] = self._deckRevLimitSingle(deck)
             if parentName:
@@ -449,7 +449,7 @@ and due <= ? limit ?)""",
     def _lrnForDeck(self, deck):
         self._dayLrnForDeck(deck)
         self._todayLrnForDeck(deck)
-        return deck.count['singleDue']['dayLrn'] + deck.count['singleDue']['todayLrn']
+        deck.count['singleDue']['lrn'] = deck.count['singleDue']['dayLrn'] + deck.count['singleDue']['todayLrn']
 
     def _todayLrnForDeck(self, deck, count):
         """Number of review of cards in learing of deck did. """
