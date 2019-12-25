@@ -641,7 +641,7 @@ did = ? and queue = {QUEUE_REV} and due <= ? limit ?""",
             return ids
         # move the cards over
         self.col.log(deck.getId(), ids)
-        self._moveToDyn(deck.getId(), ids)
+        self._moveToDyn(deck, ids)
         return ids
 
     def emptyDyn(self, did, lim=None):
@@ -667,11 +667,10 @@ due = odue, odue = 0, odid = 0, usn = ? where %s""" % (lim),
             return f"card.due limit {limit}"
         return super()._dynOrder(order, limit, "card.due")
 
-    def _moveToDyn(self, did, ids):
-        deck = self.col.decks.get(did)
+    def _moveToDyn(self, deck, ids):
         time = intTime(); usn = self.col.usn()
         # start at -100000 so that reviews are all due
-        data = [(did, -100000+index, usn, id)
+        data = [(deck.getId(), -100000+index, usn, id)
                 for index, id in enumerate(ids)]
         # due reviews stay in the review queue. careful: can't use
         # "odid or did", as sqlite converts to boolean
