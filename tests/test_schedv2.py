@@ -1037,7 +1037,7 @@ def test_reorder():
     found=False
     # 50/50 chance of being reordered
     for i in range(20):
-        d.sched.randomizeCards(1)
+        d.sched.randomizeCards(d.decks.get(1))
         if f.cards()[0].due != f.id:
             found=True
             break
