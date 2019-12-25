@@ -47,7 +47,7 @@ class Overview:
             deck = self.mw.col.decks.current()
             self.mw.onCram("'deck:%s'" % deck.getName())
         elif url == "refresh":
-            self.mw.col.sched.rebuildDyn()
+            self.mw.col.sched.rebuildDyn(self.mw.col.decks.current())
             self.mw.reset()
         elif url == "empty":
             self.mw.col.sched.emptyDyn(self.col.decks.current())
@@ -78,7 +78,7 @@ class Overview:
 
     def onRebuildKey(self):
         if self._filteredDeck():
-            self.mw.col.sched.rebuildDyn()
+            self.mw.col.sched.rebuildDyn(self.mw.col.decks.current())
             self.mw.reset()
 
     def onEmptyKey(self):
