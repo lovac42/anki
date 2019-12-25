@@ -338,7 +338,7 @@ select id from cards where did in %s and queue = {QUEUE_NEW} limit ?)"""
         self._lrnQueue = self.col.db.all(f"""
 select due, id from cards where
 did in %s and {queue} and due < :lim
-limit %d""" % (self.col.decks._deckLimit(), self.reportLimit), lim=cutoff)
+limit %d""" % (self.col.decks._activeAsString(), self.reportLimit), lim=cutoff)
         # as it arrives sorted by did first, we need to sort it
         self._lrnQueue.sort()
         return self._lrnQueue
@@ -648,14 +648,14 @@ To study outside of the normal schedule, click the Custom Study button below."""
         "True if there are any rev cards due."
         return self.col.db.scalar(
             (f"select 1 from cards where did in %s and queue = {QUEUE_REV} "
-             "and due <= ? limit 1") % self.col.decks._deckLimit(),
+             "and due <= ? limit 1") % self.col.decks._activeAsString(),
             self.today)
 
     def newDue(self):
         "True if there are any new cards due."
         return self.col.db.scalar(
             (f"select 1 from cards where did in %s and queue = {QUEUE_NEW} "
-             "limit 1") % (self.col.decks._deckLimit(),))
+             "limit 1") % (self.col.decks._activeAsString(),))
 
     # Next time reports
     ##########################################################################
