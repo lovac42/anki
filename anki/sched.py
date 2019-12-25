@@ -387,7 +387,7 @@ where queue in ({QUEUE_LRN},{QUEUE_DAY_LRN}) and type = {CARD_DUE}
     ##########################################################################
 
     def _deckRevLimit(self, did):
-        return self._deckLimit(self.col.decks.get(did), lambda deck: deck._deckRevLimitSingle())
+        return self.col.decks.get(did)._deckLimit(lambda deck: deck._deckRevLimitSingle())
 
     def _revForDeck(self, deck, lim):
         """number of cards to review today for deck did
