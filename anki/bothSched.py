@@ -160,7 +160,7 @@ class BothScheduler:
             # new
             deck.count['singleDue']['new'] = self._newForDeck(deck.getId(), deck.count['lim']['new'])
             # learning
-            self._dayLrnForDeck(deck)
+            deck._dayLrnForDeck()
             self._todayNbCardLrnForDeck(deck)
             self._todayStepLrnForDeck(deck)
             self._todayLrnForDeck(deck)
@@ -439,14 +439,6 @@ did = ? and queue = {QUEUE_DAY_LRN} and due <= ? limit ?""",
             # duplicate pk; retry in 10ms
             time.sleep(0.01)
             log()
-
-    def _dayLrnForDeck(self, deck):
-        deck.count['singleDue']['dayLrn'] = self.col.db.scalar(
-            f"""
-select count() from
-(select null from cards where did = ? and queue = {QUEUE_DAY_LRN}
-and due <= ? limit ?)""",
-            deck.getId(), self.today, self.reportLimit)
 
     def _lrnForDeck(self, deck):
         deck.count['singleDue']['lrn'] = deck.count['singleDue']['dayLrn'] + deck.count['singleDue']['todayLrn']

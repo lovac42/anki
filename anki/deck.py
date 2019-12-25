@@ -443,3 +443,14 @@ class Deck(DictAugmentedDyn):
     def _deckNewLimitSingle(self):
         "Limit for deck without parent limits."
         return self._deckLimitSingle('new')
+
+    # Learning queues
+    ##########################################################################
+
+    def _dayLrnForDeck(self):
+        self.count['singleDue']['dayLrn'] = self.manager.col.db.scalar(
+            f"""
+select count() from
+(select null from cards where did = ? and queue = {QUEUE_DAY_LRN}
+and due <= ? limit ?)""",
+            self.getId(), self.manager.col.sched.today, self.manager.col.sched.reportLimit)
