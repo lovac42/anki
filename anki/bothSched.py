@@ -136,15 +136,13 @@ class BothScheduler:
         self._checkDay()
         self.col.decks.checkIntegrity()
         decks = self.col.decks.all(sort=True)
-        #lims -- associating to each deck maximum number of new card and of review. Taking custom study into account
-        lims = {}
         for deck in decks:
             parent = deck.getParent()
-            parentName = parent.getName()
             # new
             deck.count['lim']['new'] = self._deckNewLimitSingle(deck)
             if not parent.isAboveTopLevel():
-                deck.count['lim']['new'] = min(deck.count['lim']['new'], lims[parentName][0])
+                deck.count['lim']['new'] = min(deck.count['lim']['new'], parent.count['lim']['new'])
+
             deck.count['singleDue']['new'] = self._newForDeck(deck.getId(), deck.count['lim']['new'])
             # learning
             self._dayLrnForDeck(deck)
@@ -154,10 +152,9 @@ class BothScheduler:
             # reviews
             deck.count['lim']['rev'] = self._deckRevLimitSingle(deck)
             if not parent.isAboveTopLevel():
-                deck.count['lim']['rev'] = min(deck.count['lim']['rev'], lims[parentName][1])
+                deck.count['lim']['rev'] = min(deck.count['lim']['rev'], parent.count['lim']['rev'])
             deck.count['singleDue']['rev'] = self._revForDeck(deck.getId(), deck.count['lim']['rev'])
             # add deck as a parent
-            lims[deck.getName()] = [deck.count['lim']['new'], deck.count['lim']['rev']]
 
     def _deckLimitSingle(self, deck, kind):
         "Limit for deck without parent limits."
