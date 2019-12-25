@@ -543,7 +543,7 @@ def test_suspend():
     c.due = 1
     c.flush()
     d.decks.newDyn("tmp")
-    d.sched.rebuildDyn()
+    d.sched.rebuildDyn(d.decks.current())
     c.load()
     assert c.due != 1
     assert c.did != 1
