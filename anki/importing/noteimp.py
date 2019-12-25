@@ -215,7 +215,7 @@ class NoteImporter(Importer):
         conf = deck.getConf()
         # in order due?
         if conf['new']['order'] == NEW_CARDS_RANDOM:
-            self.col.sched.randomizeCards(deck)
+            deck.randomizeCards()
 
         part1 = ngettext("%d note added", "%d notes added", len(new)) % len(new)
         part2 = ngettext("%d note updated", "%d notes updated",
