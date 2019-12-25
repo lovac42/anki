@@ -486,6 +486,9 @@ select {count} from
         """Number of review of cards in learing of deck did. """
         self.count['singleDue']['todayStepLrn'] = self._todayLrnForDeckAux("sum(left/1000)")
 
+    def _todayNbCardLrnForDeck(self):
+        self.count['singleDue']['todayNbCardLrn'] = self._todayLrnForDeckAux("count()")
+
     # Repositioning new cards
     ##########################################################################
 

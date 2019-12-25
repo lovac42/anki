@@ -161,7 +161,7 @@ class BothScheduler:
             deck.count['singleDue']['new'] = self._newForDeck(deck.getId(), deck.count['lim']['new'])
             # learning
             deck._dayLrnForDeck()
-            self._todayNbCardLrnForDeck(deck)
+            deck._todayNbCardLrnForDeck()
             deck._todayStepLrnForDeck()
             self._todayLrnForDeck(deck)
             # reviews
@@ -439,9 +439,6 @@ did = ? and queue = {QUEUE_DAY_LRN} and due <= ? limit ?""",
             # duplicate pk; retry in 10ms
             time.sleep(0.01)
             log()
-
-    def _todayNbCardLrnForDeck(self, deck):
-        deck.count['singleDue']['todayNbCardLrn'] = deck._todayLrnForDeckAux("count()")
 
     # Reviews
     ##########################################################################
