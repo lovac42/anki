@@ -387,7 +387,7 @@ where queue in ({QUEUE_LRN},{QUEUE_DAY_LRN}) and type = {CARD_DUE}
     ##########################################################################
 
     def _deckRevLimit(self, did):
-        return self._deckLimit(did, self._deckRevLimitSingle)
+        return self._deckLimit(did, lambda deck: deck._deckRevLimitSingle())
 
     def _revForDeck(self, deck, lim):
         """number of cards to review today for deck did
@@ -410,7 +410,7 @@ select count() from (select id from cards where
 did = ? and queue = {QUEUE_REV} and due <= ? limit %d)""" % (lim),
                                       did, self.today)
         self.setRevCount(self._walkingCount(
-            self._deckRevLimitSingle, cntFn))
+            lambda deck: deck._deckRevLimitSingle(), cntFn))
 
     def _resetRev(self):
         super()._resetRev()
