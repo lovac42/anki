@@ -543,7 +543,7 @@ def test_suspend():
     c.due = 1
     c.flush()
     d.decks.newDyn("tmp")
-    d.sched.rebuildDyn(d.decks.current())
+    d.decks.current().rebuildDyn()
     c.load()
     assert c.due != 1
     assert c.did != 1
@@ -572,7 +572,7 @@ def test_cram():
     # create a dynamic deck and refresh it
     cram = d.decks.newDyn("Cram")
     did = cram.getId()
-    d.sched.rebuildDyn(cram)
+    cram.rebuildDyn()
     d.reset()
     # should appear as new in the deck list
     d.sched.deckDueTree()
@@ -617,7 +617,7 @@ def test_cram():
     # and it will have moved back to the previous deck
     assert c.did == 1
     # cram the deck again
-    d.sched.rebuildDyn(cram)
+    cram.rebuildDyn()
     d.reset()
     c = d.sched.getCard()
     # check ivls again - passing should be idempotent
@@ -649,7 +649,7 @@ def test_cram():
     # cram again
     deck = d.decks.newDyn("Cram")
     did = deck.getId()
-    d.sched.rebuildDyn(deck)
+    deck.rebuildDyn()
     d.reset()
     assert d.sched.counts() == (0,0,1)
     c.load()
@@ -677,7 +677,7 @@ def test_cram_rem():
     oldDue = f.cards()[0].due
     deck = d.decks.newDyn("Cram")
     did = deck.getId()
-    d.sched.rebuildDyn(deck)
+    deck.rebuildDyn()
     d.reset()
     c = d.sched.getCard()
     d.sched.answerCard(c, 2)
@@ -703,7 +703,7 @@ def test_cram_resched():
     did = deck.getId()
     cram = d.decks.get(did)
     cram['resched'] = False
-    d.sched.rebuildDyn(deck)
+    deck.rebuildDyn()
     d.reset()
     # graduate should return it to new
     c = d.sched.getCard()
@@ -722,7 +722,7 @@ def test_cram_resched():
     c.factor = STARTING_FACTOR
     c.flush()
     cardcopy = copy.copy(c)
-    d.sched.rebuildDyn(deck)
+    deck.rebuildDyn()
     d.reset()
     c = d.sched.getCard()
     assert ni(c, 1) == 600
@@ -734,7 +734,7 @@ def test_cram_resched():
     # check failure too
     c = cardcopy
     c.flush()
-    d.sched.rebuildDyn(deck)
+    deck.rebuildDyn()
     d.reset()
     c = d.sched.getCard()
     d.sched.answerCard(c, 1)
@@ -745,7 +745,7 @@ def test_cram_resched():
     # fail+grad early
     c = cardcopy
     c.flush()
-    d.sched.rebuildDyn(deck)
+    deck.rebuildDyn()
     d.reset()
     c = d.sched.getCard()
     d.sched.answerCard(c, 1)
@@ -758,7 +758,7 @@ def test_cram_resched():
     c = cardcopy
     c.due = -25
     c.flush()
-    d.sched.rebuildDyn(deck)
+    deck.rebuildDyn()
     d.reset()
     c = d.sched.getCard()
     d.sched.answerCard(c, 3)
@@ -770,7 +770,7 @@ def test_cram_resched():
     c = cardcopy
     c.due = -25
     c.flush()
-    d.sched.rebuildDyn(deck)
+    deck.rebuildDyn()
     d.reset()
     c = d.sched.getCard()
     d.sched.answerCard(c, 1)
@@ -782,7 +782,7 @@ def test_cram_resched():
     c = cardcopy
     c.due = -25
     c.flush()
-    d.sched.rebuildDyn(deck)
+    deck.rebuildDyn()
     d.reset()
     c = d.sched.getCard()
     d.sched.answerCard(c, 1)
@@ -793,7 +793,7 @@ def test_cram_resched():
     # lapsed card pulled into cram
     # c.currentConf()['lapse']['mult']=0.5
     # d.sched.answerCard(c, 1)
-    # d.sched.rebuildDyn(deck)
+    # deck.rebuildDyn()
     # d.reset()
     # c = d.sched.getCard()
     # d.sched.answerCard(c, 2)

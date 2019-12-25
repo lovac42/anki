@@ -639,7 +639,7 @@ def test_suspend():
     c.due = 1
     c.flush()
     d.decks.newDyn("tmp")
-    d.sched.rebuildDyn(d.decks.current())
+    d.decks.current().rebuildDyn()
     c.load()
     assert c.due != 1
     assert c.did != 1
@@ -668,7 +668,7 @@ def test_filt_reviewing_early_normal():
     # create a dynamic deck and refresh it
     deck = d.decks.newDyn("Cram")
     did = deck.getId()
-    d.sched.rebuildDyn(deck)
+    deck.rebuildDyn()
     d.reset()
     # should appear as normal in the deck list
     d.sched.deckDueTree()
@@ -699,7 +699,7 @@ def test_filt_reviewing_early_normal():
     c.ivl = 100
     c.due = d.sched.today + 75
     c.flush()
-    d.sched.rebuildDyn(deck)
+    deck.rebuildDyn()
     d.reset()
     c = d.sched.getCard()
 
@@ -732,7 +732,7 @@ def test_filt_keep_lrn_state():
     # create a dynamic deck and refresh it
     deck = d.decks.newDyn("Cram")
     did = deck.getId()
-    d.sched.rebuildDyn(deck)
+    deck.rebuildDyn()
     d.reset()
 
     # card should still be in learning state
@@ -770,7 +770,7 @@ def test_preview():
     did = deck.getId()
     cram = d.decks.get(did)
     cram['resched'] = False
-    d.sched.rebuildDyn(deck)
+    deck.rebuildDyn()
     d.reset()
     # grab the first card
     c = d.sched.getCard()
@@ -1208,7 +1208,7 @@ def test_negativeDueFilter():
     # into and out of filtered deck
     deck = d.decks.newDyn("Cram")
     did = deck.getId()
-    d.sched.rebuildDyn(deck)
+    deck.rebuildDyn()
     d.sched.emptyDyn(deck)
     d.reset()
 
