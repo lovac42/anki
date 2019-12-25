@@ -436,3 +436,10 @@ class Deck(DictAugmentedDyn):
 
     def _deckRevLimitSingle(self):
         return self._deckLimitSingle('rev')
+
+    # New cards
+    ##########################################################################
+
+    def _deckNewLimitSingle(self):
+        "Limit for deck without parent limits."
+        return self._deckLimitSingle('new')
