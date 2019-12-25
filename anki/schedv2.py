@@ -352,8 +352,8 @@ select count() from cards where did in %s and queue = {QUEUE_PREVIEW}
         card.type = CARD_DUE
         card.queue = QUEUE_REV
 
-    def _todayLrnForDeck(self, did):
-        return super()._todayLrnForDeck(did, "count()")
+    def _todayLrnForDeck(self, deck):
+        return super()._todayLrnForDeck(deck, "count()")
 
     # Reviews
     ##########################################################################

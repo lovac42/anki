@@ -146,7 +146,7 @@ class BothScheduler:
                 deck.count['lim']['new'] = min(deck.count['lim']['new'], lims[parentName][0])
             deck.count['singleDue']['new'] = self._newForDeck(deck.getId(), deck.count['lim']['new'])
             # learning
-            deck.count['singleDue']['lrn'] = self._lrnForDeck(deck.getId())
+            deck.count['singleDue']['lrn'] = self._lrnForDeck(deck)
             # reviews
             deck.count['lim']['rev'] = self._deckRevLimitSingle(deck)
             if parentName:
@@ -438,24 +438,24 @@ did = ? and queue = {QUEUE_DAY_LRN} and due <= ? limit ?""",
             time.sleep(0.01)
             log()
 
-    def _dayLrnForDeck(self, did):
+    def _dayLrnForDeck(self, deck):
         return self.col.db.scalar(
             f"""
 select count() from
 (select null from cards where did = ? and queue = {QUEUE_DAY_LRN}
 and due <= ? limit ?)""",
-            did, self.today, self.reportLimit)
+            deck.getId(), self.today, self.reportLimit)
 
-    def _lrnForDeck(self, did):
-        return self._dayLrnForDeck(did) + self._todayLrnForDeck(did)
+    def _lrnForDeck(self, deck):
+        return self._dayLrnForDeck(deck) + self._todayLrnForDeck(deck)
 
-    def _todayLrnForDeck(self, did, count):
+    def _todayLrnForDeck(self, deck, count):
         """Number of review of cards in learing of deck did. """
         return self.col.db.scalar(
             f"""
 select {count} from
 (select left from cards where did = ? and queue = {QUEUE_LRN} and due < ? limit ?)""",
-            did, intTime() + self.col.conf['collapseTime'], self.reportLimit) or 0
+            deck.getId(), intTime() + self.col.conf['collapseTime'], self.reportLimit) or 0
 
     # Reviews
     ##########################################################################
