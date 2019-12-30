@@ -343,7 +343,7 @@ crt=?, mod=?, scm=?, dty=?, usn=?, ls=?, conf=?""",
                 raise AnkiError("abortSchemaMod")
         self.scm = intTime(1000)
         self.setMod()
-
+    # to stop a rebase
     def schemaChanged(self):
         "True if schema changed since last sync."
         return self.scm > self.ls
