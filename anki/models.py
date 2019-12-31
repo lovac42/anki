@@ -12,7 +12,7 @@ from anki.hooks import runHook
 from anki.lang import _
 from anki.model import Model
 from anki.templates import Template
-from anki.utils import checksum, intTime, joinFields, splitFields
+from anki.utils import checksum, intTime, joinFields
 
 """This module deals with models, known as note type in Anki's documentation.
 

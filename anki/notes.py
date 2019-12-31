@@ -5,7 +5,8 @@
 import time
 
 from anki.utils import (fieldChecksum, guid64, htmlToTextLine, intTime,
-                        joinFields, splitFields, stripHTMLMedia, timestampID)
+                        joinFields, nthField, splitFields, stripHTMLMedia,
+                        timestampID)
 
 
 class Note:
@@ -208,7 +209,7 @@ space, with an initial and a final white space."""
             "select flds from notes where csum = ? and id != ? and mid = ?",
             csum, self.id or 0, self.mid):
             if stripHTMLMedia(
-                splitFields(flds)[0]) == stripHTMLMedia(self.fields[0]):
+                    nthField(flds,0)) == stripHTMLMedia(self.fields[0]):
                 return 2
         return False
 
