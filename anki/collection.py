@@ -28,7 +28,7 @@ from anki.models import ModelManager
 from anki.sound import stripSounds
 from anki.tags import TagManager
 from anki.utils import (devMode, fieldChecksum, ids2str, intTime, joinFields,
-                        maxID, splitFields, stripHTMLMedia)
+                        maxID, nthField, splitFields, stripHTMLMedia)
 
 defaultConf = {
     # review options

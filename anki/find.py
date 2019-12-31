@@ -8,7 +8,7 @@ import unicodedata
 
 from anki.consts import *
 from anki.hooks import *
-from anki.utils import (fieldChecksum, ids2str, intTime, joinFields,
+from anki.utils import (fieldChecksum, ids2str, intTime, joinFields, nthField,
                         splitFields, stripHTMLMedia)
 
 # Find
@@ -503,9 +503,8 @@ select id, mid, flds from notes
 where mid in %s and flds like ? escape '\\'""" % (
                          ids2str(list(mods.keys()))),
                          "%"+val+"%"):
-            flds = splitFields(flds)
             ord = mods[str(mid)][1]
-            strg = flds[ord]
+            strg = nthField(flds, ord)
             try:
                 if re.search("(?si)^"+regex+"$", strg):
                     nids.append(id)
@@ -526,7 +525,7 @@ where mid in %s and flds like ? escape '\\'""" % (
         nids = [
             nid
             for nid, flds in self.col.db.execute("select id, flds from notes where mid=? and csum=?", mid, csum)
-            if stripHTMLMedia(splitFields(flds)[0]) == val]
+            if stripHTMLMedia(nthField(flds, 0)) == val]
 
         return "note.id in %s" % ids2str(nids)
 
@@ -627,11 +626,10 @@ def findDupes(col, fieldName, search=""):
     for nid, mid, flds in col.db.all(
         "select id, mid, flds from notes where id in "+ids2str(
             col.findNotes(search))):
-        flds = splitFields(flds)
         ord = ordForMid(mid)
         if ord is None:
             continue
-        val = flds[ord]
+        val = nthField(flds, ord)
         val = stripHTMLMedia(val)
         # empty does not count as duplicate
         if not val:
