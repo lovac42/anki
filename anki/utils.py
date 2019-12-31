@@ -287,6 +287,10 @@ def splitFields(string):
     """Transform the fields as in the database in a list of field"""
     return string.split("\x1f")
 
+def nthField(string, n):
+    """Transform the fields as in the database in a list of field"""
+    return string.split("\x1f", n+1)[n]
+
 # Checksums
 ##############################################################################
 
