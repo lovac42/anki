@@ -227,6 +227,8 @@ Not currently enabled; click the sync button in the main window to enable."""))
         {"name":"numBackups", "kind":"numeric", "sync":False},
         # advanced option
         {"name":"pastePNG", "sync":False},
+        # font
+        {"name":"fontSize", "kind":"numeric", "default":12},
     ]
 
     def setupOneSetting(self, name, default=False, kind="check", sync=True, fromCol=identity, toCol=identity):
