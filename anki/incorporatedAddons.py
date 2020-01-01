@@ -16,6 +16,7 @@ class Addon:
 incorporatedAddonsSet = {
     Addon("3 add-ons merged quicker anki explain deletion explain database check", 777545149, 1560838078, "https://github.com/Arthur-Milchior/anki-big-addon", "9138f06acf75df3eeb79a9b3cabdcfb0c6d964b9"),
     Addon("«Check database» Explain errors and what is done to fix it", 1135180054, gitHash = "371c360e5611ad3eec5dcef400d969e7b1572141", gitRepo = "https://github.com/Arthur-Milchior/anki-database-check-explained"), #mod unkwon because it's not directly used by the author anymore
+    Addon("Set Font Size", 651521808, 1577873147, "a995d27c1c4745a86b24285bf8a6333759e6e623", "http://github.com/Arthur-Milchior/anki-set-font-size"),
 }
 
 incompatibleAddons = {

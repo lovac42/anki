@@ -14,3 +14,5 @@ instead of deleting the note» chage the behavior of anki when he finds
 a note which has no more card. This allow to lose the content of the
 note, and let you correct the note instead to generate cards.
 
+## Font size (651521808)
+A field in preferenc allow to configure the size of the fonts
