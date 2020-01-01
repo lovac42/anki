@@ -21,6 +21,7 @@
 from aqt import mw
 from aqt.qt import *
 
+
 def changeGlobalFontSize(font_size):
     font = QApplication.font()
     font.setPixelSize(font_size)

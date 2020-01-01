@@ -16,3 +16,4 @@ note, and let you correct the note instead to generate cards.
 
 ## Font size (651521808)
 A field in preferenc allow to configure the size of the fonts
+

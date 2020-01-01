@@ -45,6 +45,7 @@ class Preferences(QDialog):
         self.updateNetwork()
         self.dealWithSettings(self.updateOneSetting)
         self.mw.pm.save()
+        self.mw.changeFontSize()
         self.mw.reset()
         self.done(0)
         aqt.dialogs.markClosed("Preferences")
