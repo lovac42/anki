@@ -390,7 +390,10 @@ class Editor:
 
         data = []
         for fld, val in list(self.note.items()):
-            data.append((fld, self.mw.col.media.escapeImages(val)))
+            data.append((
+                fld,
+                self.mw.col.media.escapeImages(val)
+            ))
             # field name, field content modified so that it's image's url can be used locally.
         self.widget.show()
         self.updateTags()
