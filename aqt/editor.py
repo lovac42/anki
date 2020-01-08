@@ -315,6 +315,11 @@ class Editor:
         else:
             self.checkValid()
 
+        val = self.note.fields[int(ord)]
+        fldContent = self.mw.col.media.escapeImages(val)
+        fldContentTexProcessed = self.mw.col.media.escapeImages(mungeQA(val, None, None, self.note.model(), None, self.note.col))
+        self.web.eval(f"setField({ord}, {json.dumps(fldContent)}, {json.dumps(fldContentTexProcessed)});")
+
     def onKey(self, *args):
         self.onKeyOrBlur(*args)
         runHook("editTimer", self.note)
