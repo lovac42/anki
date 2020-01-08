@@ -6,6 +6,7 @@ var changeTimer = null; // A setTimeout eevnt, to be executed if
                         // nothing else occurs. It changes the button highlightment, and save.
 var dropTarget = null; //The last field on which something was dropped.
 var currentNoteId = null; // A note id, as given by python.
+var originalFields = [];
 
 /* Methods which replace {d}, with d a number, by the d-th argument.*/
 String.prototype.format = function () {
@@ -182,12 +183,19 @@ function onFocus(elem) {
        If the change is note made by mouse, then move caret to end of field, and move the window to show the field.
 
      */
-    if (currentField === elem) {
+    var previousCurrentField = currentField;
+    currentField = elem;
+    var ord = currentFieldOrdinal();
+    var field = originalFields[ord];
+    if (field !== null) {
+        elem.innerHTML = field;
+        originalFields[ord] = null;
+    }
+    if (previousCurrentField === elem) {
         // anki window refocused; current element unchanged
         return;
     }
-    currentField = elem;
-    pycmd("focus:" + currentFieldOrdinal());
+    pycmd("focus:" + ord);
     enableButtons();
     // don't adjust cursor on mouse clicks
     if (mouseDown) {
@@ -401,15 +409,21 @@ function setFields(fields) {
     var partialNames = "";
     var partialFields = "";
     var lengthLine = 0;
+    originalFields = [];
     for (var i = 0; i < fields.length; i++) {
         var fieldName = fields[i][0];
+        nameTd = createNameTd(i, fieldName);
         var fieldValue = fields[i][1];
+        var fieldValueTexProcessed = fields[i][2];
         if (!fieldValue) {
             fieldValue = "<br>";
         }
-        fieldValueHtml = createDiv(i, fieldValue);
-        fieldNameHtml = createNameTd(i, fieldName)
-        nameTd = fieldNameHtml
+        originalFields[i] = fieldValue;
+        if (!fieldValueTexProcessed) {
+            fieldValueTexProcessed = "<br>";
+        }
+
+        fieldValueHtml = createDiv(i, fieldValueTexProcessed);
         txt += "  <tr>\n\
 "+fieldNameHtml+"\n\
   </tr>\n\
