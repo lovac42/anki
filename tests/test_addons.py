@@ -2,9 +2,10 @@ import os.path
 from tempfile import TemporaryDirectory
 from zipfile import ZipFile
 
-from aqt.addons import AddonManager
 from mock import MagicMock
 from nose.tools import assert_equals
+
+from aqt.addons import AddonManager
 
 
 def test_readMinimalManifest():
