@@ -4,6 +4,7 @@ import os
 import tempfile
 
 import nose
+
 from anki import Collection as aopen
 from anki.exporting import *
 from anki.importing import Anki2Importer

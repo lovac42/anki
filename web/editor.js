@@ -211,12 +211,21 @@ function onFocus(elem) {
     }
 }
 
-function focusField(n) {
+function getField(n) {
     /*Put focus in field number n*/
     if (n === null) {
+        return null;
+    }
+    return $("#f" + n);
+}
+
+function focusField(n) {
+    /*Put focus in field number n*/
+    f = getField(n);
+    if (f === null) {
         return;
     }
-    $("#f" + n).focus();
+    f.focus();
 }
 
 function focusPrevious() {
@@ -420,14 +429,14 @@ function setBackgrounds(cols) {
 
      Used to warn when first field is a duplicate*/
     for (var i = 0; i < cols.length; i++) {
-        $("#f" + i).css("background", cols[i]);
+        getField(i).css("background", cols[i]);
     }
 }
 
 function setFonts(fonts) {
     /* set fonts family and size according of the i-th field according to  fonts[i]*/
     for (var i = 0; i < fonts.length; i++) {
-        var n = $("#f" + i);
+        var n = getField(i);
         n.css("font-family", fonts[i][0])
          .css("font-size", fonts[i][1]);
         n[0].dir = fonts[i][2] ? "rtl" : "ltr";
