@@ -314,7 +314,11 @@ function saveField(type) {
 }
 
 function currentFieldOrdinal() {
-    return currentField.id.substring(1);
+    if (currentField) {
+        return currentField.id.substring(1);
+    } else {
+        return null;
+    }
 }
 
 function wrappedExceptForWhitespace(text, front, back) {
@@ -397,6 +401,23 @@ function createNameTd(ord, fieldName){
        {0}\n\
       </span>\n\
     </td>".format(fieldName);
+}
+
+function setField(ord, fieldValue, fieldValueTexProcessed) {
+    var currentOrd = currentFieldOrdinal();
+    if (currentOrd == ord) {
+        return;
+    }
+    if (!fieldValue) {
+        fieldValue = "<br>";
+    }
+    originalFields[ord] = fieldValue;
+    if (!fieldValueTexProcessed) {
+        fieldValueTexProcessed = "<br>";
+    }
+    field = getField(ord);
+    field.html(fieldValueTexProcessed);
+
 }
 
 function setFields(fields) {
