@@ -7,6 +7,7 @@ import io
 import json
 import os
 import random
+import sys
 
 import requests
 
@@ -166,6 +167,7 @@ class Syncer:
         check = self.sanityCheck()
         ret = self.server.sanityCheck2(client=check)
         if ret['status'] != "ok":
+            print(f"sanity check failed. Ret was {ret}", sys.stderr)
             return self._forceFullSync()
         # finalize
         runHook("sync", "finalize")
@@ -458,8 +460,10 @@ from notes where %s""" % (self.maxUsn, lim))
                 # syncing algorithm should handle this in a better way.
                 if localModel:
                     if len(localModel['flds']) != len(serverModel['flds']):
+                        print(f"Model {localModel['name']} has {len(localModel['flds'])} fields, while the model with same id {localModel['id']}, remotely, have {len(serverModel['flds'])} fields. ", file=sys.stderr)
                         raise UnexpectedSchemaChange()
                     if len(localModel['tmpls']) != len(serverModel['tmpls']):
+                        print(f"Model {localModel['name']} has {len(localModel['tmpls'])} templatess, while the model with same id {localModel['id']}, remotely, have {len(serverModel['tmpls'])} templatess. ", file=sys.stderr)
                         raise UnexpectedSchemaChange()
                 serverModel = self.col.models.createModel(serverModel)
                 serverModel.update()
