@@ -2,6 +2,10 @@
 This files list the difference between regular anki and this forked
 version. It also lists the different options in the Preferences's extra page.
 
+## Anki quicker (802285486)
+Those modification makes anki quicker. Technical details are on the
+add-on page.
+
 ## Edit new model without full sync (1988880085)
 
 As long as you didn't sync your collection, you can add/remove/edit
