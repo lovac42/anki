@@ -226,6 +226,7 @@ Not currently enabled; click the sync button in the main window to enable."""))
         # Backup
         {"name":"numBackups", "kind":"numeric", "sync":False},
         # advanced option
+        "exportSiblings",
         {"name":"pastePNG", "sync":False},
         "allowDuplicateFirstField",
     ]
