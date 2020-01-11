@@ -47,6 +47,11 @@ Reviewer opens the browser by showing current card only if preference
 is set.
 
 
+## Change LaTeX's footer/header everywhere (1863928230)
+
+Add a button in header/footer modification page, which makes it change
+everywhere.
+
 ## Compile LaTeX as soon as possible (769835008)
 
 As soon as a note with LaTeX is saved, its latex is compiled. A

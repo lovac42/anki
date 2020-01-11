@@ -141,6 +141,13 @@ class Models(QDialog):
         self.model['latexsvg'] = frm.latexsvg.isChecked()
         self.model['latexPre'] = str(frm.latexHeader.toPlainText())
         self.model['latexPost'] = str(frm.latexFooter.toPlainText())
+        if frm.all.isChecked():
+            if askUser("Write these values for the header/footer to ALL notetypes?"):
+                for m in self.mw.col.models.all():
+                    m['latexsvg'] = self.model['latexsvg']
+                    m['latexPre'] = self.model['latexPre']
+                    m['latexPost'] = self.model['latexPost']
+                    self.mw.col.flush()
 
     def saveModel(self):
         """Similar to "save the model" in anki/models.py"""
