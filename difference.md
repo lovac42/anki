@@ -6,6 +6,11 @@ version. It also lists the different options in the Preferences's extra page.
 Yeah, this description seems ridiculous. But actually, anki does not
 respect this.
 
+## Added today (861864770)
+Add an option in the add card window to open the browser with notes
+created today.
+
+
 ## Advanced browser (874215009)
 This add-on adds many features. In particular, for devs, it adds a
 class for browser's column, in order to add more columns easily
