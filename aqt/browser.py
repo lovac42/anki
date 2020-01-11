@@ -4,6 +4,7 @@
 
 import html
 import json
+import operator
 import re
 import sre_constants
 import time
@@ -191,7 +192,7 @@ class DataModel(QAbstractTableModel):
             type = self.col.conf['sortType']
             sortColumn = self.columns[type]
             sort = sortColumn.getSort()
-            self.cards = self.col.findCards(txt, order=sort)
+            self.cards = self.col.findCards(txt, order=sort, oneByNote=self.browser.showNotes)
             if self.browser.sortBackwards:
                 self.cards.reverse()
         except Exception as e:
@@ -300,7 +301,26 @@ class DataModel(QAbstractTableModel):
 
     def setupColumns(self):
         """Set self.columns"""
-        columns = [
+        #type -> columns
+        columns = {}
+        def add(column):
+            """Add a column in columns. If the column is new, add it. Otherwise,
+            simply add the menu path to the column already present in
+            the dict
+
+            """
+            type = column.type
+            present = columns.get(type)
+            if present is not None:
+                present = columns[type]
+                assert column == present
+                menus = column.menus
+                assert len(menus)==1
+                present.addMenu(menus[0])
+            else:
+                columns[type] = column
+
+        for column in [
             ColumnByMethod('question', _("Question"), "questionContentByCid(card.id)"),
             ColumnByMethod('answer', _("Answer"), "answerContentByCid(card.id)"),
             ColumnByMethod('template', _("Card"), "nameByMidOrd(note.mid, card.ord)"),
@@ -316,18 +336,17 @@ class DataModel(QAbstractTableModel):
             ColumnByMethod('cardLapses', _("Lapses"), "card.lapses"),
             ColumnByMethod('noteTags', _("Tags"), "note.tags", "stringTags"),
             ColumnByMethod('note', _("Note"), "nameByMid(note.mid)", "noteTypeBrowserColumn"),
-        ]
-        columnTypes = {column.type for column in columns}
+        ]:
+            add(column)
         for type in self.activeCols:
-            if type not in columnTypes:
+            if type not in columns:
                 column = UselessColumn(type)
-                columns.append(column)
-                columnTypes.add(type)
+                add(column)
 
-        columns.sort(key=lambda browser:browser.name) # allow to sort by
-        # alphabetical order in
-        # the local language
-        self.columns = {column.type: column for column in columns}
+        # allow to sort by alphabetical order in he local language
+        self.columns = {column.type: column
+                        for column in sorted(columns.values(), key=operator.attrgetter('name'))
+        }
 
     def columnType(self, column):
         """The name of the column in position `column`"""
@@ -436,6 +455,7 @@ class Browser(QMainWindow):
         QMainWindow.__init__(self, None, Qt.Window)
         self.mw = mw
         self.col = self.mw.col
+        self.showNotes = self.mw.col.conf.get("advbrowse_uniqueNote",False)
         self.sortBackwards = self.col.conf['sortBackwards']
         self.lastFilter = ""
         self.focusTo = None
@@ -458,6 +478,25 @@ class Browser(QMainWindow):
         self.onUndoState(self.mw.form.actionUndo.isEnabled())
         self.setupSearch(search=search, focusedCard=focusedCard, selectedCards=selectedCards)
         self.show()
+
+    def dealWithShowNotes(self, showNotes):
+        self.editor.saveNow(lambda:self._dealWithShowNotes(showNotes))
+
+    def _dealWithShowNotes(self, showNotes):
+        self.mw.col.conf["advbrowse_uniqueNote"] = showNotes
+        self.showNotes = showNotes
+        self.form.menu_Cards.setEnabled(not showNotes)
+        self.model.reset()
+        self.search()
+
+    def warnOnShowNotes(self, what):
+        """Return self.showNotes. If we show note, then warn that action what
+        is impossible.
+
+        """
+        if self.showNotes:
+            tooltip(_(f"You can't {what} a note. Please switch to card mode before doing this action."))
+        return self.showNotes
 
     def setupMenus(self):
         # pylint: disable=unnecessary-lambda
@@ -508,6 +547,7 @@ class Browser(QMainWindow):
         self.form.actionCardList.triggered.connect(self.onCardList)
         # help
         self.form.actionGuide.triggered.connect(self.onHelp)
+        self.form.actionShowNotesCards.triggered.connect(lambda:self.dealWithShowNotes(not self.showNotes))
         # keyboard shortcut for shift+home/end
         self.pgUpCut = QShortcut(QKeySequence("Shift+Home"), self)
         self.pgUpCut.activated.connect(self.onFirstCard)
@@ -666,8 +706,9 @@ class Browser(QMainWindow):
 
         selected = len(self.form.tableView.selectionModel().selectedRows())
         cur = len(self.model.cards)
-        self.setWindowTitle(ngettext("Browse (%(cur)d card shown; %(sel)s)",
-                                     "Browse (%(cur)d cards shown; %(sel)s)",
+        what = "note" if self.showNotes else "card"
+        self.setWindowTitle(ngettext(f"Browse (%(cur)d {what} shown; %(sel)s)",
+                                     f"Browse (%(cur)d {what}s shown; %(sel)s)",
                                  cur) % {
             "cur": cur,
             "sel": ngettext("%d selected", "%d selected", selected) % selected
@@ -802,13 +843,38 @@ class Browser(QMainWindow):
         """
         gpos = self.form.tableView.mapToGlobal(pos) # the position,
         # usable from the browser
-        menu = QMenu()
+        topMenu = QMenu()
+        menuDict = dict()
         for column in self.model.columns.values():
-            action = menu.addAction(column.name)
-            action.setCheckable(True)
-            action.setChecked(column.type in self.model.activeCols)
-            action.toggled.connect(lambda button, type=column.type: self.toggleField(type))
-        menu.exec_(gpos)
+            for menu in column.menus:
+                currentDict = menuDict
+                currentMenu = topMenu
+                for submenuName in menu:
+                    if submenuName in currentDict:
+                        currentDict, currentMenu = currentDict[submenuName]
+                    else:
+                        newDict = dict()
+                        newMenu = currentMenu.addMenu(submenuName)
+                        currentDict[submenuName] = newDict, newMenu
+                        currentMenu = newMenu
+                        currentDict = newDict
+
+                action = currentMenu.addAction(column.name)
+                action.setCheckable(True)
+                action.setChecked(column.type in self.model.activeCols)
+                action.toggled.connect(lambda button, type=column.type: self.toggleField(type))
+
+        # toggle note/card
+        a = topMenu.addAction(_("Use Note mode"))
+        a.setCheckable(True)
+        a.setChecked(self.showNotes)
+        a.toggled.connect(lambda:self.dealWithShowNotes(not self.showNotes))
+
+        #
+        topMenu.exec_(gpos)
+
+    def addMenu(self, menu):
+        self.menus.append(menu)
 
     def toggleField(self, type):
         """
@@ -1188,6 +1254,8 @@ class Browser(QMainWindow):
     ######################################################################
 
     def showCardInfo(self):
+        if self.warnOnShowNotes("show info of"):
+            return
         if not self.card:
             return
         info, cs = self._cardInfoData()
@@ -1574,6 +1642,8 @@ where id in %s""" % ids2str(sn))
     ######################################################################
 
     def setDeck(self):
+        if self.warnOnShowNotes("change the deck of"):
+            return
         self.editor.saveNow(self._setDeck)
 
     def _setDeck(self):
@@ -1654,6 +1724,8 @@ update cards set usn=?, mod=?, did=? where id in """ + scids,
         return bool (self.card and self.card.queue == QUEUE_SUSPENDED)
 
     def onSuspend(self):
+        if self.warnOnShowNotes("suspend"):
+            return
         self.editor.saveNow(self._onSuspend)
 
     def _onSuspend(self):
@@ -1707,6 +1779,8 @@ update cards set usn=?, mod=?, did=? where id in """ + scids,
     ######################################################################
 
     def reposition(self):
+        if self.warnOnShowNotes("reposition"):
+            return
         self.editor.saveNow(self._reposition)
 
     def _reposition(self):
@@ -1756,6 +1830,8 @@ update cards set usn=?, mod=?, did=? where id in """ + scids,
     ######################################################################
 
     def reschedule(self):
+        if self.warnOnShowNotes("reschedule"):
+            return
         self.editor.saveNow(self._reschedule)
 
     def _reschedule(self):

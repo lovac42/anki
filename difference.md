@@ -6,6 +6,10 @@ version. It also lists the different options in the Preferences's extra page.
 Yeah, this description seems ridiculous. But actually, anki does not
 respect this.
 
+## Advanced browser (874215009)
+This add-on adds many features. In particular, for devs, it adds a
+class for browser's column, in order to add more columns easily
+
 ## Anki quicker (802285486)
 Those modification makes anki quicker. Technical details are on the
 add-on page.
