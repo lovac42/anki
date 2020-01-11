@@ -2,6 +2,11 @@
 This files list the difference between regular anki and this forked
 version. It also lists the different options in the Preferences's extra page.
 
+## Change LaTeX's footer/header everywhere (1863928230)
+
+Add a button in header/footer modification page, which makes it change
+everywhere.
+
 ## Explain errors
 You obtain more detailled error message if a sync fail, and if you try
 do do a «Check database».
@@ -14,7 +19,3 @@ instead of deleting the note» chage the behavior of anki when he finds
 a note which has no more card. This allow to lose the content of the
 note, and let you correct the note instead to generate cards.
 
-## Change LaTeX's footer/header everywhere (1863928230)
-
-Add a button in header/footer modification page, which makes it change
-everywhere.

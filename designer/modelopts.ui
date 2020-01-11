@@ -35,6 +35,13 @@
         </widget>
        </item>
        <item>
+        <widget class="QCheckBox" name="all">
+         <property name="text">
+          <string>Apply these settings to all models?</string>
+         </property>
+        </widget>
+       </item>
+       <item>
         <widget class="QLabel" name="label_6">
          <property name="text">
           <string>Header</string>
