@@ -83,16 +83,24 @@ class Deck(anki.deck.Deck):
     def _export(self):
         self.manager.mw.onExport(deck=self)
 
-    def _askAndRename(self):
+    def _askAndRename(self, merge=None):
         # can't be called _rename, as it would conflict with anki/deck.py
         self.manager.mw.checkpoint(_("Rename Deck"))
         oldName = self.getName()
         newName = getOnlyText(_("New deck name:"), default=oldName)
         newName = newName.replace('"', "")
+        self._renameOrWarn(newName, merge)
+
+    def _renameOrWarn(self, newName, merge=None):
+        oldName = self.getName()
         if not newName or newName == oldName:
             return
+        if merge is None:
+            alreadyExists = self.manager.byName(newName)
+            if alreadyExists:
+                merge = askUser(_("The deck %s already exists. Do you want to merge %s in it ?")%(newName, oldName))
         try:
-            self.rename(newName)
+            self.rename(newName, merge=merge)
         except DeckRenameError as e:
             return showWarning(e.description)
         self.manager.mw.deckBrowser.show()
@@ -138,6 +146,12 @@ class Deck(anki.deck.Deck):
             return showWarning(e.description)
 
         self.manager.mw.deckBrowser.show()
+
+    def _dragDeckOnto(self, ontoDeckDid, merge=None):
+        assert not self.exporting
+        newName = self.newNameForDragAndDrop(ontoDeckDid)
+        if newName is not None:
+            self._renameOrWarn(newName, merge)
 
     def _collapse(self):
         self.collapse()

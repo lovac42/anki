@@ -137,6 +137,10 @@ their fields.
 If you want to remove this feature, and have anki's default, uncheck
 «Keep note without any card and warn» in the preferences.
 
+## Merge decks (443286122)
+If you move/rename a deck and that it conflicts with an already
+existing deck, Anki will ask whether you want to merge decks.
+
 ## New line in Json (112201952)
 In order to lead configurations be easier to edit, this add-on allow
 newline in json strings. It allow add newlines in the add-on
