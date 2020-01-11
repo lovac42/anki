@@ -20,7 +20,8 @@ from anki.lang import _, ngettext
 from anki.sound import allSounds, clearAudioQueue, play
 from anki.utils import (bodyClass, fmtTimeSpan, htmlToTextLine, ids2str,
                         intTime, isMac, isWin)
-from aqt.browserColumn import (ColumnByMethod, DateColumnFromQuery,
+from aqt.browserColumn import (ColumnAttribute, ColumnByMethod,
+                               DateColumnFromQuery, TimeColumnFromQuery,
                                UselessColumn)
 from aqt.exporting import ExportDialog
 from aqt.main import \
@@ -61,6 +62,7 @@ class DataModel(QAbstractTableModel):
         self.sortKey = None
         self.activeCols = self.col.conf.get(
             "activeCols", ["noteFld", "template", "cardDue", "deck"])
+        self.advancedColumns = self.col.conf.get("advancedColumnsInBrowser", False)
         self.setupColumns()
         self.cards = []
         self.cardObjs = {}
@@ -338,6 +340,44 @@ class DataModel(QAbstractTableModel):
             ColumnByMethod('cardLapses', _("Lapses"), "card.lapses"),
             ColumnByMethod('noteTags', _("Tags"), "note.tags", "stringTags"),
             ColumnByMethod('note', _("Note"), "nameByMid(note.mid)", "noteTypeBrowserColumn"),
+            TimeColumnFromQuery('cardFirstReview', _("First Review"), "min(id)"),
+            TimeColumnFromQuery('cardLastReview', _("Last Review"), "max(id)"),
+            TimeColumnFromQuery('cardAverageTime', _('Average time'), "avg(time)/1000.0"),
+            TimeColumnFromQuery('cardTotalTime', _('Total time'), "sum(time)/1000.0"),
+            TimeColumnFromQuery('cardFastestTime', _('Fastest review'), "time/1000.0", True),
+            TimeColumnFromQuery('cardSlowestTime', _('Slowest review'), "time/1000.0", True),
+            ColumnByMethod("cardPreviousIvl", _("Previous interval"), """(select ivl from revlog where cid = card.id order by id desc limit 1 offset 1)"""),
+            ColumnByMethod("cardPercentCorrect", _("Percent correct"), "cast(card.lapses as real)/card.reps"),
+            ColumnByMethod("cardPreviousDuration", _("Previous duration"), """(select time/1000.0 from revlog where cid = card.idy order by id desc limit 1)"""),
+            ColumnAttribute("nid", _("Note id")),
+            ColumnAttribute("nguid", _("Note guid")),
+            ColumnAttribute("nmid", _("mid")),
+            ColumnAttribute("nusn", _("note usn")),
+            ColumnByMethod("nfields", _("Note fields"), "note.flds", methodName="joinedFields", note=True),
+            ColumnAttribute("nflags", _("Note flags")),
+            ColumnAttribute("ndata", _("Note data")),
+            ColumnAttribute("cid", _("Card Id")),
+            ColumnAttribute("cdid", _("Deck Id")),
+            ColumnAttribute("codid", _("Deck Original id")),
+            ColumnAttribute("cord", _("Card Ord")),
+            ColumnAttribute("cusn", _("Card Usn")),
+            ColumnAttribute("ctype", _("Card type")),
+            ColumnAttribute("cqueue", _("Card queue")),
+            ColumnAttribute("cleft", _("Card left")),
+            ColumnAttribute("codue", _("Card odue")),
+            ColumnAttribute("cflags", _("Card flags")),
+            ColumnByMethod("cardOverdueIvl", _("Overdue interval"), f"""(
+select
+  (case
+    when odid then ""
+    when queue =1 then ""
+    when queue = 0 then ""
+    when type=0 then ""
+    when due<{self.col.sched.today} and (queue in (2, 3) or (type=2 and queue<0))
+    then {self.col.sched.today}-due
+    else ""
+  end)
+  from cards where id = card.id)"""),
         ]:
             add(column)
         for type in self.activeCols:
@@ -550,6 +590,9 @@ class Browser(QMainWindow):
         # Columns
         self.form.actionShow_Hours_and_Minutes.triggered.connect(self.toggleHoursAndMinutes)
         self.form.actionShow_Hours_and_Minutes.setChecked(self.model.minutes)
+        self.form.actionShow_Advanced_Columns.triggered.connect(self.toggleAdvancedColumns)
+        self.form.actionShow_Advanced_Columns.setCheckable(True)
+        self.form.actionShow_Advanced_Columns.setChecked(self.model.advancedColumns)
         # help
         self.form.actionGuide.triggered.connect(self.onHelp)
         self.form.actionShowNotesCards.triggered.connect(lambda:self.dealWithShowNotes(not self.showNotes))
@@ -876,6 +919,10 @@ class Browser(QMainWindow):
         a.toggled.connect(lambda:self.dealWithShowNotes(not self.showNotes))
 
         #
+        a = topMenu.addAction(_("Show advanced fields"))
+        a.setCheckable(True)
+        a.setChecked(self.col.conf.get("advancedColumnsInBrowser", False))
+        a.toggled.connect(self.toggleAdvancedColumns)
         topMenu.exec_(gpos)
 
     def addMenu(self, menu):
@@ -928,6 +975,14 @@ class Browser(QMainWindow):
             row = self.currentRow()
             idx = self.model.index(row, len(self.model.activeCols) - 1)
             self.form.tableView.scrollTo(idx)
+
+    def toggleAdvancedColumns(self):
+        self.editor.saveNow(self._toggleAdvancedColumns)
+
+    def _toggleAdvancedColumns(self):
+        self.model.advancedColumns = not self.model.advancedColumns
+        self.col.conf["advancedColumnsInBrowser"] = self.model.advancedColumns
+        self.model.reset()
 
     def setColumnSizes(self):
         hh = self.form.tableView.horizontalHeader()

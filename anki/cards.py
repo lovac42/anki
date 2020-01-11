@@ -8,7 +8,7 @@ from anki.consts import *
 from anki.hooks import runHook
 from anki.lang import _
 from anki.utils import (fmtTimeSpan, formatDay, htmlToTextLine, intTime,
-                        joinFields, timestampID)
+                        joinFields, strftimeIfArgument, timeFmt, timestampID)
 
 # Cards
 ##########################################################################
@@ -390,3 +390,39 @@ lapses=?, left=?, odue=?, odid=?, did=? where id = ?""",
                 self.col.decks.name(self.odid))
         # normal deck
         return self.col.decks.name(self.did)
+
+    def overdueIvlBrowserColumn(self):
+        if self.odid or self.queue == QUEUE_LRN:
+            return
+        elif self.queue == QUEUE_NEW or self.type == CARD_NEW:
+            return
+        elif self.queue in (QUEUE_REV, QUEUE_DAY_LRN) or (self.type == CARD_DUE and self.queue < 0):
+            lateness = self.col.sched.today - self.due
+            if lateness > 0 :
+                return f"{lateness} day{'s' if lateness > 1 else ''}"
+            else:
+                return
+
+    def previousIvlBrowserColumn(self):
+
+        ivl = self.col.db.scalar(
+            "select ivl from revlog where cid = ? "
+            "order by id desc limit 1 offset 1", self.id)
+        if ivl is None:
+            return
+        elif ivl == 0:
+            return "0 days"
+        elif ivl > 0:
+            return fmtTimeSpan(ivl*86400)
+        else:
+            return timeFmt(-ivl)
+
+    def percentCorrectBrowserColumn(self):
+        if self.reps <= 0:
+            return ""
+        return "{:2.0f}%".format(100 - ((self.lapses / float(self.reps)) * 100)),
+
+    def previousDurationBrowserColumn(self):
+        return timeFmt(self.col.db.scalar(
+            "select time/1000.0 from revlog where cid = ? "
+            "order by id desc limit 1", self.id))

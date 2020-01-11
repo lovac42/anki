@@ -83,6 +83,23 @@ def fmtTimeSpan(time, pad=0, point=0, short=False, inTime=False, unit=99):
     timestr = "%%%(a)d.%(point)df" % {'a': pad, 'point': point}
     return locale.format_string(fmt % timestr, time)
 
+def strftimeIfArgument(timeString):
+    if timeString:
+        return time.strftime("%Y-%m-%d", time.localtime(timeString / 1000))
+    else:
+        return ""
+
+def timeFmt(tm):
+    # stole this from anki.stats.CardStats#time()
+    str = ""
+    if tm is None:
+        return str
+    if tm >= 60:
+        str = fmtTimeSpan((tm / 60) * 60, short=True, point=-1, unit=1)
+    if tm % 60 != 0 or not str:
+        str += fmtTimeSpan(tm % 60, point=2 if not str else -1, short=True)
+    return str
+
 def optimalPeriod(time, point, unit):
     if abs(time) < 60 or unit < 1:
         type = "seconds"
