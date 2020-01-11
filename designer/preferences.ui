@@ -749,6 +749,13 @@
         </widget>
        </item>
        <item>
+        <widget class="QCheckBox" name="deckOverview">
+         <property name="text">
+          <string>See overview before reviewing.</string>
+         </property>
+        </widget>
+       </item>
+       <item>
         <widget class="QCheckBox" name="keepSeenCard">
          <property name="toolTip">
           <string>When you do &quot;Check &gt; Cards...&quot;, you won't delete cards you already reviewed once. This will allow you to correct their template if necessary without loosing your review history.</string>
