@@ -174,9 +174,9 @@ to their original deck.""")
                 self.mw.col.sched.finishedMsg())
         else:
             footList = [
-                (_("New"), colNew, counts[0]),
-                (_("Learning"), colLearn, counts[1]),
-                (_("To Review"), colRev, counts[2])]
+                (_("New"), "new", counts[0]),
+                (_("Learning"), "learn", counts[1]),
+                (_("To Review"), "rev", counts[2])]
             return (f'''
 <table width=400 cellpadding=5>
   <tr>
@@ -188,7 +188,7 @@ to their original deck.""")
             {string}:
           </td>
           <td>
-            <b><font color={color}>{nb}</font></b>
+            <b><font color={self.mw.col.conf.get("colors", defaultColors)[color]}>{nb}</font></b>
           </td>
         </tr>''' for string, color, nb in footList)+
 f'''
