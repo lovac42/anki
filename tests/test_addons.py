@@ -5,6 +5,7 @@ from zipfile import ZipFile
 from mock import MagicMock
 from nose.tools import assert_equals
 
+from anki.utils import correctJson, readableJson
 from aqt.addons import AddonManager
 
 
@@ -82,3 +83,19 @@ def assertReadManifest(contents, expectedManifest, nameInZip="manifest.json"):
 
         with ZipFile(zfn, "r") as zfile:
             assert_equals(adm.readManifestFile(zfile), expectedManifest)
+
+def testRedable():
+    assert readableJson("foo") == "foo"
+    assert readableJson("\\n") == "\\n"
+    assert readableJson("""\\n""") == """\\n"""
+    assert readableJson(""" "\\n" """) == """ "
+" """
+    assert readableJson(""" "\\\\n" """) == """ "\\\\n" """
+
+def testCorrect():
+    assert "foo" == correctJson("foo")
+    assert "\\n" == correctJson("\\n")
+    assert """\\n""" == correctJson("""\\n""")
+    assert """ "\\n" """ == correctJson(""" "
+" """)
+    assert """ "\\\\n" """ == correctJson(""" "\\\\n" """)

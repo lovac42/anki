@@ -493,6 +493,26 @@ def identity(x):
 def negation(x):
     return not x
 
+# JSon
+##############################################################################
+# Allow to have newline in strings in JSON
+
+def correctJson(text):
+    """Text, with new lines replaced by \n when inside quotes"""
+    if not isinstance(text,str):
+        return text
+    def correctQuotedString(match):
+        string = match[0]
+        return string.replace("\n","\\n")
+    res = re.sub(r'"(?:(?<=[^\\])(?:\\\\)*\\"|[^"])*"',correctQuotedString,text,re.M)
+    return res
+
+def jsonLoads(t, *args, **kwargs):
+    t_ = correctJson(t)
+    res = json.loads(t_, *args, **kwargs)
+    return res
+
+
 # Classes to extend dicts
 #############################################################################
 
@@ -577,3 +597,27 @@ class DictAugmentedDyn(DictAugmentedIdUsn):
 
     def setStd(self):
         self['dyn'] = anki.consts.DECK_STD
+
+
+def readableJson(text):
+    """Text, where \n are replaced with new line. Unless it's preceded by a odd number of \."""
+    l=[]
+    numberOfSlashOdd=False
+    numberOfQuoteOdd=False
+    for char in text:
+        if char == "n" and numberOfQuoteOdd and numberOfSlashOdd:
+            l[-1]="\n"
+        else:
+            l.append(char)
+            if char=="\n":
+                char="newline"
+
+        if char == "\"":
+            if not numberOfSlashOdd:
+                numberOfQuoteOdd = not numberOfQuoteOdd
+
+        if char == "\\":
+            numberOfSlashOdd = not numberOfSlashOdd
+        else:
+            numberOfSlashOdd = False
+    return "".join(l)
