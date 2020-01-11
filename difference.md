@@ -15,6 +15,8 @@ created today.
 This add-on adds many features. In particular, for devs, it adds a
 class for browser's column, in order to add more columns easily
 
+## Allow to keep first field empty (46741504)
+
 ## Anki quicker (802285486)
 Those modification makes anki quicker. Technical details are on the
 add-on page.

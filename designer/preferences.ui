@@ -477,6 +477,16 @@
         </widget>
        </item>
        <item>
+        <widget class="QCheckBox" name="allowEmptyFirstField">
+         <property name="text">
+          <string>Allow empty first field</string>
+         </property>
+         <property name="checked">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
         <widget class="QCheckBox" name="exportSiblings">
          <property name="text">
           <string>Export siblings of exported cards</string>
