@@ -5,6 +5,7 @@
 import time
 from copy import copy
 
+from anki.consts import *
 from anki.lang import _
 from anki.utils import (fieldChecksum, guid64, htmlToTextLine, intTime,
                         joinFields, nthField, splitFields, stripHTMLMedia,
@@ -304,3 +305,12 @@ space, with an initial and a final white space."""
 
     def noteTypeBrowserColumn(self):
         return self.model().getName()
+
+    # Methods to sort new card
+    ######################################################
+
+    def isNew(self):
+        return not self.isNotNew()
+
+    def isNotNew(self):
+        return self.col.db.scalar(f"select 1 from cards where nid = ? and type <> {CARD_NEW} limit 1", self.id)

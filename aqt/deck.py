@@ -5,7 +5,7 @@ from anki.hooks import runHook
 from anki.lang import _, ngettext
 from anki.utils import ids2str
 from aqt.qt import *
-from aqt.utils import askUser, getOnlyText, showWarning
+from aqt.utils import askUser, getOnlyText, getText, showWarning
 
 
 class Deck(anki.deck.Deck):
@@ -74,6 +74,8 @@ class Deck(anki.deck.Deck):
         if not self.manager.mw.col.conf.get("overview", False):
             action = menu.addAction(_("Overview"))
             action.triggered.connect(lambda button, deck=self: deck._overviewDeck())
+        action = menu.addAction(_("Sort"))
+        action.triggered.connect(lambda button, deck=self: deck._sort())
         runHook("showDeckOptions", menu, self.getId())
         # still passing did, as add-ons have not updated to my fork.
         menu.exec_(QCursor.pos())
@@ -116,8 +118,18 @@ class Deck(anki.deck.Deck):
             self.manager.mw.progress.finish()
             self.manager.mw.deckBrowser.show()
 
+
     def _onAddDelay(self):
         self.manager.mw.addDelay(self.getCids())
+
+    def _sort(self):
+        params = self.get("special sort", "")
+        (params, ret) = getText("How to sort those cards", default=params)
+        if not ret:
+            return
+        self["special sort"] = params
+        self.save()
+        self.manager.mw.col.sched.sortCids(self.getCids(), f"[{params}]")
 
     def _dragDeckOnto(self, ontoDeckDid):
         try:

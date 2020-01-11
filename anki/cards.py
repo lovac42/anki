@@ -4,6 +4,7 @@
 import pprint
 import time
 from copy import copy
+from random import random
 
 from anki.consts import *
 from anki.hooks import runHook
@@ -454,3 +455,35 @@ lapses=?, left=?, odue=?, odid=?, did=? where id = ?""",
         return timeFmt(self.col.db.scalar(
             "select time/1000.0 from revlog where cid = ? "
             "order by id desc limit 1", self.id))
+
+    def toTup(card, params, nidToRand):
+        """A tuple to sort the card. See bothSched.sortCids to get more
+        informations."""
+        l = []
+        for param in params:
+            if isinstance(param, tuple):
+                param, reverse = param
+            else:
+                reverse = False
+            if param == "new first":
+                val = (isNotNew(card.note()))#false occurs first in list
+            elif param == "seen first":
+                val = (isNew(card.note()))#false occurs first in list
+            elif param in {"ord", "card position"}:
+                val = (card.ord)
+            elif param == "note creation":
+                val = (card.nid)
+            elif param == "card creation":
+                val = (card.id)
+            elif param == "mod":
+                val = (card.note().mod)
+            elif param == "note random":
+                if card.nid not in nidToRand:
+                    nidToRand[card.nid] = random()
+                val = nidToRand[card.nid]
+            elif param == "card random":
+                val = (random())
+            if reverse:
+                val = -val
+            l.append(val)
+        return tuple(l)
