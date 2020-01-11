@@ -28,6 +28,12 @@ field, or adding text after/before it.
 In preferences, you can decide whether you add a new line between the
 old text and the added one.
 
+## Browser from reviewer (1555020859)
+
+Reviewer opens the browser by showing current card only if preference
+is set.
+
+
 ## Edit new model without full sync (1988880085)
 
 As long as you didn't sync your collection, you can add/remove/edit
