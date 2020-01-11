@@ -21,6 +21,13 @@ class for browser's column, in order to add more columns easily
 Those modification makes anki quicker. Technical details are on the
 add-on page.
 
+## Batch Edit (291119185)
+Allow to make the same edit to multiple cards. Either changing a
+field, or adding text after/before it.
+
+In preferences, you can decide whether you add a new line between the
+old text and the added one.
+
 ## Edit new model without full sync (1988880085)
 
 As long as you didn't sync your collection, you can add/remove/edit
