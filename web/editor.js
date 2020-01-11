@@ -280,6 +280,16 @@ function caretToEnd() {
     s.addRange(r);
 }
 
+function changeSize(fieldNumber){
+    saveNow(true);
+    pycmd("toggleLineAlone:"+fieldNumber);
+}
+
+function toggleFroze(fieldNumber){
+    saveNow(true);
+    pycmd("toggleFroze:"+fieldNumber);
+}
+
 function onBlur() {
     /*Tells python that it must save. Either by key if current field
       is still active. Otherwise by blur.  If current field is not
@@ -387,20 +397,35 @@ function onCutOrCopy() {
     return true;
 }
 
-function createDiv(ord,  fieldValue){
-    return "    <td width=100%>\n\
-      <div id='f{0}' onkeydown='onKey();' oninput='onInput();' onmouseup='onKey();'  onfocus='onFocus(this);' onblur='onBlur();' class='field clearfix' ondragover='onDragOver(this);' onpaste='onPaste(this);' oncopy='onCutOrCopy(this);' oncut='onCutOrCopy(this);' contentEditable=true class=field\n\
+function td(nbCol, alone, clas){
+    if (alone) {
+        return "    <td class=\"{0}\">\n".format(clas);
+    } else {
+        return "    <td class=\"{0}\" colspan={1}>\n".format(clas, nbCol);
+    }
+}
+
+function createDiv(ord,  fieldValue, nbCol, alone){
+    return td(nbCol, alone, "") + "      <div id='f{0}' onkeydown='onKey();' oninput='onInput();' onmouseup='onKey();'  onfocus='onFocus(this);' onblur='onBlur();' class='field clearfix' ondragover='onDragOver(this);' onpaste='onPaste(this);' oncopy='onCutOrCopy(this);' oncut='onCutOrCopy(this);' contentEditable=true class=field\n\
         >{1}</div>\n\
     </td>".format(ord, fieldValue);
 }
 // no new line/space around {1} because otherwise they'd be saved in the note
 
-function createNameTd(ord, fieldName){
-    return "    <td class='fname'>\n\
-      <span>\n\
+function createNameTd(ord, fieldName, nbCol, alone, sticky){
+    img = (sticky?"":"un")+"frozen.png";
+    title =(sticky?"Unf":"F")+"reeze field "+fieldName;
+    txt = td(nbCol, alone, "fname")+"      <span>\n\
        {0}\n\
-      </span>\n\
-    </td>".format(fieldName);
+      </span>".format(fieldName);
+    if (nbCol>1) {
+      txt+= "\n\
+      <input type='button' tabIndex='-1' value='Change size' onClick='changeSize({0})'/>".format(ord);
+    }
+    txt+="\n\
+      <img width='15px' height='15px' title='{0}' src='/_anki/imgs/{1}' onClick='toggleFroze({2})'/>\n\
+    </td>".format(title, img, ord);
+    return txt;
 }
 
 function setField(ord, fieldValue, fieldValueTexProcessed) {
@@ -420,7 +445,7 @@ function setField(ord, fieldValue, fieldValueTexProcessed) {
 
 }
 
-function setFields(fields) {
+function setFields(fields, nbCol) {
     /*Replace #fields by the HTML to show the list of fields to edit.
       Potentially change buttons
 
@@ -432,30 +457,52 @@ function setFields(fields) {
     var lengthLine = 0;
     originalFields = [];
     for (var i = 0; i < fields.length; i++) {
+        var alone = fields[i][2];
         var fieldName = fields[i][0];
-        fieldNameHtml = createNameTd(i, fieldName)
+        var sticky = fields[i][3];
+        var fieldNameHtml = createNameTd(i, fieldName, nbCol, alone, sticky);
 
         var fieldValue = fields[i][1];
-        var fieldValueTexProcessed = fields[i][2];
         if (!fieldValue) {
             fieldValue = "<br>";
         }
-
         originalFields[i] = fieldValue;
+
+        var fieldValueTexProcessed = fields[i][2];
         if (!fieldValueTexProcessed) {
             fieldValueTexProcessed = "<br>";
         }
+        var fieldValueHtml = createDiv(i, fieldValueTexProcessed, nbCol, alone);
 
-        fieldValueHtml = createDiv(i, fieldValueTexProcessed);
-        txt += "  <tr>\n\
+
+        if (alone) {
+            txt += "  <tr>\n\
 "+fieldNameHtml+"\n\
   </tr>\n\
   <tr>\n\
 "+fieldValueHtml+"\n\
   </tr>";
+        } else {
+            lengthLine++;
+            partialNames += fieldNameHtml;
+            partialFields += fieldValueHtml;
+        }
+
+        //When a line is full, or last field, append it to txt.
+        if (lengthLine == nbCol || ( i == fields.length -1 && lengthLine>0)){
+            txt+= "\n\
+  <tr>\n\
+"+partialNames+"\n\
+  </tr>\n\
+  <tr>"+partialFields+"\n\
+  </tr>";
+            // Re-initializing accumulators
+            partialNames = "";
+            partialFields = "";
+            lengthLine = 0;
+        }
     }
-    $("#fields").html("\n\
-<table cellpadding=0 width=100% style='table-layout: fixed;'>\n\
+    $("#fields").html("<table cellpadding=0 width=100% style='table-layout: fixed;'>\n\
 " + txt + "\n\
 </table>");
     maybeDisableButtons();
