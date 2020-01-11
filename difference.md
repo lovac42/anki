@@ -6,6 +6,13 @@ version. It also lists the different options in the Preferences's extra page.
 Yeah, this description seems ridiculous. But actually, anki does not
 respect this.
 
+## Add/remove deck prefix (683170394)
+In the browser, you can select cards, and then do `Decks > Add
+prefix`, to add the same prefix to the deck name of all of those
+cards. This ensure that they all belong to a same deck, while keeping
+the same deck hierarchy. `Decks > Remove prefix` allows to remove this
+common prefix and thus cancel the action `Add prefix`.
+
 ## Added today (861864770)
 Add an option in the add card window to open the browser with notes
 created today.
