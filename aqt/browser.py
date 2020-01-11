@@ -301,10 +301,10 @@ class DataModel(QAbstractTableModel):
     def setupColumns(self):
         """Set self.columns"""
         columns = [
-            ColumnByMethod('question', _("Question")),
-            ColumnByMethod('answer', _("Answer")),
-            ColumnByMethod('template', _("Card"),),
-            ColumnByMethod('deck', _("Deck")),
+            ColumnByMethod('question', _("Question"), "questionContentByCid(card.id)"),
+            ColumnByMethod('answer', _("Answer"), "answerContentByCid(card.id)"),
+            ColumnByMethod('template', _("Card"), "nameByMidOrd(note.mid, card.ord)"),
+            ColumnByMethod('deck', _("Deck"), "nameForDeck(card.did)"),
             ColumnByMethod('noteFld', _("Sort Field"), "note.sfld collate nocase, card.ord"),
             DateColumnFromQuery('noteCrt', _("Created"), "note.id/1000.0"),
             DateColumnFromQuery('noteMod', _("Edited"), "note.mod"),
@@ -314,8 +314,8 @@ class DataModel(QAbstractTableModel):
             ColumnByMethod('cardEase', _("Ease"), "(card.type == 0), card.factor"),
             ColumnByMethod('cardReps', _("Reviews"), "card.reps"),
             ColumnByMethod('cardLapses', _("Lapses"), "card.lapses"),
-            ColumnByMethod('noteTags', _("Tags"), methodName="stringTags"),
-            ColumnByMethod('note', _("Note"), methodName="noteTypeBrowserColumn"),
+            ColumnByMethod('noteTags', _("Tags"), "note.tags", "stringTags"),
+            ColumnByMethod('note', _("Note"), "nameByMid(note.mid)", "noteTypeBrowserColumn"),
         ]
         columnTypes = {column.type for column in columns}
         for type in self.activeCols:
@@ -764,20 +764,6 @@ class Browser(QMainWindow):
 
     def _onSortChanged(self, idx, ord):
         type = self.model.activeCols[idx]
-        noSort = ("question", "answer", "template", "deck", "note", "noteTags")
-        if type in noSort:
-            if type == "template":
-                showInfo(_("""\
-This column can't be sorted on, but you can search for individual card types, \
-such as 'card:1'."""))
-            elif type == "deck":
-                showInfo(_("""\
-This column can't be sorted on, but you can search for specific decks \
-by clicking on one on the left."""))
-            else:
-                showInfo(_("Sorting on this column is not supported. Please "
-                           "choose another."))
-            type = self.col.conf['sortType']
         if self.col.conf['sortType'] != type:
             self.col.conf['sortType'] = type
             # default to descending for non-text fields

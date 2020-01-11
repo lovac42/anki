@@ -211,6 +211,24 @@ class ModelManager:
             model.beforeUpload()
         self.save()
 
+    # Deck columns to show
+    ######################################################################
+
+    def name(self, id):
+        m = self.get(id, orNone=True)
+        if m is None:
+            return ""
+        return m.getName()
+
+    def templateName(self, id, ord):
+        m = self.get(id, orNone=True)
+        if m is None:
+            return ""
+        t = m.getTemplate(ord, orNone=True)
+        if t is None:
+            return ""
+        return t.getName()
+
     # Methods in Anki, here only to be compatible with add-ons
     #############################################################
     def setCurrent(self, model):
