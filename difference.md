@@ -41,6 +41,12 @@ Reviewer opens the browser by showing current card only if preference
 is set.
 
 
+## Compile LaTeX as soon as possible (769835008)
+
+As soon as a note with LaTeX is saved, its latex is compiled. A
+message warns when there is an error. To save time, once an expression
+failed, it's not tried again.
+
 ## Edit new model without full sync (1988880085)
 
 As long as you didn't sync your collection, you can add/remove/edit
