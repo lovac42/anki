@@ -42,6 +42,7 @@ incorporatedAddonsSet = {
     Addon("Preview any cloze", 915063177, gitHash="53becee3577c308dc169304d9ff30bf54ce34018", gitRepo="https://github.com/Arthur-Milchior/anki-any-cloze-in-preview"),
     Addon("Reviewer to Browser choosing what to display", 1555020859, 1565286616, "2e8ef9c8fa2648925807be43991432ae9211ba68", "https://github.com/Arthur-Milchior/anki-browser-from-reviewer"),
     Addon("Set Font Size", 651521808, 1577873147, "a995d27c1c4745a86b24285bf8a6333759e6e623", "http://github.com/Arthur-Milchior/anki-set-font-size"),
+    Addon("Show LaTeXs result in editorbrowser", 882784122, 1578524126, "a47b0aef7bca85c51c06fb9f05608c66e08c8a0b", "https://ankiweb.net/shared/info/882784122"),
     Addon("Update add-ons when Anki starts", 1847544206, 1568266364, "4ca633266986da6ba6886d4706909ddbd18c10d4", "https://github.com/Arthur-Milchior/anki-auto-update-addons"),
     Addon("«Check database» Explain errors and what is done to fix it", 1135180054, gitHash = "371c360e5611ad3eec5dcef400d969e7b1572141", gitRepo = "https://github.com/Arthur-Milchior/anki-database-check-explained"), #mod unkwon because it's not directly used by the author anymore
 }

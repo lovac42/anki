@@ -19,6 +19,7 @@ import anki.sound
 import aqt
 from anki.hooks import addHook, runFilter, runHook
 from anki.lang import _
+from anki.latex import mungeQA
 from anki.sync import AnkiRequestsClient
 from anki.utils import checksum, isWin, namedtmp, stripHTMLMedia
 from aqt.main import \
@@ -314,6 +315,11 @@ class Editor:
         else:
             self.checkValid()
 
+        val = self.note.fields[int(ord)]
+        fldContent = self.mw.col.media.escapeImages(val)
+        fldContentTexProcessed = self.mw.col.media.escapeImages(mungeQA(val, None, None, self.note.model(), None, self.note.col))
+        self.web.eval(f"setField({ord}, {json.dumps(fldContent)}, {json.dumps(fldContentTexProcessed)});")
+
     def onKey(self, *args):
         self.onKeyOrBlur(*args)
         runHook("editTimer", self.note)
@@ -388,9 +394,16 @@ class Editor:
         if not self.note:
             return
 
-        data = [(fld, self.mw.col.media.escapeImages(val))
-                # field name, field content modified so that it's image's url can be used locally.
-                for fld, val in list(self.note.items())]
+        data = []
+        for fld, val in list(self.note.items()):
+            fldContent = self.mw.col.media.escapeImages(val)
+            fldContentTexProcessed = self.mw.col.media.escapeImages(mungeQA(val, None, None, self.note.model(), None, self.note.col))
+            data.append((
+                fld,
+                fldContent,
+                fldContentTexProcessed,
+            ))
+            # field name, field content modified so that it's image's url can be used locally.
         self.widget.show()
         self.updateTags()
 
