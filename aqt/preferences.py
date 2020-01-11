@@ -255,6 +255,7 @@ Not currently enabled; click the sync button in the main window to enable."""))
         "minutesInBrowser",
         "newLineInBatchEdit",
         ("copyLog", True),
+        ("keepSeenCard", True),
         ("preserveCreation", True),
         ("preserveReviewInfo", True),
         {"name":"browserFromReviewer", "default":"default", "fromCol": (lambda x: {"cid":0,"nid":1,"did":2, "default":3}.get(x, 1)), "toCol": (lambda x: {0:"cid",1:"nid",2:"did", 3:"default"}[x]), "kind": "combo"},
