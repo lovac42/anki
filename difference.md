@@ -110,6 +110,9 @@ exported cards. The problem being, of course, that you may export
 cards in decks you did not select. Thus, importing those cards may
 potentially create more decks than expected.
 
+## Font size (651521808)
+A field in preferenc allow to configure the size of the fonts
+
 ## Keep seen card.
 By default, this version of anki does not delete a card if it has
 already been seen once. Because, it should probably not be empty, and

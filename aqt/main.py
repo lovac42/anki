@@ -290,6 +290,8 @@ close the profile or restart Anki."""))
             restoreState(self, "mainWindow")
         # titlebar
         self.setWindowTitle(self.pm.name + " - Anki")
+        # font size
+        self.changeFontSize()
         # show and raise window for osx
         self.show()
         self.activateWindow()
@@ -1632,3 +1634,17 @@ Please ensure a profile is open and Anki is not busy, then try again."""),
 
     def serverURL(self):
         return "http://127.0.0.1:%d/" % self.mediaServer.getPort()
+
+    def changeGlobalFontSize(self, font_size):
+        font = QApplication.font()
+        font.setPixelSize(font_size)
+        QApplication.setFont(font)
+
+    def changeWebFontSize(self, font_size):
+        QWebEngineSettings.globalSettings().setFontSize(QWebEngineSettings.MinimumFontSize, font_size)
+
+    def changeFontSize(self, font_size=None):
+        if font_size is None:
+            font_size = self.col.conf.get("fontSize", 12)
+        self.changeGlobalFontSize(font_size)
+        self.changeWebFontSize(font_size)

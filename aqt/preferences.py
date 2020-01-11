@@ -46,6 +46,7 @@ class Preferences(QDialog):
         self.updateNetwork()
         self.dealWithSettings(self.updateOneSetting)
         self.mw.pm.save()
+        self.mw.changeFontSize()
         self.mw.reset()
         self.done(0)
         aqt.dialogs.markClosed("Preferences")
@@ -254,6 +255,7 @@ Not currently enabled; click the sync button in the main window to enable."""))
         "compileLaTeX",
         "minutesInBrowser",
         "newLineInBatchEdit",
+        # font
         ("browserOnMissingMedia", True),
         ("copyLog", True),
         ("keepEmptyNote", True),
@@ -264,6 +266,7 @@ Not currently enabled; click the sync button in the main window to enable."""))
         {"name": "factorAddDay", "kind":"numeric"},
         {"name": "factorRemoveDay", "kind": "numeric"},
         {"name":"browserFromReviewer", "default":"default", "fromCol": (lambda x: {"cid":0,"nid":1,"did":2, "default":3}.get(x, 1)), "toCol": (lambda x: {0:"cid",1:"nid",2:"did", 3:"default"}[x]), "kind": "combo"},
+        {"name":"fontSize", "kind":"numeric", "default":12},
         {"name":"longTermBackUp", "default":True, "sync":False},
         {"name":"syncAddons", "sync":False},
     ]
