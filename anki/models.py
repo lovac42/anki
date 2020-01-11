@@ -198,7 +198,12 @@ class ModelManager:
     # Sync handling
     ##########################################################################
 
+    def removeLS(self):
+        for model in self.all():
+            model.removeLS()
+
     def beforeUpload(self):
+        self.removeLS()
         for model in self.all():
             model.beforeUpload()
         self.save()
