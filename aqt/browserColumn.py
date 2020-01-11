@@ -55,13 +55,15 @@ class ColumnByMethod(BrowserColumn):
     """
     methodName -- a method in the class card/note according to self.note.
     """
-    def __init__(self, type, name, sort=None, methodName=None, menu=True, note=None):
+    def __init__(self, type, name, sort=None, methodName=None, menu=True, note=None, *args, **kwargs):
         """All methods names ends with BrowserColumn. Only the part before has to be given.
         If methodName is not indicated, then it's assumed to be the same as
         type. Except if it starts with card or note, in which case
         those four letters are omitted, and the next letter is put in
         lower case.
         """
+        self.args = args
+        self.kwargs = kwargs
         if sort is None:
             sort = BrowserColumn.defaultSort
         super().__init__(type, name, menu, sort, note)
@@ -75,7 +77,7 @@ class ColumnByMethod(BrowserColumn):
             self.methodName +=  "BrowserColumn"
 
     def content(self, card):
-        return getattr(self.getBase(card), self.methodName)()
+        return getattr(self.getBase(card), self.methodName)(*self.args, **self.kwargs)
 
 
 class DateColumnFromQuery(BrowserColumn):
