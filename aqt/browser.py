@@ -52,6 +52,7 @@ class DataModel(QAbstractTableModel):
     dic. It is emptied during reset.
     focusedCard -- the last thing focused, assuming it was a single line. Used to restore a selection after edition/deletion.
     selectedCards -- a dictionnary containing the set of selected card's id, associating them to True. Seems that the associated value is never used. Used to restore a selection after some edition
+    minutes -- whether to show minutes in the columns
     """
     def __init__(self, browser, focusedCard=None, selectedCards=None):
         QAbstractTableModel.__init__(self)
@@ -63,6 +64,7 @@ class DataModel(QAbstractTableModel):
         self.setupColumns()
         self.cards = []
         self.cardObjs = {}
+        self.minutes = self.col.conf.get("minutesInBrowser", False)
         self.focusedCard = focusedCard
         self.selectedCards = selectedCards
 
@@ -326,9 +328,9 @@ class DataModel(QAbstractTableModel):
             ColumnByMethod('template', _("Card"), "nameByMidOrd(note.mid, card.ord)"),
             ColumnByMethod('deck', _("Deck"), "nameForDeck(card.did)"),
             ColumnByMethod('noteFld', _("Sort Field"), "note.sfld collate nocase, card.ord"),
-            DateColumnFromQuery('noteCrt', _("Created"), "note.id/1000.0"),
-            DateColumnFromQuery('noteMod', _("Edited"), "note.mod"),
-            DateColumnFromQuery('cardMod', _("Changed"), "card.mod"),
+            DateColumnFromQuery('noteCrt', _("Created"), "note.id/1000.0", self),
+            DateColumnFromQuery('noteMod', _("Edited"), "note.mod", self),
+            DateColumnFromQuery('cardMod', _("Changed"), "card.mod", self),
             ColumnByMethod('cardDue', _("Due"), "card.type, card.due"),
             ColumnByMethod('cardIvl', _("Interval"), "card.ivl"),
             ColumnByMethod('cardEase', _("Ease"), "(card.type == 0), card.factor"),
@@ -545,6 +547,9 @@ class Browser(QMainWindow):
         self.form.actionTags.triggered.connect(self.onFilterButton)
         self.form.actionSidebar.triggered.connect(self.focusSidebar)
         self.form.actionCardList.triggered.connect(self.onCardList)
+        # Columns
+        self.form.actionShow_Hours_and_Minutes.triggered.connect(self.toggleHoursAndMinutes)
+        self.form.actionShow_Hours_and_Minutes.setChecked(self.model.minutes)
         # help
         self.form.actionGuide.triggered.connect(self.onHelp)
         self.form.actionShowNotesCards.triggered.connect(lambda:self.dealWithShowNotes(not self.showNotes))
@@ -875,6 +880,19 @@ class Browser(QMainWindow):
 
     def addMenu(self, menu):
         self.menus.append(menu)
+
+    def toggleHoursAndMinutes(self):
+        """
+        Save the note in the editor
+
+        Show/hide hours and minutes
+        """
+        self.editor.saveNow(lambda: self._toggleHoursAndMinutes())
+
+    def _toggleHoursAndMinutes(self):
+        self.model.minutes = not self.model.minutes
+        self.col.conf["minutesInBrowser"] = self.model.minutes
+        self.model.reset()
 
     def toggleField(self, type):
         """
