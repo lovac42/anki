@@ -477,6 +477,16 @@
         </widget>
        </item>
        <item>
+        <widget class="QLabel" name="label_12">
+         <property name="text">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Configure how and when anki generate cards&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
+         <property name="wordWrap">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
         <widget class="Line" name="line">
          <property name="orientation">
           <enum>Qt::Horizontal</enum>
@@ -501,6 +511,20 @@
         </widget>
        </item>
        <item>
+        <widget class="QLabel" name="label_2">
+         <property name="text">
+          <string>This option adds a tag LaTeXError to cards with faulty LaTeX. </string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="preserveCreation">
+         <property name="text">
+          <string>Note copy: preserve date of creation</string>
+         </property>
+        </widget>
+       </item>
+       <item>
         <widget class="QCheckBox" name="exportSiblings">
          <property name="text">
           <string>Export siblings of exported cards</string>
@@ -508,9 +532,16 @@
         </widget>
        </item>
        <item>
-        <widget class="QLabel" name="label_2">
+        <widget class="QCheckBox" name="preserveReviewInfo">
          <property name="text">
-          <string>This option adds a tag LaTeXError to cards with faulty LaTeX. </string>
+          <string>Note copy: preserve easyness, interval, due date, ...</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="copyLog">
+         <property name="text">
+          <string>Note copy: Copy log</string>
          </property>
         </widget>
        </item>
