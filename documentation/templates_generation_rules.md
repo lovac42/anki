@@ -1,5 +1,9 @@
 # How to decide whether a card should be generated/deleted
 
+The algorithm change in 2.1.20. I'll update this document when 2.1.20 won't be in beta anymore.
+
+## Context
+
 Anki's official
 [documentation](https://apps.ankiweb.net/docs/manual.html#conditional-replacement)
 is not really clear about the rules governing the generation of
@@ -63,7 +67,7 @@ be mandatory.
 
 If there is at least one mandatory field, `_reqForTemplate`
 returns the pair `("all",l)` where `l` is the list of
-mandatory flags.
+mandatory fields.
 
 In this case, cards are generated for this template if and only if all
 of those "mandatory" fields are filled.
