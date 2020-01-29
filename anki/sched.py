@@ -729,6 +729,9 @@ did = ? and queue = {QUEUE_DAY_LRN} and due <= ? limit ?""",
         card.factor = conf['initialFactor']
 
     def _logLrn(self, card, ease, conf, leaving, type, lastLeft):
+        """Change with _logRev is:
+        * ivl, lastIvl, type"""
+        
         lastIvl = -(self._delayForGrade(conf, lastLeft))
         ivl = card.ivl if leaving else -(self._delayForGrade(conf, card.left))
         def log():
