@@ -570,6 +570,7 @@ select id from notes where id in %s and id not in (select nid from cards)"""
         rem: List[int] = []
         for m in self.models.all():
             rem += self.genCards(self.models.nids(m))
+        rem = hooks.empty_cards_will_be_deleted(rem, self)
         return rem
 
     def emptyCardReport(self, cids) -> str:

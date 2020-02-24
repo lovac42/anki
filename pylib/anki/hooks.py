@@ -213,6 +213,54 @@ class _DeckAddedHook:
 deck_added = _DeckAddedHook()
 
 
+class _EmptyCardsWillBeDeletedFilter:
+    """Allow to change the list of cards to delete.
+
+        For example, an add-on creating a method to delete only empty
+        new cards would be done as follow:
+```
+from anki.consts import CARD_TYPE_NEW
+from anki.utils import ids2str
+from aqt import mw
+
+def filter(cids, col):
+    return col.db.list(
+            f"select id from cards where (type={CARD_TYPE_NEW} and (id in {ids2str(cids)))")
+
+def emptyNewCard():
+    hooks.append(filter)
+    mw.onEmptyCards()
+    hooks.remove(filter)
+```"""
+
+    _hooks: List[Callable[[List[int], "anki.collection._Collection"], List[int]]] = []
+
+    def append(
+        self, cb: Callable[[List[int], "anki.collection._Collection"], List[int]]
+    ) -> None:
+        """(cids: List[int], col: anki.collection._Collection)"""
+        self._hooks.append(cb)
+
+    def remove(
+        self, cb: Callable[[List[int], "anki.collection._Collection"], List[int]]
+    ) -> None:
+        if cb in self._hooks:
+            self._hooks.remove(cb)
+
+    def __call__(self, cids: List[int], col: anki.collection._Collection) -> List[int]:
+        for filter in self._hooks:
+            try:
+                cids = filter(cids, col)
+            except:
+                # if the hook fails, remove it
+                self._hooks.remove(filter)
+                raise
+        return cids
+
+
+empty_cards_will_be_deleted = _EmptyCardsWillBeDeletedFilter()
+
+
 class _ExportersListCreatedHook:
     _hooks: List[Callable[[List[Tuple[str, Any]]], None]] = []
 
